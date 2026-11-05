@@ -345,6 +345,7 @@ pub fn router(st: Shared) -> Router {
         .route("/admin/users/{id}/roles", post(crate::admin::set_roles))
         .route("/admin/effective/{id}", get(crate::admin::effective))
         .route("/admin/policy", get(crate::admin::policy))
+        .route("/admin/what-if", post(crate::admin::what_if))
         .route("/admin/test-as", post(crate::admin::test_as))
         .route("/admin/test-as/end", post(crate::admin::end_test_as))
         .route("/admin/audit", get(crate::admin::audit))

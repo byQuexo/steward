@@ -284,3 +284,29 @@ pub async fn connectors(State(st): State<Shared>, a: Authed) -> Response {
         .collect();
     Json(json!({"connectors": rows})).into_response()
 }
+
+#[derive(Deserialize)]
+pub struct WhatIfAction {
+    pub kind: String,
+    pub name: String,
+    #[serde(default)]
+    pub args: Value,
+}
+
+#[derive(Deserialize)]
+pub struct WhatIfBody {
+    pub principal: Principal,
+    pub action: WhatIfAction,
+}
+
+/// "What if": the full decision trace for any principal and action, with the live policy and
+/// kill switch. The browser can compute the same with Warden's WASM build; this is the reference.
+pub async fn what_if(State(st): State<Shared>, a: Authed, Json(b): Json<WhatIfBody>) -> Response {
+    if let Err(r) = require_admin(&st, &a) {
+        return r;
+    }
+    let Ok(kind) = b.action.kind.parse::<ActionKind>() else { return err(StatusCode::BAD_REQUEST, "unknown action kind") };
+    let args = if b.action.args.is_null() { json!({}) } else { b.action.args };
+    let d = st.engine.explain(&b.principal, &Action::new(kind, b.action.name, args), &st.context());
+    Json(d).into_response()
+}

@@ -15,4 +15,5 @@ pub mod inbox;
 pub mod pages;
 pub mod profile_cmd;
 pub mod replay;
+pub mod serve;
 pub mod stack;

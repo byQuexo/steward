@@ -192,6 +192,18 @@ async fn console_lists_users_rights_and_connectors() {
     assert!(audit["events"].is_array());
     let policy: Value = ines.get("/api/admin/policy").await.json().await.unwrap();
     assert!(policy["catalog"].as_str().unwrap().contains("hr.get_salary"));
+    let what_if: Value = ines
+        .post(
+            "/api/admin/what-if",
+            json!({"principal": {"subject": {"id": "henrik", "roles": ["hr-lead"], "attrs": {"org_unit": "hr"}}, "agent": "acme-bot"},
+                   "action": {"kind": "tool", "name": "hr.get_salary", "args": {"unit": "sales"}}}),
+        )
+        .await
+        .json()
+        .await
+        .unwrap();
+    assert_eq!((what_if["effect"].as_str(), what_if["rule"].as_str()), (Some("deny"), Some("salary-only-own-unit")), "{what_if}");
+    assert!(what_if["trace"].as_array().unwrap().len() > 3);
     let sven = B::login(&e.base, "sven").await;
     assert_eq!(sven.get("/api/admin/users").await.status(), 403);
 }
