@@ -1,0 +1,32 @@
+name: Nightly quality eval
+
+# The full question set with a real model and an LLM judge. Needs the OPENROUTER_API_KEY
+# secret; without it the job is skipped. Costs a few cents per run (see eval/README.md).
+on:
+  schedule:
+    - cron: "41 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.OPENROUTER_API_KEY != '' }}
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: astral-sh/setup-uv@v6
+      - run: cargo build --release --locked -p steward
+      - name: Full eval with a real model and judge
+        run: |
+          ./target/release/steward demo --profile profiles/acme --listen 127.0.0.1:8000 > "$RUNNER_TEMP/demo.log" 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8000/health && break; sleep 1; done
+          cd eval
+          uv sync --locked
+          uv run steward-eval --base http://127.0.0.1:8000 --profile ../profiles/acme --gate --judge-model openrouter/deepseek/deepseek-v4.1-flash --report "$RUNNER_TEMP/eval.md" --json "$RUNNER_TEMP/eval.json"
+          cat "$RUNNER_TEMP/eval.md" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: quality-eval, path: "${{ runner.temp }}/eval.*" }

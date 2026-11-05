@@ -1,0 +1,140 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  rust:
+    name: Rust · fmt, clippy, tests, demo scenarios
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets --locked
+      - name: Unit, integration and end-to-end tests (all demo scenarios of both profiles over HTTP)
+        run: cargo test --workspace --locked
+      - name: Scenario report
+        run: |
+          cargo build --release --locked -p steward
+          for p in acme devteam; do
+            echo "### Profile \`$p\`" >> "$GITHUB_STEP_SUMMARY"
+            ./target/release/steward replay --profile profiles/$p --markdown "$RUNNER_TEMP/replay-$p.md"
+            cat "$RUNNER_TEMP/replay-$p.md" >> "$GITHUB_STEP_SUMMARY"
+          done
+      - name: Profiles and generated files are up to date
+        run: |
+          for p in acme devteam; do
+            ./target/release/steward profile check --profile profiles/$p
+            ./target/release/steward profile deploy --profile profiles/$p --out "$RUNNER_TEMP/deploy-$p"
+            diff -r --strip-trailing-cr "$RUNNER_TEMP/deploy-$p" deploy/$p
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: steward-linux
+          path: target/release/steward
+
+  security-gates:
+    name: Warden security gates (${{ matrix.profile }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { profile: acme, suite: scenarios/security/acme.yaml }
+          - { profile: devteam, suite: scenarios/security/devteam.yaml }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      # Warden's own reusable action: strict lint, the profile's suite, generated attacks,
+      # mutation testing and rule coverage as hard gates.
+      - uses: byQuexo/warden@523dc981ff78aa531c5be86b368065459357132f
+        with:
+          working-directory: profiles/${{ matrix.profile }}
+          policy: warden/policy.yaml
+          catalog: warden/catalog.yaml
+          suites: ${{ matrix.suite }}
+
+  seed:
+    name: Seed · deterministic data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - working-directory: seed
+        run: |
+          uv sync --locked
+          uv run pytest -q
+          for p in acme devteam; do uv run steward-seed --profile ../profiles/$p --check; done
+
+  ui:
+    name: UI · typecheck, lint, unit, build, e2e + a11y
+    runs-on: ubuntu-latest
+    needs: rust
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: ui/package-lock.json }
+      - uses: actions/download-artifact@v4
+        with: { name: steward-linux, path: bin }
+      - working-directory: ui
+        run: |
+          npm ci
+          npm run typecheck
+          npm run lint
+          npm test
+          npm run build
+      - name: End-to-end and accessibility (Playwright + axe) against steward demo
+        working-directory: ui
+        run: |
+          chmod +x ../bin/steward
+          (cd .. && ./bin/steward demo --profile profiles/acme --listen 127.0.0.1:8000 --ui ui/dist > "$RUNNER_TEMP/demo.log" 2>&1 &)
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8000/health && break; sleep 1; done
+          npx playwright install --with-deps chromium
+          STEWARD_URL=http://127.0.0.1:8000 npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: playwright-report, path: ui/playwright-report }
+
+  quality-eval:
+    name: Quality eval · harness and gates (offline)
+    runs-on: ubuntu-latest
+    needs: rust
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/download-artifact@v4
+        with: { name: steward-linux, path: bin }
+      - name: Run against steward demo (scripted model; real-model runs are nightly/manual)
+        run: |
+          chmod +x bin/steward
+          ./bin/steward demo --profile profiles/acme --listen 127.0.0.1:8000 > "$RUNNER_TEMP/demo.log" 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8000/health && break; sleep 1; done
+          cd eval
+          uv sync --locked
+          uv run pytest -q
+          uv run steward-eval --base http://127.0.0.1:8000 --profile ../profiles/acme --only-scripted --gate --report "$RUNNER_TEMP/eval.md" --json "$RUNNER_TEMP/eval.json"
+          cat "$RUNNER_TEMP/eval.md" >> "$GITHUB_STEP_SUMMARY"
+
+  compose:
+    name: Docker · Keycloak stack smoke test
+    runs-on: ubuntu-latest
+    needs: rust
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start the stack
+        run: docker compose -f deploy/compose.yaml --env-file deploy/dev.env up -d --build --wait --wait-timeout 600 steward
+      - name: Smoke test (real Keycloak tokens, approvals, A2A, network isolation, audit)
+        run: deploy/smoke.sh
+      - name: Logs
+        if: failure()
+        run: docker compose -f deploy/compose.yaml --env-file deploy/dev.env logs --tail 200
