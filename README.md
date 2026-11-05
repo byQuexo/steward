@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="20 of 20 demo scenarios pass end to end over HTTP · 365 of 365 security cases, 0 violations, 100% mutation score · 27 µs per authorization decision (p50)" src="docs/assets/readme/metrics.svg" width="100%">
+  <img alt="20 of 20 demo scenarios pass end to end over HTTP · 367 of 367 security cases, 0 violations, 100% mutation score · 27 µs per authorization decision (p50)" src="docs/assets/readme/metrics.svg" width="100%">
   <br>
   <sub>From CI on every push: every demo scenario of both profiles replayed against the full stack (<code>steward replay</code>), Warden's security suites with generated attacks and mutation testing (<code>warden eval --generate --mutate --coverage --gate</code>), decision latency from <code>warden bench</code> on the Acme policy. → <a href="#results">Results</a></sub>
 </p>
@@ -95,12 +95,13 @@ Every number is produced by CI.
 |---|---|---|
 | Demo scenarios, Acme | 11 conversations over HTTP: login, SSE chat, approvers in the inbox, test-as, kill switch, A2A | **11 / 11** |
 | Demo scenarios, Northwind | 9 conversations, same binary, other company | **9 / 9** |
-| Warden security suite, Acme | 44 written + 145 generated attacks | **189 / 189**, rule coverage 12/12, mutants killed 12/12 |
+| Warden security suite, Acme | 46 written + 145 generated attacks | **191 / 191**, rule coverage 12/12, mutants killed 12/12 |
 | Warden security suite, Northwind | 60 written + 116 generated attacks | **176 / 176**, rule coverage 9/9, mutants killed 9/9 |
 | Hard gates | scope violation, unapproved write, delegation escalation, failed cases | **0** |
 | Decision latency (Acme policy, release) | `warden bench`, 100k decisions | p50 **27 µs**, p99 **66 µs** |
 | Rust tests | unit and end-to-end (gateway, agent loop, console, scenarios) | **38** passing |
 | Seed | byte-identical regeneration of both profiles | ✅ |
+| Quality eval (offline, CI) | 88 questions over 7 users; harness and hard gates on the scripted subset | gates **0** (`pii_leak`, `scope_violation`, `unapproved_write`, `unverified_citation`, `delegation_escalation`) |
 
 <details>
 <summary><b>What the demo scenarios prove</b></summary>

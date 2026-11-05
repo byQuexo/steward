@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="236" viewBox="0 0 1280 236" role="img" aria-label="20 of 20 demo scenarios pass end to end; 365 of 365 security cases with 0 violations and 100% mutation score; 27 microseconds per authorization decision (p50)">
-  <title>20/20 scenarios · 365/365 security cases, 0 violations · 27 µs per decision</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="236" viewBox="0 0 1280 236" role="img" aria-label="20 of 20 demo scenarios pass end to end; 367 of 367 security cases with 0 violations and 100% mutation score; 27 microseconds per authorization decision (p50)">
+  <title>20/20 scenarios · 367/367 security cases, 0 violations · 27 µs per decision</title>
   <defs>
     <linearGradient id="c1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c2d12"/><stop offset="1" stop-color="#c2410c"/></linearGradient>
     <linearGradient id="c2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#134e4a"/><stop offset="1" stop-color="#0f766e"/></linearGradient>
@@ -16,7 +16,7 @@
     <g transform="translate(436 0)">
       <rect x="0" y="0" width="408" height="236" rx="18" fill="url(#c2)"/>
       <text x="32" y="58" font-size="18" opacity="0.85">Security cases · violations</text>
-      <text x="32" y="138" font-size="74" font-weight="800">365 · 0</text>
+      <text x="32" y="138" font-size="74" font-weight="800">367 · 0</text>
       <text x="32" y="184" font-size="16" opacity="0.92">written + generated attacks,</text>
       <text x="32" y="206" font-size="16" opacity="0.92">100% rule coverage and mutation score</text>
     </g>
