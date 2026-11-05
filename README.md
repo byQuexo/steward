@@ -100,6 +100,7 @@ Every number is produced by CI.
 | Hard gates | scope violation, unapproved write, delegation escalation, failed cases | **0** |
 | Decision latency (Acme policy, release) | `warden bench`, 100k decisions | p50 **27 µs**, p99 **66 µs** |
 | Rust tests | unit and end-to-end (gateway, agent loop, console, scenarios) | **38** passing |
+| UI | unit tests; Playwright end-to-end (approvals across two browsers, citations, injection, console) with axe on every page, light and dark | **34** unit, **12 / 12** e2e, 0 serious a11y violations |
 | Seed | byte-identical regeneration of both profiles | ✅ |
 | Quality eval (offline, CI) | 88 questions over 7 users; harness and hard gates on the scripted subset | gates **0** (`pii_leak`, `scope_violation`, `unapproved_write`, `unverified_citation`, `delegation_escalation`) |
 
