@@ -20,7 +20,7 @@ describe('presence state machine', () => {
     expect(derivePresence({}).state).toBe('idle');
     const p = derivePresence({ typing: true });
     expect(p.state).toBe('typing');
-    expect(p.pose?.pitch).toBeLessThan(0);
+    expect(p.look).toBe('composer');
     expect(p.rim).toBeNull();
   });
 
@@ -34,13 +34,12 @@ describe('presence state machine', () => {
       { type: 'tool_result', id: 'a', tool: 'docs.search', ok: true, preview: '' },
       { type: 'token', text: 'Laut Handbuch …' },
     ]);
-    expect(derivePresence({ turn: writing })).toMatchObject({ state: 'composing', orb: 'composing' });
+    expect(derivePresence({ turn: writing })).toMatchObject({ state: 'composing', orb: 'composing', look: 'user' });
   });
 
   it('awaits an approval with an ember rim and looks toward the card', () => {
     const p = derivePresence({ turn: run(held), typing: true });
-    expect(p).toMatchObject({ state: 'awaiting_approval', orb: 'breathing', rim: 'approval' });
-    expect(p.pose?.pitch).toBeGreaterThan(0);
+    expect(p).toMatchObject({ state: 'awaiting_approval', orb: 'breathing', rim: 'approval', look: 'gate' });
   });
 
   it('flashes red and shakes its head on a Warden deny', () => {
@@ -68,22 +67,20 @@ describe('presence state machine', () => {
     expect(derivePresence({ turn: done }).state).toBe('idle');
   });
 
-  it('does not flash for a new turn or an unchanged one', () => {
+  it('nods when a message is sent, and does not flash for an unchanged turn', () => {
     const a = run(held);
     expect(detectFlash(a, a)).toBeNull();
     expect(detectFlash(undefined, undefined)).toBeNull();
-    const other = { ...run([]), id: 't2' };
-    expect(detectFlash(a, other)).toBeNull();
+    const sent = { ...run([]), id: 't2' };
+    expect(detectFlash(a, sent)).toBe('sent');
+    expect(derivePresence({ turn: sent, flash: 'sent' })).toMatchObject({ state: 'thinking', gesture: 'nod' });
+    expect(detectFlash(undefined, { ...run([]), status: 'done', restored: true })).toBeNull();
   });
 
   it('sleeps after an error or a budget stop, and typing wakes it', () => {
     const budget = applyEvents(run([{ type: 'budget_exceeded', reason: 'Tagesbudget' }]), [{ type: 'done', answer: '', run_id: '', eur: 0 }]);
     expect(derivePresence({ turn: budget })).toMatchObject({ state: 'error', avatar: 'sleeping' });
     expect(derivePresence({ turn: budget, typing: true }).state).toBe('typing');
-  });
-
-  it('listens with headphones and a listening halo', () => {
-    expect(derivePresence({ listening: true })).toMatchObject({ state: 'listening', headphones: true, orb: 'listening' });
   });
 
   it('wears glasses in a test session and is dimmed and paused by the kill switch', () => {
@@ -121,7 +118,7 @@ describe('presence state machine', () => {
   it('dozes after a while and glances at the composer when idle', () => {
     expect(derivePresence({ dozing: true })).toMatchObject({ state: 'dozing', avatar: 'sleeping', say: { key: 'presence.say.dozing' } });
     expect(derivePresence({ dozing: true, typing: true }).state).toBe('typing');
-    expect(derivePresence({ glance: true }).pose?.pitch).toBeLessThan(0);
+    expect(derivePresence({ glance: true }).look).toBe('composer');
     expect(thingOf('crm.update_deal', { deal_id: 'd-1007' })).toBe('Deal d-1007');
     expect(thingOf('docs.search', { question: 'x' })).toBe('docs.search');
   });

@@ -50,7 +50,7 @@ export function usePresence(input: Omit<PresenceInput, 'flash' | 'dozing' | 'gla
       window.clearTimeout(dozeTimer.current);
     };
   }, []);
-  useEffect(() => wakeRef.current(), [input.turn, input.typing, input.listening]);
+  useEffect(() => wakeRef.current(), [input.turn, input.typing]);
 
   const presence = derivePresence({ ...input, flash, dozing, glance });
   const idle = presence.state === 'idle';

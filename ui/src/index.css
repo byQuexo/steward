@@ -52,7 +52,6 @@
     --chart-5: 0 0% 82%;
 
     --grid-line: 0 0% 0% / 0.05;
-    --grain-opacity: 0.025;
 
     --dur-micro: 120ms;
     --dur-enter: 220ms;
@@ -64,37 +63,37 @@
   }
 
   .dark {
-    --background: 0 0% 3%;
+    --background: 0 0% 7.5%;
     --foreground: 0 0% 95%;
-    --card: 0 0% 6%;
+    --card: 0 0% 12%;
     --card-foreground: 0 0% 95%;
-    --popover: 0 0% 8%;
+    --popover: 0 0% 13%;
     --popover-foreground: 0 0% 95%;
     --primary: 0 0% 95%;
     --primary-foreground: 0 0% 4%;
-    --secondary: 0 0% 10%;
+    --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 95%;
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 62%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 64%;
     --subtle: 0 0% 46%;
-    --accent: 0 0% 13%;
+    --accent: 0 0% 17%;
     --accent-foreground: 0 0% 96%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 4%;
-    --border: 0 0% 15%;
-    --input: 0 0% 22%;
+    --border: 0 0% 18%;
+    --input: 0 0% 24%;
     --ring: 0 0% 92%;
 
     --allow: 166 62% 50%;
-    --allow-soft: 166 45% 8%;
+    --allow-soft: 166 40% 12%;
     --allow-foreground: 164 70% 66%;
     --allow-ink: 166 60% 6%;
     --approval: 34 96% 56%;
-    --approval-soft: 32 60% 8%;
+    --approval-soft: 32 50% 12%;
     --approval-foreground: 38 100% 68%;
     --approval-ink: 30 60% 6%;
     --deny: 0 84% 60%;
-    --deny-soft: 0 50% 9%;
+    --deny-soft: 0 45% 13%;
     --deny-foreground: 0 95% 75%;
     --deny-ink: 0 0% 4%;
 
@@ -105,7 +104,6 @@
     --chart-5: 0 0% 24%;
 
     --grid-line: 0 0% 100% / 0.045;
-    --grain-opacity: 0.035;
 
     color-scheme: dark;
   }
@@ -146,18 +144,6 @@
   /* Decoration lives in position: fixed pseudo-elements: they paint under the content, take no
      pointer events, and contrast checkers (axe) ignore them, so text is always measured against
      the real background color. */
-
-  /* Film grain over the whole canvas. */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    opacity: var(--grain-opacity);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 160px 160px;
-  }
 
   /* Faint grid behind hero areas (login, empty chat), faded out radially. */
   .hero-grid::before {

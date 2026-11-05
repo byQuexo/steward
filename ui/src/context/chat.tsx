@@ -14,7 +14,7 @@ import { errorMessage } from '@/lib/utils';
 interface Chat {
   turns: Turn[];
   busy: boolean;
-  send: (message: string, opts?: { voice?: boolean }) => Promise<Turn | null>;
+  send: (message: string) => Promise<Turn | null>;
   cancel: () => void;
   clear: () => Promise<void>;
 }
@@ -46,7 +46,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         const restored: Turn[] = [];
         for (const m of messages) {
           if (m.role === 'user') {
-            restored.push({ ...newTurn(`h${counter.current++}`, m.text), status: 'done', restored: true });
+            restored.push({ ...newTurn(`h${counter.current++}`, m.text), status: 'done', restored: true, startedAt: undefined });
           } else {
             const last = restored[restored.length - 1];
             if (last && !last.answer) last.answer = m.text;
@@ -75,18 +75,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const send = useCallback(
-    async (message: string, opts?: { voice?: boolean }) => {
+    async (message: string) => {
       const text = message.trim();
       if (!text || busy) return null;
       const id = `t${Date.now()}-${counter.current++}`;
-      let turn = newTurn(id, text, opts?.voice);
+      let turn = newTurn(id, text);
       setTurns((ts) => [...ts, turn]);
       setBusy(true);
       const ctrl = new AbortController();
       abort.current = ctrl;
       try {
         await streamChat(text, {
-          voice: opts?.voice,
           signal: ctrl.signal,
           onEvent: (e) => {
             turn = applyEvent(turn, e);

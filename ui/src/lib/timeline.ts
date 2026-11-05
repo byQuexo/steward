@@ -87,10 +87,11 @@ export interface Turn {
   runEur?: number;
   /** Turn restored from history (no activity known). */
   restored?: boolean;
-  voice?: boolean;
+  /** When the turn started (ms since epoch; absent for turns restored from history). */
+  startedAt?: number;
 }
 
-export function newTurn(id: string, question: string, voice = false): Turn {
+export function newTurn(id: string, question: string, startedAt: number | undefined = Date.now()): Turn {
   return {
     id,
     question,
@@ -98,7 +99,7 @@ export function newTurn(id: string, question: string, voice = false): Turn {
     status: 'streaming',
     items: [],
     cost: { eur: 0, inputTokens: 0, outputTokens: 0, calls: 0, models: [] },
-    voice,
+    startedAt,
   };
 }
 

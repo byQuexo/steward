@@ -57,15 +57,16 @@ theme toggle and stored in `localStorage["steward.theme"]`.
 
 | Token                 | Dark          | Light         | Use                                    |
 | --------------------- | ------------- | ------------- | -------------------------------------- |
-| `--background`        | `0 0% 3%`     | `0 0% 98.5%`  | Canvas                                 |
-| `--card`              | `0 0% 6%`     | `0 0% 100%`   | Raised surface (composer, cards)       |
-| `--popover`           | `0 0% 8%`     | `0 0% 100%`   | Menus, dialogs, toasts                 |
-| `--secondary`/`--muted` | `0 0% 10%`  | `0 0% 95%`    | Insets, user bubble, chips             |
-| `--accent`            | `0 0% 13%`    | `0 0% 92%`    | Hover / selected                       |
-| `--border`            | `0 0% 15%`    | `0 0% 88%`    | Hairlines                              |
-| `--input`             | `0 0% 22%`    | `0 0% 78%`    | Control borders                        |
+| `--background`        | `0 0% 7.5%`   | `0 0% 98.5%`  | Canvas                                 |
+| `--card`              | `0 0% 12%`    | `0 0% 100%`   | Raised surface (composer, cards)       |
+| `--popover`           | `0 0% 13%`    | `0 0% 100%`   | Menus, dialogs, toasts                 |
+| `--secondary`         | `0 0% 15%`    | `0 0% 95%`    | User message pill                      |
+| `--muted`             | `0 0% 12%`    | `0 0% 95%`    | Insets, chips                          |
+| `--accent`            | `0 0% 17%`    | `0 0% 92%`    | Hover / selected                       |
+| `--border`            | `0 0% 18%`    | `0 0% 88%`    | Hairlines                              |
+| `--input`             | `0 0% 24%`    | `0 0% 78%`    | Control borders                        |
 | `--foreground`        | `0 0% 95%`    | `0 0% 7%`     | Primary text, primary button fill      |
-| `--muted-foreground`  | `0 0% 62%`    | `0 0% 36%`    | Secondary text (≥ 4.5:1 on every surface) |
+| `--muted-foreground`  | `0 0% 64%`    | `0 0% 36%`    | Secondary text (≥ 4.5:1 on every surface) |
 | `--subtle`            | `0 0% 46%`    | `0 0% 55%`    | Decorative only (icons, rules), never body text |
 | `--ring`              | `0 0% 92%`    | `0 0% 9%`     | Focus ring                             |
 
@@ -108,11 +109,11 @@ the x.ai console. Nothing is bigger than it needs to be to read comfortably.
 
 | Role       | Size / line    | Weight | Tracking  | Use                                    |
 | ---------- | -------------- | ------ | --------- | -------------------------------------- |
-| Greeting   | 24–28 / 1.2    | 600    | −0.025em  | Chat empty state (max two lines), login title |
+| Greeting   | 22–28 / 1.2    | 600    | −0.025em  | Chat empty state (max two lines), login title |
 | H1         | 20 / 1.25      | 600    | −0.02em   | Page titles                            |
 | H2         | 15 / 1.3       | 600    | −0.01em   | Console section titles                 |
 | Card title | 13.5 / 1.3     | 500    | 0         | Card headers                           |
-| Body       | 14 / 1.6       | 400    | 0         | Answers, messages, composer            |
+| Body       | 14–15 / 1.6    | 400    | 0         | Answers, messages, composer            |
 | UI         | 13 / 1.45      | 400–500 | 0        | Nav, buttons, table cells, form labels |
 | Meta       | 12–12.5 / 1.45 | 400    | 0         | Descriptions, notes, presence line     |
 | Mono       | 11.5–12.5      | 400–500 | 0        | Tool names, rule ids, args, timers     |
@@ -127,14 +128,14 @@ Numbers use `tabular-nums`. Never more than two weights on one screen.
 | Header bar                    | 44px, hairline bottom border           |
 | Buttons                       | 28px (`sm`) / 32px (default), radius 6 |
 | Inputs, selects               | 32px, radius 6                         |
-| Composer                      | 44px single line, grows to 200px       |
+| Composer                      | rounded 24px panel: textarea row + 32px toolbar |
 | Log line (tool call)          | 28px                                   |
 | Table row                     | ~36px (8px padding)                    |
 | Badges                        | 18px, radius 4 — only for roles/labels, never for verdicts |
-| Content column (chat)         | 680–720px                              |
+| Content column (chat)         | 720px (+ 240px stage at ≥ 1200px)      |
 | Pages / console               | 720 / 1040 / 1200px                    |
 | Paddings                      | 12–16px; sections 20–32px apart        |
-| Steward                       | 60px on an 80px disc (hero), 20px on a 28px disc (dock) |
+| Steward                       | 156px (empty chat), 112px (stage), 30px (composer), 22–30px (turn header) |
 
 ---
 
@@ -145,10 +146,9 @@ Numbers use `tabular-nums`. Never more than two weights on one screen.
   10px. No full pills except the verdict trail ticks and the user initials.
 - **Elevation:** none in dark. Depth = surface step (`background` → `card` → `popover`) plus a 1px
   `--border` hairline. Popovers (user menu, toasts) get one soft shadow.
-- **Texture:** a faint 48px grid masked by a radial fade sits behind hero areas (login, empty chat),
-  and a 3% monochrome film grain covers the canvas. Both are `position: fixed` pseudo-elements at
-  `z-index: -1`: they paint under the content and contrast checkers (axe) measure text against
-  the real background color instead of giving up on a background image.
+- **Texture:** the canvas is flat. Only hero areas (login, empty chat) get a faint 48px grid,
+  masked by a radial fade, drawn by a `position: fixed` pseudo-element at `z-index: -1` (it paints
+  under the content, and contrast checkers measure text against the real background color).
 
 ---
 
@@ -187,22 +187,43 @@ A thin 44px bar with a hairline bottom border, nothing floating or centered.
   the user's initials (28px circle) opening a small menu: name, roles in mono, sign out.
 - Mobile: the nav moves into a menu button; indicators shrink to their icons.
 
+### Conversation (the chat view)
+One calm column, inspired by the quietest chat products (grok.com, v0, Linear) — and every bit
+of identity is Steward's own.
+- **Canvas:** flat near-black `#131313`, no texture behind the conversation, a 720px column
+  centered. On screens ≥ 1200px Steward's **stage** (240px, §7) sits to its left.
+- **Conversation header:** a slim sticky 44px row at the top of the column: the first question
+  as the title (13px, truncated), the verdict totals of the whole conversation (`● 1 ◆ 1 ▬ 2`,
+  mono 11px) and a quiet icon button "Neue Unterhaltung".
+- **User message:** a small dark pill, right-aligned at the top of each turn — `#262626`
+  (`--secondary`), radius 16px, 14px text, padding 8×14px. Its time appears on hover.
+- **Steward's turn** starts with his avatar (22px on the stage layout, 30px without) and his name
+  plus the verdict trail, so it is always clear that he is speaking. While he works, one quiet
+  line follows: his orb (20px, ember while a gate waits), his current first-person line and the
+  live seconds — "Warden hält das an. Ines muss zustimmen. · 3 s". Then the activity log (one
+  line per call, gates inline), the answer as plain 14.5px prose, the sources as a compact inline
+  list of chips (21×28 page thumbnail · title · page, quote in the lightbox) and the cost as a
+  small mono chip with a hairline.
+- **Rhythm:** 40px between turns, 12px between the parts of a turn.
+
 ### Composer
-- 44px single line (14px text) that grows to 200px; `card` surface, 1px `--input` hairline,
-  radius 10px; focus turns the hairline `--ring`. Send is a 32px inverted square (radius 6).
-- While a turn runs: the send button becomes a stop square and a faint mono `border-beam` line
-  runs along the bottom edge.
-- Below: voice switch (11.5px) left, `kbd` hints right (⏎ send · ⇧⏎ new line · Ctrl/⌘K focus).
-- Empty chat: centered under Steward and his greeting. With messages: docked at the bottom of the
-  720px column, with Steward's presence line right above it.
-
-### Suggestions
-Small hairline chips under the hero composer: 28px, radius 6, 12.5px muted text.
-
-### Messages
-- **User:** right-aligned, `secondary` fill, radius 10 (top-right 3), 14px, no avatar.
-- **Steward:** no bubble. A 12px header ("Steward" + verdict trail), the activity log, the answer
-  in 14/1.6 prose, sources, then the cost in mono 11px.
+One refined unit, shared by the empty state and the conversation.
+- A large rounded panel: radius 24px, `--card` (`#1f1f1f`, a step lighter than the page), 1px
+  `--border` hairline (`#2e2e2e`); focus lifts the hairline to `foreground/30`.
+- **Row 1:** the textarea (15px, grows to 200px) with the placeholder "Frag Steward, was du
+  willst". On narrow screens (no stage) Steward himself sits at its left at 40px: he is the one
+  you talk to.
+- **Row 2, a toolbar:** left a round **+** (opens a small menu with the role's suggested questions
+  and "Neue Unterhaltung"), then — only while the composer is focused — tiny `kbd` hints
+  (⏎ senden · ⇧⏎ neue Zeile; `Ctrl K` when not focused). Right: a quiet chip with the model
+  route of the last answer (read-only, from the last cost event; "Offline-Modell" for the
+  scripted model) and a round white send button with a black arrow, which becomes a white
+  circle with a black stop square while Steward works.
+- While a turn runs, a faint mono `border-beam` line runs along the panel's bottom edge.
+- **Dock:** in a conversation the composer is sticky at the bottom of the column, 24px above the
+  window edge, with the message list fading out behind it (a gradient, no hard strip).
+- The empty state puts the same composer under Steward and his greeting, with suggestion chips
+  (32px) below.
 
 ### Activity log
 An instrument log, one hairline gutter on the left, **one line per step**:
@@ -267,66 +288,81 @@ Bottom-right, `popover`, hairline, radius 6, 13px. Monochrome glyphs; faults use
 
 ---
 
-## 7. Presence — Steward is someone, not a spinner
+## 7. Presence — Steward is there with you
 
-Like a good copilot, Steward has *one* persistent body: a monochrome `bot-avatars` **droid**
-that lives in the chat, and he **says who he is**. In the empty state he sits above his greeting
-(60px on an 80px liquid disc), greets by first name and time of day in first person — "Guten
-Abend, Ivo. Ich bin Steward." plus one short line — typed out once. During a conversation he is
-docked small (20px on a 28px disc) right above the composer, with **one speech line** next to him
-that narrates what he does, in first person. His research / action sub-agents bud off his disc
-as small companions (a `liquid-gooey` droplet) when a handoff happens and merge back when they
-return. He never blocks input, never talks in bubbles, never celebrates.
+Like a good copilot, Steward has *one* persistent body: a monochrome `bot-avatars` **droid**,
+and he **says who he is**. He is a character that is present, calm and premium — never a
+bouncing mascot.
+
+**Where he lives**
+
+| Layout | Steward | His words |
+| --- | --- | --- |
+| Empty chat | **156px** on a 184px liquid disc, the centerpiece above the composer | A hairline caption box attached to him (a small notch points at him): "Guten Abend, Ivo. Ich bin Steward." typed out once, plus one short line |
+| Conversation, ≥ 1200px | The **stage**: a sticky 240px column left of the conversation, vertically centered; 112px on a 140px disc with his halo and verdict rim | Caption box under him: "Steward" + his current first-person line |
+| Conversation, narrower | Inside the composer, left of the textarea, 30px on a 40px disc | The working line in his turn |
+| Every turn | His avatar (22 / 30px, still) + "Steward" at the start of each of his turns | — |
+
+His research / action sub-agents bud off his disc (on the stage or in the composer) as small
+companions — a `liquid-gooey` droplet — when a handoff happens, and merge back when they return.
+
+**How he reacts**
+
+- Typing → he looks at the composer. Sending → a small **nod**. A gate waits → he settles,
+  gets the ember rim and the breathing ember halo, and **looks at the gate**. Answering → he
+  **looks at you** (faces the camera). A deny → a short **head shake** with a red rim; an
+  approval → one **hop** with a teal rim.
+- Idle life: he blinks, breathes, his eyes follow the cursor, he glances at the composer every
+  12–22s and jumps rarely. After 60s without input he **dozes** and wakes on any key, click or
+  wheel. Clicking him (or Enter — he is a button) makes him hop and say one short line about what
+  he can do for *this* user.
+- Head poses are per layout (`POSES` in `presence.tsx`): from the stage the composer is
+  down-right and the gate to the right; from the composer the gate is up-right.
 
 The behavior is a small state machine in `ui/src/lib/presence.ts` (pure, unit-tested), driven by
-the chat events of the latest turn plus composer, voice and session state; timers (flashes,
-dozing, glances) live in `ui/src/lib/use-presence.ts`. The state is exposed as `data-presence`
-on `[data-testid="presence"]`.
+the chat events of the latest turn plus composer and session state; timers (flashes, dozing,
+glances) live in `ui/src/lib/use-presence.ts`, poke lines in `ui/src/lib/use-poke.ts`. The state
+is exposed as `data-presence` on `[data-testid="presence"]` (exactly one per page).
 
 | State               | Trigger (priority order, top wins)                         | Body (`bot-avatars`)                 | Halo (`thinking-orbs`) | Rim     | Line (de)                                        |
 | ------------------- | ---------------------------------------------------------- | ------------------------------------ | ---------------------- | ------- | ------------------------------------------------ |
 | `denied`            | a `deny` decision arrived (flash, 800ms)                   | head shake                           | —                      | red     | Darf ich nicht – Warden sagt nein.               |
 | `approved`          | an approval flipped to approved (flash, 1.2s)              | one hop                              | —                      | teal    | Sara hat zugestimmt – weiter geht’s.             |
-| `listening`         | voice push-to-talk held                                    | headphones on                        | `listening`            | —       | Ich höre zu …                                    |
-| `awaiting_approval` | turn running and a gate is pending                         | settles, looks up toward the gate    | `breathing`, ember     | ember   | Warden hält das an. Ines muss zustimmen.         |
+| `awaiting_approval` | turn running and a gate is pending                         | settles, looks at the gate           | `breathing`, ember     | ember   | Warden hält das an. Ines muss zustimmen.         |
 | `calling_tools`     | turn running, a call without result                        | `working`                            | `searching`            | —       | Ich frage Warden, ob ich Ticket t-2051 darf … → Ich lese Ticket t-2051 … / Ich rufe Deal d-1007 auf … |
-| `composing`         | turn running, answer tokens streaming                      | `working`                            | `composing`            | —       | Ich schreibe die Antwort …                       |
-| `thinking`          | turn running, nothing else yet (or a handoff just happened) | `working`                           | `solving`              | —       | Ich überlege … / Ich gebe das an den Recherche-Agenten. |
+| `composing`         | turn running, answer tokens streaming                      | `working`, looks at you              | `composing`            | —       | Ich schreibe die Antwort …                       |
+| `thinking`          | turn running, nothing else yet (or a handoff just happened) | `working` (+ nod right after sending) | `solving`             | —       | Ich überlege … / Ich gebe das an den Recherche-Agenten. |
 | `done`              | turn finished (flash, 1.2s)                                | small nod                            | —                      | —       | Erledigt.                                        |
 | `paused`            | kill switch on and nothing running                         | `sleeping`, frozen, dimmed to 45%    | —                      | —       | Pause – Schreibaktionen sind gestoppt.           |
-| `typing`            | composer has text and focus                                | turns toward the composer            | —                      | —       | Ich lese mit …                                   |
+| `typing`            | composer has text and focus                                | looks at the composer                | —                      | —       | Ich lese mit …                                   |
 | `error`             | last turn failed or hit a budget stop                      | `sleeping`                           | —                      | —       | Das hat nicht geklappt. / Budget erreicht – ich halte an. |
 | `dozing`            | no key, click or wheel for 60s                             | `sleeping` (wakes on any input)      | —                      | —       | Ich döse kurz. Schreib einfach los.              |
-| `idle`              | otherwise                                                  | blinks, eyes follow the cursor, a glance at the composer every 12–22s, a rare jump | — | — | Bereit. Frag mich etwas. |
+| `idle`              | otherwise                                                  | blinks, follows the cursor, glances, rare jump | —            | —       | Bereit. Frag mich etwas.                         |
 
 - Tool targets come from the events: `ticket_id` → "Ticket t-2051", `deal_id` → "Deal d-1007",
   otherwise the tool name; read-ish tools (`get/list/search/…`) are "lesen", others "aufrufen".
-- **Poke:** clicking (or Enter on) Steward makes him hop and say one short line about what he can
-  do for *this* user: "Ich kann 9 Werkzeuge für dich nutzen, z. B. …", one of the user's
-  suggestions, or "Alles, was ich tue, prüft Warden vorher." (4.5s, then back to his state line).
-- **Lines** fade in, one at a time; a state change replaces a poke line. All lines are in de and
-  en (`presence.say.*`, `presence.click.*`).
-- **Modifiers:** test-as session → glasses (he sees through someone else's eyes) and the idle
-  line "Testsitzung – ich arbeite nur lesend."; kill switch → dimmed.
+- Lines fade in, one at a time; a state change replaces a poke line. All lines exist in de and en
+  (`presence.say.*`, `presence.click.*`).
+- Modifiers: test-as session → glasses (he sees through someone else's eyes) and the idle line
+  "Testsitzung – ich arbeite nur lesend."; kill switch → dimmed.
 - "Done" deliberately has no teal rim: finishing a turn is not a verdict; teal appears on
   `approved`, which is.
-- **Reduced motion:** avatar and orb `paused`, no shake/nod/hop/glance, no typing — the still pose
-  plus the text line carry the meaning.
+- **Reduced motion:** a static large avatar and his caption — avatar and orb `paused`, no
+  shake / nod / hop / glance / head turns, no typing.
 
 ---
 
 ## 8. libraries.dev components
 
-Six MIT packages from libraries.dev, pinned to exact versions, carry all the ambient life. Each is
-wrapped once in `ui/src/components/avatars.tsx` (or `presence.tsx` / `voice-glow` in the chat), so
+Five MIT packages from libraries.dev, pinned to exact versions, carry all the ambient life. Each is
+wrapped once in `ui/src/components/avatars.tsx` (or `presence.tsx`), so
 the theme (`useResolvedTheme`) and reduced motion (`useReducedMotion`) are wired in one place.
 
 | Package | Version | Component | Where | Tuning | Reduced motion |
 | --- | --- | --- | --- | --- | --- |
-| `thinking-orbs` | 0.3.2 | `ThinkingOrb` | Halo behind Steward's presence; 20px inline orb for "transcribing" | grey ink; `color` = ember only while awaiting approval; preset 64 (hero) / 32 (dock) drawn at 1.2× the disc | `paused` (static representative frame) |
-| `bot-avatars` | 0.2.2 | `BotAvatar` | Steward (droid), research (ghost), action (mech) | grey bodies (`saturation` 0), `smooth` shading, `interactive` on Steward (eyes follow the cursor, click = hop), `pose` for typing / glance / gate gaze, `glasses` for test-as, `headphones` while listening | `paused` (still pose of the state); no `poke` hops |
+| `thinking-orbs` | 0.3.2 | `ThinkingOrb` | Halo behind Steward (hero, stage, composer); the 20px orb in his working line | grey ink; `color` = ember only while awaiting approval; preset 64 (hero, stage) / 32 (composer) drawn at 1.2× the disc | `paused` (static representative frame) |
+| `bot-avatars` | 0.2.2 | `BotAvatar` | Steward (droid), research (ghost), action (mech) | grey bodies (`saturation` 0), `smooth` shading, `interactive` on Steward (eyes follow the cursor, click = hop), `pose` for composer / gate / user gazes per layout, `glasses` for test-as | `paused` (still pose of the state); no `poke` hops |
 | `border-beam` | 1.4.1 | `BorderBeam` | Always `size="line"`: along the top edge of the first pending gate (`gold`), under the composer while a turn runs (`mono`, strength 0.45) | `staticColors` on the ember line so it stays amber | `active={false}`; the gate keeps its static ember rule |
-| `voice-glow` | 0.3.0 | `VoiceBeam` | Bottom edge of the composer in voice mode: driven by the mic stream while listening, by the speech-output level while Steward speaks | `mono` (voice is not a verdict), `idle={0}` so silence shows nothing | `active={false}`; the text status ("Ich höre zu …") carries it |
 | `liquid-gooey` | 0.2.2 | `Liquid` + `Liquid.Item` | A2A handoff: the research/action companion buds off Steward's disc like a droplet and merges back when the sub-agent returns | `fill` = `--accent`, `blur` 4–6, `transition` `smooth` (≈350ms), companions scale 0.35 → 1 | `transition={{ duration: 0 }}`: companions appear/disappear without travel |
 | `metal-fx` | 2.0.11 | `MetalFx` (`circle`, `silver`) | The Steward mark only: login hero (44px) and the app-icon ring in the header (20px) | `strength` 0.85 / 0.6, never chromatic, never on content or chat buttons; the glyph sits above the canvas | `paused` (the metal silhouette stays, the shader freezes) |
 
@@ -335,28 +371,14 @@ element; a beam always means "waiting on a human" (ember) or "Steward is working
 
 ---
 
-## 9. Voice mode
-
-Voice mode replaces the textarea inside the same composer shell:
-- A 32px hold-to-talk button (foreground fill). While held it inverts, the live transcript
-  appears next to it, and Steward's presence puts its headphones on and gets the `listening` halo.
-- Transcribing: a 20px orb `working` next to the text. Speaking the answer: a speaker glyph and a "stop reading" ghost
-  icon button.
-- The composer's bottom edge carries a monochrome `voice-glow` that rises with the microphone
-  level while listening and with the speech output while Steward reads the answer aloud.
-- The hint under the composer reminds: *approvals are click-only, never by voice*. No approval
-  control is ever reachable by voice.
-
----
-
-## 10. Accessibility
+## 9. Accessibility
 
 - **Contrast:** body text ≥ 7:1, secondary text ≥ 4.5:1, verdict text on its soft fill ≥ 4.5:1 in
   both themes. Verified by axe (no serious/critical violations) in light and dark.
 - **Focus:** 2px solid `--ring` outline, 2px offset, on every interactive element; never removed
   without a replacement. Inside the composer, focus-within draws the ring on the shell.
 - **Keyboard:** skip link first; Enter sends, Shift+Enter new line, Ctrl/⌘K focuses the composer;
-  Space/Enter hold-to-talk; log lines expand with Enter; inbox `j`/`k`/`⏎`; Steward is a button
+  the + menu closes on Escape; log lines expand with Enter; inbox `j`/`k`/`⏎`; Steward is a button
   (Enter pokes him); the user menu closes on Escape; dialogs trap focus; tables scroll with the
   keyboard (focusable wrapper).
 - **Semantics:** orbs and avatars are `role="img"` with a localized label, or `aria-hidden` when a
@@ -366,7 +388,7 @@ Voice mode replaces the textarea inside the same composer shell:
 
 ---
 
-## 11. Do / Don't
+## 10. Do / Don't
 
 | Do | Don't |
 | --- | --- |
@@ -382,7 +404,7 @@ Voice mode replaces the textarea inside the same composer shell:
 
 ---
 
-## 12. Not AI slop
+## 11. Not AI slop
 
 Steward is an instrument for people who need to trust it. It should look like a well-made log
 viewer that happens to talk, not like a generic "AI assistant" landing page.
@@ -402,7 +424,7 @@ viewer that happens to talk, not like a generic "AI assistant" landing page.
 
 ---
 
-## 13. Implementation map
+## 12. Implementation map
 
 - Tokens: `ui/src/index.css` (`:root` = light, `.dark` = dark), Tailwind mapping in
   `ui/tailwind.config.ts`. Theme default dark (`index.html` pre-paint script, `theme-toggle.tsx`).
@@ -416,4 +438,3 @@ viewer that happens to talk, not like a generic "AI assistant" landing page.
 - Presence state machine and first-person lines: `ui/src/lib/presence.ts` (+ `presence.test.ts`),
   timers (flashes, dozing, glances) in `ui/src/lib/use-presence.ts`, rendered by
   `ui/src/components/presence.tsx`; the typed greeting in `ui/src/pages/chat.tsx`.
-- Voice glow levels (mic stream, speech output): `ui/src/lib/voice.ts`.

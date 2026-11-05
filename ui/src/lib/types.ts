@@ -35,7 +35,6 @@ export interface Me {
   greeting: string;
   suggestions: string[];
   tools: string[];
-  voice: { mode: 'browser' | 'server' | string; language: string };
   kill_switch: KillMode;
 }
 

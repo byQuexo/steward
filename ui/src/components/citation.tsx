@@ -10,9 +10,10 @@ function pageUrl(c: Pick<CitationItem, 'url' | 'docId' | 'page'>): string {
   return c.url && c.url.startsWith('/api/docs/pages/') ? c.url : api.pageImageUrl(c.docId, c.page);
 }
 
-function PageImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+function PageImage({ src, alt, className, small }: { src: string; alt: string; className?: string; small?: boolean }) {
   const { t } = useI18n();
   const [failed, setFailed] = useState(false);
+  if (failed && small) return <ImageOff className="m-auto h-3 w-3 text-muted-foreground" aria-label={t('cite.imageFailed')} />;
   if (failed) {
     return (
       <div className="flex h-full min-h-24 w-full flex-col items-center justify-center gap-1 p-2 text-center text-xs text-muted-foreground">
@@ -24,40 +25,32 @@ function PageImage({ src, alt, className }: { src: string; alt: string; classNam
   return <img src={src} alt={alt} className={className} onError={() => setFailed(true)} loading="lazy" decoding="async" />;
 }
 
-/** A verified citation: title, page, quote and a page thumbnail that opens a lightbox. */
+/** A verified citation as a compact chip; it opens a lightbox with the page image and the quote. */
 export function CitationCard({ c }: { c: CitationItem }) {
   const { t } = useI18n();
   const src = pageUrl(c);
   const alt = t('cite.imageAlt', { page: c.page, title: c.title });
   return (
     <Dialog>
-      <div className="group flex w-full max-w-md items-stretch gap-3 rounded-md border bg-card p-2 transition-colors duration-micro hover:border-foreground/25" data-testid="citation-card">
+      {/* A compact source chip: page thumbnail, document, page; the quote is in the lightbox. */}
+      <span className="inline-flex max-w-full" data-testid="citation-card">
         <DialogTrigger asChild>
           <button
             type="button"
-            className="relative h-[72px] w-[54px] shrink-0 overflow-hidden rounded-[4px] border bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            title={c.quote}
             aria-label={t('cite.open', { page: c.page, title: c.title })}
+            className="group inline-flex h-9 max-w-full items-center gap-2 rounded-[8px] border bg-card py-1 pl-1 pr-2.5 text-left transition-colors duration-micro hover:border-foreground/25 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <PageImage src={src} alt="" className="h-full w-full object-cover object-top" />
-            <span className="absolute bottom-1 right-1 rounded-full bg-black/70 p-1 text-white opacity-0 transition-opacity duration-micro group-hover:opacity-100" aria-hidden>
-              <Maximize2 className="h-3 w-3" />
+            <span className="relative h-7 w-[21px] shrink-0 overflow-hidden rounded-[3px] border bg-white">
+              <PageImage src={src} alt="" small className="h-full w-full object-cover object-top" />
             </span>
+            <span className="min-w-0 truncate text-[12.5px] text-foreground">{c.title}</span>
+            <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">{t('cite.page', { page: c.page })}</span>
+            <BadgeCheck className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden />
+            <Maximize2 className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
           </button>
         </DialogTrigger>
-        <div className="min-w-0 flex-1 py-0.5">
-          <p className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
-            <span className="truncate">{c.title}</span>
-            <span aria-hidden>·</span>
-            <span className="whitespace-nowrap tabular-nums">{t('cite.page', { page: c.page })}</span>
-          </p>
-          <blockquote className="mt-1 line-clamp-2 border-l border-foreground/50 pl-2 text-[12.5px] leading-snug">{c.quote}</blockquote>
-          {/* Verification is not a Warden verdict: grey, with a glyph. */}
-          <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-            <BadgeCheck className="h-3 w-3" aria-hidden />
-            {t('cite.verified')}
-          </p>
-        </div>
-      </div>
+      </span>
       <DialogContent closeLabel={t('cite.close')} className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>{c.title}</DialogTitle>

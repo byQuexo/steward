@@ -45,14 +45,12 @@ and axe checks (no serious or critical violations) in light and dark mode.
 - `POST /api/chat` streams SSE; it is read with `fetch` + `ReadableStream` (`src/lib/sse.ts`) and
   folded into a per-turn activity timeline (`src/lib/timeline.ts`). Live inbox updates come from
   `GET /api/events` (EventSource).
-- Voice mode uses the Web Speech API (`voice.mode: browser`) or the server's STT/TTS endpoints
-  (`voice.mode: server`). Approvals are never given by voice.
 - Design system: [`DESIGN.md`](../DESIGN.md) ("Verdict": monochrome UI, color only where Warden
   decided — teal allow, ember approval, red deny). Fonts (Geist, Geist Mono) are bundled.
 - Steward's animated presence is a pure state machine (`src/lib/presence.ts`, unit-tested) over
   the chat events; the libraries.dev components (`thinking-orbs`, `bot-avatars`, `border-beam`,
-  `voice-glow`, `liquid-gooey`, `metal-fx`) are wired in `src/components/avatars.tsx` and
+  `liquid-gooey`, `metal-fx`) are wired in `src/components/avatars.tsx` and
   `src/components/presence.tsx`.
 - The UI defaults to the dark theme; the toggle cycles dark → light → system. The axe e2e tests
   pin the stored theme per color scheme.
-- All motion (orb, avatars, beams, voice glow, metal, fades) stops under `prefers-reduced-motion`.
+- All motion (orb, avatars, beams, metal, fades) stops under `prefers-reduced-motion`.

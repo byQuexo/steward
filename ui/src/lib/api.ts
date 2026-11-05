@@ -113,28 +113,6 @@ export const api = {
   connectors: () => get<{ connectors: Connector[] }>('/api/admin/connectors'),
 
   pageImageUrl: (doc: string, page: number) => `/api/docs/pages/${encodeURIComponent(doc)}/${page}.png`,
-
-  transcribe: async (audio: Blob): Promise<string> => {
-    const r = await fetch('/api/voice/transcribe', {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'X-Steward': '1', 'Content-Type': audio.type || 'audio/webm' },
-      body: audio,
-    });
-    if (!r.ok) throw await errorFrom(r);
-    const v = (await r.json()) as { text?: string | null };
-    return v.text ?? '';
-  },
-  speak: async (text: string): Promise<Blob> => {
-    const r = await fetch('/api/voice/speak', {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'X-Steward': '1', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
-    });
-    if (!r.ok) throw await errorFrom(r);
-    return r.blob();
-  },
 };
 
 /**
@@ -143,13 +121,13 @@ export const api = {
  */
 export async function streamChat(
   message: string,
-  opts: { voice?: boolean; signal?: AbortSignal; onEvent: (e: ChatEvent) => void },
+  opts: { signal?: AbortSignal; onEvent: (e: ChatEvent) => void },
 ): Promise<void> {
   const r = await fetch('/api/chat', {
     method: 'POST',
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream', 'X-Steward': '1' },
-    body: JSON.stringify({ message, voice: opts.voice ?? false }),
+    body: JSON.stringify({ message }),
     signal: opts.signal,
   });
   if (!r.ok) {

@@ -1,28 +1,38 @@
-import { ArrowUp, Coins, Eraser, Mic, Square, Volume2, VolumeX } from 'lucide-react';
+import { ArrowUp, ChevronDown, Coins, Eraser, Plus, Square } from 'lucide-react';
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
-import { VoiceBeam } from 'voice-glow';
 
 import { ActivityTimeline } from '@/components/activity';
-import { Beam, Orb } from '@/components/avatars';
+import { AgentAvatar, Beam, Orb } from '@/components/avatars';
 import { CitationCard } from '@/components/citation';
 import { VerdictDot, VerdictTrail } from '@/components/decision';
 import { Markdown } from '@/components/markdown';
-import { PresenceView } from '@/components/presence';
+import { PresenceAvatar, PresenceCaption } from '@/components/presence';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/misc';
-import { Switch } from '@/components/ui/switch';
 import { useChat } from '@/context/chat';
 import { useI18n } from '@/context/i18n';
 import { useMe } from '@/context/session';
 import type { MessageKey } from '@/i18n';
-import { useReducedMotion, useResolvedTheme } from '@/lib/motion';
+import { useElapsed } from '@/lib/clock';
+import { effectTone } from '@/lib/look';
+import { useMediaQuery, useReducedMotion } from '@/lib/motion';
+import type { Line, Presence } from '@/lib/presence';
 import type { CitationItem, Turn } from '@/lib/timeline';
+import { usePoke } from '@/lib/use-poke';
 import { usePresence } from '@/lib/use-presence';
 import { cn, formatEur, formatNumber } from '@/lib/utils';
-import { useVoice } from '@/lib/voice';
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+
+/** Wide screens get the stage column next to the conversation. */
+const WIDE = '(min-width: 1200px)';
+
+function useClockTime(ms: number | undefined): string | null {
+  const { intl } = useI18n();
+  if (!ms) return null;
+  return new Intl.DateTimeFormat(intl, { hour: '2-digit', minute: '2-digit' }).format(new Date(ms));
+}
 
 function CostChip({ turn }: { turn: Turn }) {
   const { t, intl } = useI18n();
@@ -31,7 +41,11 @@ function CostChip({ turn }: { turn: Turn }) {
   const tokens = turn.cost.inputTokens + turn.cost.outputTokens;
   const detail = `${t('act.costTokens', { input: formatNumber(turn.cost.inputTokens, intl), output: formatNumber(turn.cost.outputTokens, intl) })} · ${t('act.costCalls', { count: turn.cost.calls })}${turn.cost.models.length ? ` · ${turn.cost.models.join(', ')}` : ''}`;
   return (
-    <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground" title={detail} data-testid="cost-chip">
+    <span
+      className="inline-flex h-5 items-center gap-1.5 rounded-[5px] border px-1.5 font-mono text-[10.5px] text-muted-foreground"
+      title={detail}
+      data-testid="cost-chip"
+    >
       <Coins className="h-3 w-3" aria-hidden />
       <span className="sr-only">{t('act.cost')}: </span>
       <span className="tabular-nums text-foreground">{formatEur(eur, intl)}</span>
@@ -44,49 +58,66 @@ function CostChip({ turn }: { turn: Turn }) {
   );
 }
 
-function TurnView({ turn, isLast }: { turn: Turn; isLast: boolean }) {
+/** While Steward works: one quiet line under the user's message — his orb, his line, the seconds. */
+function WorkingLine({ turn, presence, line }: { turn: Turn; presence: Presence; line: Line }) {
+  const { t } = useI18n();
+  const elapsed = useElapsed(turn.startedAt ?? Date.now(), true);
+  return (
+    <p className="flex min-h-6 items-center gap-2 text-[13.5px] text-muted-foreground" data-testid="working-line">
+      <Orb state={presence.orb ?? 'working'} size={20} tint={presence.orb === 'breathing' ? 'approval' : undefined} />
+      <span key={t(line.key, line.vars)} className="min-w-0 animate-fade-in truncate">
+        {t(line.key, line.vars)}
+      </span>
+      <span aria-hidden>·</span>
+      <span className="shrink-0 font-mono text-[12px] tabular-nums">{t('chat.elapsed', { seconds: Math.floor(elapsed / 1000) })}</span>
+    </p>
+  );
+}
+
+function TurnView({ turn, isLast, presence, line, wide }: { turn: Turn; isLast: boolean; presence: Presence; line: Line; wide: boolean }) {
   const me = useMe();
   const { t } = useI18n();
   const streaming = turn.status === 'streaming';
   const citations = turn.items.filter((x): x is CitationItem => x.kind === 'citation');
   const empty = !streaming && !turn.answer;
+  const time = useClockTime(turn.startedAt);
   return (
     <li className="space-y-3" data-testid="turn" data-status={turn.status}>
-      <div className="flex justify-end">
-        <div className="max-w-[85%] rounded-[10px] rounded-tr-[3px] bg-secondary px-3 py-1.5 text-[14px] leading-relaxed text-secondary-foreground">
+      <div className="group flex items-center justify-end gap-2.5">
+        {time && <span className="font-mono text-[11px] text-muted-foreground opacity-0 transition-opacity duration-micro group-hover:opacity-100">{time}</span>}
+        <div className="max-w-[80%] rounded-[16px] bg-secondary px-3.5 py-2 text-[14px] leading-relaxed text-secondary-foreground">
           <span className="sr-only">{t('chat.you')}: </span>
           <p className="whitespace-pre-wrap break-words">{turn.question}</p>
         </div>
       </div>
 
-      <div className="min-w-0 space-y-2.5">
-        <p className="flex items-center gap-2.5 text-[12px]">
+      <div className="group/turn min-w-0 space-y-2.5">
+        <p className="flex items-center gap-2 text-[13px]">
+          <AgentAvatar role="orchestrator" size={wide ? 22 : 30} paused interactive={false} />
           <span className="font-semibold text-foreground">{me.assistant}</span>
           {turn.restored && <span className="font-mono text-[11px] text-muted-foreground">{t('chat.restored')}</span>}
           <VerdictTrail turn={turn} />
+          {time && <span className="ml-auto font-mono text-[11px] text-muted-foreground opacity-0 transition-opacity duration-micro group-hover/turn:opacity-100">{time}</span>}
         </p>
+        {streaming && isLast && <WorkingLine turn={turn} presence={presence} line={line} />}
         <ActivityTimeline turn={turn} />
-        <div aria-live={isLast ? 'polite' : undefined} aria-busy={streaming} aria-atomic="false" className="text-[14px]" data-testid="answer">
+        <div aria-live={isLast ? 'polite' : undefined} aria-busy={streaming} aria-atomic="false" className="text-[14.5px]" data-testid="answer">
           {turn.answer ? (
             <div className={cn(streaming && 'streaming-caret')}>
               <Markdown text={turn.answer} />
             </div>
           ) : streaming ? (
-            <p className="text-[13px] text-muted-foreground">{t('chat.thinking', { assistant: me.assistant })}</p>
+            <p className="sr-only">{t('chat.thinking', { assistant: me.assistant })}</p>
           ) : empty && turn.status !== 'error' ? (
             <p className="text-[13px] text-muted-foreground">{t('chat.emptyAnswer')}</p>
           ) : null}
         </div>
         {citations.length > 0 && (
-          <section aria-label={t('cite.sources')} className="space-y-1.5">
-            <h2 className="eyebrow">{t('cite.sources')}</h2>
-            <ul className="flex flex-wrap gap-2">
-              {citations.map((c) => (
-                <li key={c.key} className="w-full max-w-md">
-                  <CitationCard c={c} />
-                </li>
-              ))}
-            </ul>
+          <section aria-label={t('cite.sources')} className="flex flex-wrap items-center gap-1.5">
+            <h2 className="eyebrow mr-1">{t('cite.sources')}</h2>
+            {citations.map((c) => (
+              <CitationCard key={c.key} c={c} />
+            ))}
           </section>
         )}
         {!streaming && <CostChip turn={turn} />}
@@ -117,10 +148,6 @@ function Legend({ className }: { className?: string }) {
   );
 }
 
-function Kbd({ children }: { children: ReactNode }) {
-  return <kbd>{children}</kbd>;
-}
-
 function greetKey(hour: number): MessageKey {
   if (hour >= 5 && hour < 11) return 'hero.morning';
   if (hour >= 11 && hour < 17) return 'hero.day';
@@ -132,7 +159,7 @@ function greetKey(hour: number): MessageKey {
 let greetedOnce = false;
 
 /** Steward's greeting, typed out quickly once (no typing under reduced motion). */
-function Greeting({ text, sub }: { text: string; sub: string }) {
+function Greeting({ text, sub }: { text: string; sub: ReactNode }) {
   const reduced = useReducedMotion();
   const [n, setN] = useState(() => (reduced || greetedOnce ? text.length : 0));
   useEffect(() => {
@@ -153,15 +180,101 @@ function Greeting({ text, sub }: { text: string; sub: string }) {
   }, [text, reduced]);
   const typing = n < text.length;
   return (
-    <div className="text-center">
-      <h2 className="text-balance text-[24px] font-semibold leading-tight tracking-[-0.025em] sm:text-[28px]">
+    <>
+      <h2 className="text-balance text-[22px] font-semibold leading-tight tracking-[-0.02em] sm:text-[26px]">
         <span className="sr-only">{text}</span>
         <span aria-hidden>
           {text.slice(0, n)}
           <span className={cn('ml-0.5 inline-block h-[0.9em] w-[2px] translate-y-[0.1em] bg-foreground/70', !typing && 'opacity-0')} />
         </span>
       </h2>
-      <p className={cn('mt-1.5 text-[13.5px] text-muted-foreground transition-opacity duration-layout', typing ? 'opacity-0' : 'opacity-100')}>{sub}</p>
+      <div className={cn('mt-1.5 min-h-5 text-[14px] text-muted-foreground transition-opacity duration-layout', typing ? 'opacity-0' : 'opacity-100')}>{sub}</div>
+    </>
+  );
+}
+
+/** The model route of the last answer (read-only info), as a quiet chip. */
+function ModelChip({ turns }: { turns: Turn[] }) {
+  const { t } = useI18n();
+  const model = [...turns].reverse().find((x) => x.cost.models.length)?.cost.models.slice(-1)[0];
+  const offline = !model || /script|offline|mock|demo|fake/i.test(model);
+  const label = model ? (offline ? t('composer.offline') : model) : t('composer.noModel');
+  return (
+    <span
+      className="inline-flex h-7 max-w-[12rem] items-center gap-1 rounded-full px-2.5 text-[12.5px] text-muted-foreground"
+      title={t('composer.model', { model: model ?? label })}
+      data-testid="model-chip"
+    >
+      <span className="truncate">{label}</span>
+      <ChevronDown className="h-3 w-3 shrink-0" aria-hidden />
+    </span>
+  );
+}
+
+/** The "+" in the composer: the role's suggested questions and "new conversation". */
+function PlusMenu({ onPick, onClear, canClear, busy }: { onPick: (s: string) => void; onClear: () => void; canClear: boolean; busy: boolean }) {
+  const me = useMe();
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const id = useId();
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
+    const onKey = (e: globalThis.KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    window.addEventListener('pointerdown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+  const item = 'flex w-full items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-left text-[13px] hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40';
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={id}
+        aria-label={t('composer.more')}
+        title={t('composer.more')}
+        onClick={() => setOpen((o) => !o)}
+        className="flex h-8 w-8 items-center justify-center rounded-full border text-muted-foreground transition-colors duration-micro hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <Plus className="h-4 w-4" aria-hidden />
+      </button>
+      {open && (
+        <div id={id} className="absolute bottom-10 left-0 z-30 w-80 animate-fade-in rounded-[12px] border bg-popover p-1 shadow-[0_16px_40px_-16px_rgb(0_0_0/0.6)]">
+          {me.suggestions.length > 0 && <p className="eyebrow px-2.5 pb-1 pt-1.5">{t('chat.suggestions')}</p>}
+          {me.suggestions.map((s) => (
+            <button
+              key={s}
+              type="button"
+              disabled={busy}
+              className={item}
+              onClick={() => {
+                setOpen(false);
+                onPick(s);
+              }}
+            >
+              {s}
+            </button>
+          ))}
+          <div className="my-1 border-t" />
+          <button
+            type="button"
+            disabled={!canClear || busy}
+            className={item}
+            onClick={() => {
+              setOpen(false);
+              onClear();
+            }}
+          >
+            <Eraser className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+            {t('chat.clear')}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -172,34 +285,26 @@ export function ChatPage() {
   const { turns, busy, send, cancel, clear } = useChat();
   const [text, setText] = useState('');
   const [focused, setFocused] = useState(false);
-  const [voiceMode, setVoiceMode] = useState(false);
   const inputId = useId();
-  const voiceId = useId();
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const stick = useRef(true);
-  const pressing = useRef(false);
   const refocus = useRef(false);
-  const theme = useResolvedTheme();
   const reduced = useReducedMotion();
-
-  const voice = useVoice(me.voice.mode, me.voice.language, {
-    unsupported: t('voice.unsupported'),
-    denied: t('voice.denied'),
-    failed: (error) => t('voice.failed', { error }),
-  });
+  const wide = useMediaQuery(WIDE);
 
   const last = turns[turns.length - 1];
   const { presence, nonce } = usePresence(
     {
       turn: last,
       typing: focused && text.trim().length > 0,
-      listening: voice.state === 'listening',
       testAs: !!me.impersonated_by,
       kill: me.kill_switch,
     },
     reduced,
   );
+  const { poked, poke } = usePoke(presence.state);
+  const line = poked ?? presence.say;
 
   // Keep the newest content in view unless the user scrolled up.
   useEffect(() => {
@@ -214,16 +319,15 @@ export function ChatPage() {
   };
 
   const submit = useCallback(
-    async (message: string, viaVoice = false) => {
+    async (message: string) => {
       const m = message.trim();
       if (!m || busy) return;
       setText('');
       stick.current = true;
-      refocus.current = !viaVoice;
-      const turn = await send(m, { voice: viaVoice });
-      if (viaVoice && turn?.answer) void voice.speak(turn.answer);
+      refocus.current = true;
+      await send(m);
     },
-    [busy, send, voice],
+    [busy, send],
   );
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -254,200 +358,123 @@ export function ChatPage() {
     }
   }, [empty]);
 
-  const startTalk = () => {
-    if (pressing.current || busy) return;
-    pressing.current = true;
-    voice.stopSpeaking();
-    void voice.start();
-  };
-  const endTalk = async () => {
-    if (!pressing.current) return;
-    pressing.current = false;
-    const heard = await voice.stop();
-    if (heard) void submit(heard, true);
-  };
-
   // Auto-grow the textarea (one line, up to 200px).
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    const border = el.offsetHeight - el.clientHeight;
-    el.style.height = `${Math.min(el.scrollHeight + border, 200)}px`;
-    el.style.overflowY = el.scrollHeight + border > 200 ? 'auto' : 'hidden';
-  }, [text, empty, voiceMode]);
+    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+    el.style.overflowY = el.scrollHeight > 200 ? 'auto' : 'hidden';
+  }, [text, empty]);
 
   const readOnly = !!me.impersonated_by;
-  const listening = voice.state === 'listening';
   const firstName = me.name.split(/\s+/)[0] ?? me.name;
   const greeting = t('hero.greeting', { greet: t(greetKey(new Date().getHours())), name: firstName, assistant: me.assistant });
+  const inlineAvatar = !empty && !wide;
+
+  const totals = { allow: 0, approval: 0, deny: 0 };
+  for (const turn of turns)
+    for (const x of turn.items) {
+      if ((x.kind === 'tool' || x.kind === 'handoff') && x.decision) {
+        const tone = effectTone(x.decision.effect);
+        if (tone !== 'muted') totals[tone] += 1;
+      }
+    }
 
   const composer = (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       {readOnly && <Alert variant="info">{t('chat.readOnly')}</Alert>}
-      {voice.error && <Alert variant="error">{voice.error}</Alert>}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           void submit(text);
         }}
       >
-        <VoiceBeam
-          stream={listening ? voice.micStream : null}
-          level={voice.speaking ? voice.outputLevel : 0}
-          active={voiceMode && (listening || voice.speaking) && !reduced}
-          colorVariant="mono"
-          theme={theme}
-          idle={0}
-          borderRadius={10}
-          className="block"
-        >
-          <Beam variant="working" active={busy}>
-            <div className={cn('rounded-[10px] border border-input bg-card transition-colors duration-micro focus-within:border-ring', busy && 'border-border')}>
-              {voiceMode ? (
-                <div className="flex min-h-[42px] items-center gap-2.5 py-1 pl-1.5 pr-1.5">
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant={listening ? 'outline' : 'default'}
-                    className={cn('h-8 w-8 shrink-0 rounded-[7px]', listening && 'border-foreground')}
-                    aria-label={t('voice.holdKey')}
-                    aria-pressed={listening}
-                    disabled={busy || !voice.supported || voice.state === 'transcribing'}
-                    onPointerDown={(e) => {
-                      e.preventDefault();
-                      startTalk();
-                    }}
-                    onPointerUp={() => void endTalk()}
-                    onPointerLeave={() => void endTalk()}
-                    onKeyDown={(e) => {
-                      if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
-                        e.preventDefault();
-                        startTalk();
-                      }
-                    }}
-                    onKeyUp={(e) => {
-                      if (e.key === ' ' || e.key === 'Enter') {
-                        e.preventDefault();
-                        void endTalk();
-                      }
-                    }}
-                  >
-                    <Mic aria-hidden />
-                  </Button>
-                  <p className="flex min-w-0 flex-1 items-center gap-2 text-[13.5px]" aria-live="polite">
-                    {listening ? (
-                      <span className="text-foreground">{voice.interim || t('voice.listening')}</span>
-                    ) : voice.state === 'transcribing' ? (
-                      <>
-                        <Orb state="working" size={20} />
-                        <span className="text-muted-foreground">{t('voice.transcribing')}</span>
-                      </>
-                    ) : !voice.supported ? (
-                      <span className="text-muted-foreground">{t('voice.unsupported')}</span>
-                    ) : voice.interim ? (
-                      <span className="text-muted-foreground">
-                        {t('voice.transcript')}: {voice.interim}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">{t('voice.hold')}</span>
-                    )}
-                  </p>
-                  {voice.speaking && (
-                    <Button type="button" variant="ghost" size="icon-sm" onClick={voice.stopSpeaking} aria-label={t('voice.stopSpeaking')}>
-                      <VolumeX aria-hidden />
-                    </Button>
-                  )}
-                  {busy && (
-                    <Button type="button" size="icon-sm" variant="outline" className="shrink-0" onClick={cancel} aria-label={t('chat.stop')} title={t('chat.stop')}>
-                      <Square className="!size-3" aria-hidden />
-                    </Button>
-                  )}
-                </div>
+        <Beam variant="working" active={busy}>
+          <div
+            className={cn(
+              'rounded-[24px] border bg-card px-3 pb-2.5 pt-3 transition-colors duration-micro focus-within:border-foreground/30',
+              busy && 'border-border',
+            )}
+          >
+            <div className="flex items-start gap-2.5">
+              {inlineAvatar && (
+                <PresenceAvatar presence={presence} nonce={nonce} variant="inline" assistant={me.assistant} onPoke={poke} className="-mt-0.5" />
+              )}
+              <Label htmlFor={inputId} className="sr-only">
+                {t('chat.inputLabel', { assistant: me.assistant })}
+              </Label>
+              <textarea
+                id={inputId}
+                ref={inputRef}
+                rows={1}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={onKeyDown}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                placeholder={t('chat.placeholder')}
+                maxLength={4000}
+                data-testid="chat-input"
+                className={cn(
+                  'block max-h-[200px] w-full flex-1 resize-none bg-transparent px-1.5 text-[15px] leading-6 placeholder:text-muted-foreground focus-visible:outline-none',
+                  inlineAvatar ? 'min-h-9 py-1.5' : 'min-h-12 py-1',
+                )}
+              />
+            </div>
+            <div className="mt-1.5 flex items-center gap-2">
+              <PlusMenu onPick={(s) => void submit(s)} onClear={() => void clear()} canClear={!empty} busy={busy} />
+              <span className={cn('ml-1 hidden items-center gap-2.5 text-[11px] text-muted-foreground md:flex', !focused && 'md:hidden')} aria-hidden>
+                <span className="inline-flex items-center gap-1">
+                  <kbd>⏎</kbd> {t('chat.kbd.send')}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <kbd>⇧⏎</kbd> {t('chat.kbd.newline')}
+                </span>
+              </span>
+              {!focused && (
+                <span className="ml-1 hidden items-center gap-1 text-[11px] text-muted-foreground md:inline-flex" aria-hidden>
+                  <kbd>{isMac ? '⌘K' : 'Ctrl K'}</kbd>
+                </span>
+              )}
+              <span className="ml-auto" />
+              <ModelChip turns={turns} />
+              {busy ? (
+                <button
+                  type="button"
+                  onClick={cancel}
+                  aria-label={t('chat.stop')}
+                  title={t('chat.stop')}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                >
+                  <Square className="h-3 w-3 fill-current" aria-hidden />
+                </button>
               ) : (
-                <div className="flex items-end gap-2 py-[5px] pl-3 pr-[5px]">
-                  <Label htmlFor={inputId} className="sr-only">
-                    {t('chat.inputLabel', { assistant: me.assistant })}
-                  </Label>
-                  <textarea
-                    id={inputId}
-                    ref={inputRef}
-                    rows={1}
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    onKeyDown={onKeyDown}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
-                    placeholder={t('chat.placeholder')}
-                    maxLength={4000}
-                    data-testid="chat-input"
-                    className="block max-h-[200px] min-h-8 w-full flex-1 resize-none bg-transparent py-[6px] text-[14px] leading-5 placeholder:text-muted-foreground focus-visible:outline-none"
-                  />
-                  {busy ? (
-                    <Button type="button" size="icon-sm" variant="outline" className="h-8 w-8 shrink-0" onClick={cancel} aria-label={t('chat.stop')} title={t('chat.stop')}>
-                      <Square className="!size-3" aria-hidden />
-                    </Button>
-                  ) : (
-                    <Button
-                      type="submit"
-                      size="icon-sm"
-                      className="h-8 w-8 shrink-0"
-                      disabled={!text.trim()}
-                      aria-label={t('chat.send')}
-                      title={t('chat.send')}
-                      data-testid="chat-send"
-                    >
-                      <ArrowUp aria-hidden />
-                    </Button>
-                  )}
-                </div>
+                <button
+                  type="submit"
+                  disabled={!text.trim()}
+                  aria-label={t('chat.send')}
+                  title={t('chat.send')}
+                  data-testid="chat-send"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-30"
+                >
+                  <ArrowUp className="h-4 w-4" aria-hidden />
+                </button>
               )}
             </div>
-          </Beam>
-        </VoiceBeam>
+          </div>
+        </Beam>
       </form>
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-0.5 text-[11.5px] text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <Switch
-            id={voiceId}
-            checked={voiceMode}
-            onCheckedChange={(v) => {
-              setVoiceMode(v);
-              if (!v) voice.stopSpeaking();
-            }}
-            aria-describedby={`${voiceId}-hint`}
-          />
-          <Label htmlFor={voiceId} className="text-[11.5px] font-medium text-foreground">
-            {t('voice.mode')}
-          </Label>
-          <span id={`${voiceId}-hint`} className={voiceMode ? 'hidden sm:inline' : 'sr-only'}>
-            {voiceMode ? t('approval.clickOnly') : t('voice.modeHint')}
-          </span>
-          {voice.speaking && (
-            <span className="inline-flex items-center gap-1">
-              <Volume2 className="h-3 w-3" aria-hidden />
-              {t('voice.speaking')}
-            </span>
-          )}
-        </div>
-        {!voiceMode && (
-          <p className="hidden items-center gap-2.5 md:flex" aria-hidden>
-            <span className="inline-flex items-center gap-1">
-              <Kbd>⏎</Kbd> {t('chat.kbd.send')}
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <Kbd>⇧⏎</Kbd> {t('chat.kbd.newline')}
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <Kbd>{isMac ? '⌘K' : 'Ctrl K'}</Kbd> {t('chat.kbd.focus')}
-            </span>
-          </p>
-        )}
-        <span className="sr-only" role="status">
-          {busy ? t('chat.status.streaming') : turns.length > 0 ? t('chat.status.done') : ''}
-        </span>
-      </div>
+      <span className="sr-only" role="status">
+        {busy ? t('chat.status.streaming') : turns.length > 0 ? t('chat.status.done') : ''}
+      </span>
     </div>
+  );
+
+  const caption = (
+    <span key={`${line.key}-${t(line.key, line.vars)}`} className="block animate-fade-in" data-testid="presence-line">
+      {t(line.key, line.vars)}
+    </span>
   );
 
   return (
@@ -459,14 +486,14 @@ export function ChatPage() {
         {empty ? (
           <div className="relative flex min-h-full flex-col">
             <div aria-hidden className="hero-grid pointer-events-none absolute inset-0" />
-            <div className="relative mx-auto flex w-full max-w-[680px] flex-1 flex-col items-center justify-center px-4 py-8">
-              <PresenceView presence={presence} nonce={nonce} variant="hero" assistant={me.assistant} />
-              <div className="mt-3">
-                <Greeting text={greeting} sub={t('hero.line')} />
-              </div>
+            <div className="relative mx-auto flex w-full max-w-[720px] flex-1 flex-col items-center justify-center px-4 py-8">
+              <PresenceAvatar presence={presence} nonce={nonce} variant="hero" assistant={me.assistant} onPoke={poke} />
+              <PresenceCaption className="mt-4 w-full max-w-[560px] px-5 py-4">
+                <Greeting text={greeting} sub={poked || presence.state !== 'idle' ? caption : t('hero.line')} />
+              </PresenceCaption>
               <div className="mt-6 w-full">{composer}</div>
               {me.suggestions.length > 0 && (
-                <section aria-labelledby="suggestions-title" className="mt-4 w-full">
+                <section aria-labelledby="suggestions-title" className="mt-3 w-full">
                   <h3 id="suggestions-title" className="sr-only">
                     {t('chat.suggestions')}
                   </h3>
@@ -477,7 +504,7 @@ export function ChatPage() {
                           type="button"
                           disabled={busy}
                           onClick={() => void submit(s)}
-                          className="h-7 rounded-[6px] border px-2.5 text-[12.5px] text-muted-foreground transition-colors duration-micro hover:border-foreground/30 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                          className="h-8 rounded-full border px-3 text-[13px] text-muted-foreground transition-colors duration-micro hover:border-foreground/30 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                         >
                           {s}
                         </button>
@@ -495,31 +522,62 @@ export function ChatPage() {
             </div>
           </div>
         ) : (
-          <section aria-label={t('chat.messages')} className="mx-auto w-full max-w-[720px] px-4 pb-6 pt-5">
-            <ol className="space-y-7">
-              {turns.map((turn, i) => (
-                <TurnView key={turn.id} turn={turn} isLast={i === turns.length - 1} />
-              ))}
-            </ol>
-          </section>
+          <div className={cn('mx-auto flex min-h-full w-full justify-center gap-12 px-4', wide && 'pr-[292px]')}>
+            {wide && (
+              // The stage: Steward is there with you, next to the conversation.
+              <aside aria-label={me.assistant} className="sticky top-0 flex self-start h-[calc(100dvh-2.75rem)] w-[240px] shrink-0 flex-col items-center justify-center pb-16">
+                <PresenceAvatar presence={presence} nonce={nonce} variant="stage" assistant={me.assistant} onPoke={poke} />
+                <PresenceCaption className="mt-4 w-full">
+                  <p className="text-[13px] font-semibold">{me.assistant}</p>
+                  <div className="mt-0.5 min-h-10 text-[13px] leading-5 text-muted-foreground">{caption}</div>
+                </PresenceCaption>
+              </aside>
+            )}
+            <div className="flex w-full max-w-[720px] min-w-0 flex-col">
+              <header className="sticky top-0 z-20 -mx-1 flex h-11 items-center gap-3 bg-background px-1">
+                <p className="min-w-0 flex-1 truncate text-[13px] font-medium" title={turns[0]?.question}>
+                  {turns[0]?.question}
+                </p>
+                {(totals.allow > 0 || totals.approval > 0 || totals.deny > 0) && (
+                  <p
+                    className="flex shrink-0 items-center gap-2.5 font-mono text-[11px] tabular-nums text-muted-foreground"
+                    title={t('trail.summary', { count: totals.allow + totals.approval + totals.deny, ...totals })}
+                  >
+                    <span className="sr-only">{t('trail.summary', { count: totals.allow + totals.approval + totals.deny, ...totals })}</span>
+                    {(['allow', 'approval', 'deny'] as const).map((k) =>
+                      totals[k] > 0 ? (
+                        <span key={k} aria-hidden className="inline-flex items-center gap-1">
+                          <VerdictDot tone={k} />
+                          {totals[k]}
+                        </span>
+                      ) : null,
+                    )}
+                  </p>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => void clear()}
+                  disabled={busy}
+                  aria-label={t('chat.clear')}
+                  title={t('chat.clear')}
+                  className="shrink-0"
+                >
+                  <Eraser aria-hidden />
+                </Button>
+              </header>
+              <section aria-label={t('chat.messages')} className="flex-1 pb-8 pt-4">
+                <ol className="space-y-10">
+                  {turns.map((turn, i) => (
+                    <TurnView key={turn.id} turn={turn} isLast={i === turns.length - 1} presence={presence} line={line} wide={wide} />
+                  ))}
+                </ol>
+              </section>
+              <div className="sticky bottom-0 z-20 -mx-4 bg-gradient-to-t from-background from-60% to-transparent px-4 pb-6 pt-8">{composer}</div>
+            </div>
+          </div>
         )}
       </div>
-
-      {!empty && (
-        <div className="relative shrink-0 pb-[max(env(safe-area-inset-bottom),10px)]">
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-6 h-6 bg-gradient-to-t from-background to-transparent" />
-          <div className="mx-auto w-full max-w-[720px] space-y-1.5 px-4">
-            <div className="flex h-8 items-center justify-between gap-3">
-              <PresenceView presence={presence} nonce={nonce} variant="dock" assistant={me.assistant} className="min-w-0" />
-              <Button variant="ghost" size="sm" onClick={() => void clear()} disabled={busy || turns.length === 0} className="shrink-0">
-                <Eraser aria-hidden />
-                {t('chat.clear')}
-              </Button>
-            </div>
-            {composer}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 // Steward's presence: one character that shows what the assistant is doing (DESIGN.md §7).
-// A small, pure state machine over the latest turn plus composer / voice / session state, so it
+// A small, pure state machine over the latest turn plus composer and session state, so it
 // is easy to test. The component (components/presence.tsx) only renders what this returns and
 // keeps the timers of the short "flash" states.
 
@@ -13,7 +13,6 @@ import type { KillMode } from './types';
 export type PresenceState =
   | 'idle'
   | 'typing'
-  | 'listening'
   | 'thinking'
   | 'calling_tools'
   | 'composing'
@@ -25,11 +24,14 @@ export type PresenceState =
   | 'paused'
   | 'dozing';
 
-/** Short-lived reactions to a single event. */
-export type Flash = 'denied' | 'approved' | 'done';
+/** Short-lived reactions to a single event (`sent`: a nod when the user sends a message). */
+export type Flash = 'denied' | 'approved' | 'done' | 'sent';
 
-/** How long a flash state is shown, in ms. */
-export const FLASH_MS: Record<Flash, number> = { denied: 800, approved: 1200, done: 1200 };
+/** How long a flash is shown, in ms. */
+export const FLASH_MS: Record<Flash, number> = { denied: 800, approved: 1200, done: 1200, sent: 700 };
+
+/** Where Steward looks: at the composer, at the waiting gate, or at the user (the camera). */
+export type Look = 'composer' | 'gate' | 'user';
 
 export type Verdict = 'allow' | 'approval' | 'deny';
 
@@ -38,8 +40,6 @@ export interface PresenceInput {
   turn?: Turn;
   /** The composer has text and focus. */
   typing?: boolean;
-  /** Voice push-to-talk is held. */
-  listening?: boolean;
   /** Admin test session ("test as"): Steward sees through someone else's eyes. */
   testAs?: boolean;
   kill?: KillMode;
@@ -71,11 +71,10 @@ export interface Presence {
   orb: OrbState | null;
   /** Verdict rim around the body (color means Warden decided). */
   rim: Verdict | null;
-  /** Held head orientation (radians): toward the composer or the approval card. */
-  pose?: { yaw: number; pitch: number };
+  /** Where he looks (the component turns it into a head pose for its layout). */
+  look: Look | null;
   gesture: 'shake' | 'hop' | 'nod' | null;
   glasses: boolean;
-  headphones: boolean;
   dimmed: boolean;
   /** Freeze the body (kill switch). */
   frozen: boolean;
@@ -122,18 +121,16 @@ const decisions = (turn: Turn | undefined, effect: string) =>
 const approvedCount = (turn: Turn | undefined) =>
   turn ? turn.items.filter((x) => x.kind === 'approval' && x.status === 'approved').length : 0;
 
-/** A one-off reaction between two snapshots of the latest turn (denied > approved > done). */
+/** A one-off reaction between two snapshots of the latest turn (sent > denied > approved > done). */
 export function detectFlash(prev: Turn | undefined, next: Turn | undefined): Flash | null {
   if (!next) return null;
-  const before = prev && prev.id === next.id ? prev : undefined;
+  if (prev?.id !== next.id) return next.status === 'streaming' && !next.restored ? 'sent' : null;
+  const before = prev;
   if (decisions(next, 'deny') > decisions(before, 'deny')) return 'denied';
   if (approvedCount(next) > approvedCount(before)) return 'approved';
   if (before?.status === 'streaming' && next.status === 'done') return 'done';
   return null;
 }
-
-const LOOK_AT_COMPOSER = { yaw: 0.1, pitch: -0.38 };
-const LOOK_AT_APPROVAL = { yaw: -0.32, pitch: 0.3 };
 
 const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
@@ -168,8 +165,6 @@ function sayFor(state: PresenceState, turn: Turn | undefined, input: PresenceInp
       const voter = ap?.kind === 'approval' ? (ap.votes.find((v) => v.approve)?.user ?? ap.approvers[0]) : undefined;
       return { key: 'presence.say.approved', vars: { who: cap(voter ?? 'Warden') } };
     }
-    case 'listening':
-      return { key: 'presence.say.listening' };
     case 'awaiting_approval': {
       const ap = turn?.items.find((x) => x.kind === 'approval' && x.status === 'pending');
       const who = ap?.kind === 'approval' && ap.approvers.length ? ap.approvers.map(cap).join(' / ') : '?';
@@ -203,9 +198,15 @@ function sayFor(state: PresenceState, turn: Turn | undefined, input: PresenceInp
   }
 }
 
-/** The presence for one snapshot. Priority: flash › listening › running › done › kill › typing › error › dozing › idle. */
+/** The presence for one snapshot. Priority: flash › running › done › kill › typing › error › dozing › idle. */
 export function derivePresence(input: PresenceInput): Presence {
-  const { turn, typing = false, listening = false, testAs = false, kill = 'off', flash = null, dozing = false, glance = false } = input;
+  const p = derive(input);
+  // A nod when a message is sent, on top of whatever he is doing.
+  return input.flash === 'sent' && !p.gesture ? { ...p, gesture: 'nod', look: p.look ?? 'user' } : p;
+}
+
+function derive(input: PresenceInput): Presence {
+  const { turn, typing = false, testAs = false, kill = 'off', flash = null, dozing = false, glance = false } = input;
   const companion = companionOf(turn);
   const base: Presence = {
     state: 'idle',
@@ -213,8 +214,8 @@ export function derivePresence(input: PresenceInput): Presence {
     orb: null,
     rim: null,
     gesture: null,
+    look: null,
     glasses: testAs,
-    headphones: false,
     dimmed: kill !== 'off',
     frozen: false,
     companion,
@@ -231,17 +232,16 @@ export function derivePresence(input: PresenceInput): Presence {
 
   if (flash === 'denied') return is('denied', { rim: 'deny', gesture: 'shake' });
   if (flash === 'approved') return is('approved', { rim: 'allow', gesture: 'hop' });
-  if (listening) return is('listening', { headphones: true, orb: 'listening' });
   if (turn && running(turn)) {
-    if (pendingApproval(turn)) return is('awaiting_approval', { orb: 'breathing', rim: 'approval', pose: LOOK_AT_APPROVAL });
+    if (pendingApproval(turn)) return is('awaiting_approval', { orb: 'breathing', rim: 'approval', look: 'gate' });
     if (toolInFlight(turn)) return is('calling_tools', { avatar: 'working', orb: 'searching' });
-    if (turn.answer) return is('composing', { avatar: 'working', orb: 'composing' });
+    if (turn.answer) return is('composing', { avatar: 'working', orb: 'composing', look: 'user' });
     return is('thinking', { avatar: 'working', orb: 'solving' });
   }
   if (flash === 'done') return is('done', { gesture: 'nod' });
   if (kill !== 'off') return is('paused', { avatar: 'sleeping', frozen: true });
-  if (typing) return is('typing', { pose: LOOK_AT_COMPOSER });
+  if (typing) return is('typing', { look: 'composer' });
   if (turn && failed(turn)) return is('error', { avatar: 'sleeping' });
   if (dozing) return is('dozing', { avatar: 'sleeping' });
-  return is('idle', glance ? { pose: LOOK_AT_COMPOSER } : {});
+  return is('idle', glance ? { look: 'composer' } : {});
 }
