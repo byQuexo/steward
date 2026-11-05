@@ -2,7 +2,7 @@ import { Brain, Inbox, LogOut, Menu, MessageSquare, OctagonPause, ShieldCheck, U
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import { UserAvatar } from '@/components/avatars';
+import { BrandMark, UserAvatar } from '@/components/avatars';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/context/i18n';
@@ -42,14 +42,15 @@ function TestAsBanner() {
     }
   };
   return (
-    <div role="region" aria-label={t('banner.testAs', { name: me.name })} className="bg-approval text-[hsl(30_60%_10%)]" data-testid="test-as-banner">
+    // Inverted ink: impersonation is not a verdict, so it is not colored (DESIGN.md §6).
+    <div role="region" aria-label={t('banner.testAs', { name: me.name })} className="border-b border-dashed border-background/40 bg-foreground text-background" data-testid="test-as-banner">
       <div className="container flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
         <p className="flex items-center gap-2 font-medium">
           <UserRoundCog className="h-4 w-4" aria-hidden />
           {t('banner.testAs', { name: me.name })}
-          <span className="font-normal opacity-80">({t('banner.testAsBy', { admin: me.impersonated_by })})</span>
+          <span className="font-mono text-xs font-normal opacity-80">({t('banner.testAsBy', { admin: me.impersonated_by })})</span>
         </p>
-        <Button size="sm" variant="outline" className="border-black/30 bg-white/80 text-black hover:bg-white" onClick={end} disabled={busy}>
+        <Button size="sm" variant="outline" className="h-7 border-background/40 text-background hover:bg-background hover:text-foreground" onClick={end} disabled={busy}>
           {t('banner.testAsEnd')}
         </Button>
       </div>
@@ -63,7 +64,8 @@ function KillBanner() {
   if (me.kill_switch === 'off') return null;
   const text = t(me.kill_switch === 'all' ? 'banner.kill.all' : 'banner.kill.writes');
   return (
-    <div role="region" aria-label={t('console.kill')} className="bg-deny text-white dark:text-[hsl(0_60%_10%)]" data-testid="kill-banner">
+    // Warden denying everything: the loudest red in the product.
+    <div role="region" aria-label={t('console.kill')} className="bg-deny text-deny-ink" data-testid="kill-banner">
       <p className="container flex items-center gap-2 py-2 text-sm font-medium">
         <OctagonPause className="h-4 w-4" aria-hidden />
         {text}
@@ -91,7 +93,7 @@ export function AppShell() {
   if (me.admin) items.push({ to: '/console', label: 'nav.console', icon: ShieldCheck });
 
   const nav = (mobile: boolean) => (
-    <ul className={cn(mobile ? 'flex flex-col gap-1 p-2' : 'flex items-center gap-1')}>
+    <ul className={cn(mobile ? 'flex flex-col gap-1 p-2' : 'flex items-center gap-0.5')}>
       {items.map(({ to, label, icon: Icon, end, badge }) => (
         <li key={to}>
           <NavLink
@@ -99,16 +101,17 @@ export function AppShell() {
             end={end}
             className={({ isActive }) =>
               cn(
-                'relative inline-flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                isActive ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                'relative inline-flex w-full items-center gap-2 rounded-full text-[13.5px] font-medium transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                mobile ? 'h-10 px-3' : 'h-8 px-3',
+                isActive ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground',
               )
             }
           >
-            <Icon className="h-4 w-4" aria-hidden />
+            <Icon className={cn('h-4 w-4', !mobile && 'hidden lg:block')} aria-hidden />
             {t(label)}
             {badge ? (
               <span
-                className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-approval px-1.5 text-[11px] font-semibold text-[hsl(30_60%_10%)] md:ml-0"
+                className="ml-auto inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-approval px-1 text-[11px] font-semibold tabular-nums text-approval-ink md:ml-0"
                 data-testid="approvals-badge"
               >
                 <span aria-hidden>{badge}</span>
@@ -125,31 +128,31 @@ export function AppShell() {
     <div className="flex h-dvh flex-col">
       <a
         href="#main"
-        className="sr-only z-50 rounded-md bg-primary px-3 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
+        className="sr-only z-50 rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
       >
         {t('app.skip')}
       </a>
       <TestAsBanner />
       <KillBanner />
-      <header className="shrink-0 border-b bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/70">
-        <div className="container flex h-14 items-center gap-3">
-          <NavLink to="/" className="flex items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <img src="/favicon.svg" alt="" className="h-7 w-7" />
-            <span className="flex flex-col leading-none">
-              <span className="text-sm font-semibold">{info?.company ?? me.company}</span>
-              <span className="text-[11px] text-muted-foreground">{t('app.name')}</span>
+      <header className="shrink-0 border-b bg-background">
+        <div className="relative flex h-14 items-center gap-3 px-4 sm:px-5">
+          <NavLink to="/" className="flex items-center gap-2.5 rounded-full pr-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <BrandMark size={28} metal="bar" />
+            <span className="flex items-baseline gap-2 leading-none">
+              <span className="text-[15px] font-semibold tracking-[-0.02em]">{t('app.name')}</span>
+              <span className="hidden font-mono text-[11px] text-muted-foreground sm:inline">{info?.company ?? me.company}</span>
             </span>
           </NavLink>
-          <nav aria-label={t('nav.main')} className="ml-4 hidden md:block">
+          <nav aria-label={t('nav.main')} className="ml-2 hidden md:block lg:absolute lg:left-1/2 lg:top-1/2 lg:ml-0 lg:-translate-x-1/2 lg:-translate-y-1/2">
             {nav(false)}
           </nav>
           <div className="ml-auto flex items-center gap-1">
             <ThemeToggle />
-            <div className="hidden items-center gap-2 border-l pl-3 sm:flex" title={t('user.menu', { name: me.name })}>
+            <div className="ml-1 hidden items-center gap-2.5 border-l pl-3 sm:flex" title={t('user.menu', { name: me.name })}>
               <UserAvatar name={me.name} size={28} />
               <div className="flex flex-col leading-tight">
-                <span className="text-sm font-medium">{me.name}</span>
-                <span className="text-[11px] text-muted-foreground">{me.roles.join(', ')}</span>
+                <span className="text-[13px] font-medium">{me.name}</span>
+                <span className="font-mono text-[10.5px] text-muted-foreground">{me.roles.join(' · ')}</span>
               </div>
             </div>
             <Button variant="ghost" size="icon" onClick={() => void logout()} aria-label={t('user.logout')} title={t('user.logout')}>

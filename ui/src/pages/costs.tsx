@@ -16,7 +16,8 @@ type AllCosts = Extract<Costs, { scope: 'all' }>;
 
 function Meter({ value, max, label }: { value: number; max: number; label: string }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
-  const tone = pct >= 90 ? 'bg-deny' : pct >= 70 ? 'bg-approval' : 'bg-allow';
+  // Budgets are not verdicts: a grey meter, darker as it fills (DESIGN.md §11).
+  const tone = pct >= 90 ? 'bg-foreground' : 'bg-foreground/60';
   return (
     <div
       role="meter"
@@ -24,7 +25,7 @@ function Meter({ value, max, label }: { value: number; max: number; label: strin
       aria-valuemax={max}
       aria-valuenow={value}
       aria-label={label}
-      className="h-2 w-full overflow-hidden rounded-full bg-muted"
+      className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
     >
       <div className={cn('h-full rounded-full transition-[width]', tone)} style={{ width: `${pct}%` }} />
     </div>
@@ -33,16 +34,14 @@ function Meter({ value, max, label }: { value: number; max: number; label: strin
 
 function Stat({ icon: Icon, label, value, sub }: { icon: typeof Coins; label: string; value: string; sub?: string }) {
   return (
-    <Card>
-      <CardContent className="p-4">
-        <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <Icon className="h-3.5 w-3.5" aria-hidden />
-          {label}
-        </p>
-        <p className="mt-1.5 text-2xl font-semibold tabular-nums tracking-tight">{value}</p>
-        {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
-      </CardContent>
-    </Card>
+    <div className="bg-card p-5">
+      <p className="eyebrow flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5" aria-hidden />
+        {label}
+      </p>
+      <p className="mt-3 text-[32px] font-medium leading-none tabular-nums tracking-[-0.03em]">{value}</p>
+      {sub && <p className="mt-2 font-mono text-[11.5px] tabular-nums text-muted-foreground">{sub}</p>}
+    </div>
   );
 }
 
@@ -63,11 +62,11 @@ function Breakdown({ title, rows, currency }: { title: string; rows: Totals[]; c
             {rows.slice(0, 8).map((r) => (
               <li key={r.key} title={`${formatNumber(r.calls, intl)} ${t('costs.calls')} · ${formatNumber(r.input_tokens + r.output_tokens, intl)} ${t('costs.tokens')}`}>
                 <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
-                  <span className="truncate font-medium">{r.key}</span>
-                  <span className="shrink-0 tabular-nums text-muted-foreground">{formatEur(r.eur, intl, currency)}</span>
+                  <span className="truncate font-mono text-[12.5px]">{r.key}</span>
+                  <span className="shrink-0 font-mono text-[12.5px] tabular-nums text-muted-foreground">{formatEur(r.eur, intl, currency)}</span>
                 </div>
-                <div className="h-1.5 w-full rounded-full bg-muted" aria-hidden>
-                  <div className="h-full rounded-full bg-chart-1" style={{ width: `${max > 0 ? Math.max(2, (r.eur / max) * 100) : 0}%` }} />
+                <div className="h-1 w-full rounded-full bg-muted" aria-hidden>
+                  <div className="h-full rounded-full bg-chart-2" style={{ width: `${max > 0 ? Math.max(2, (r.eur / max) * 100) : 0}%` }} />
                 </div>
               </li>
             ))}
@@ -95,21 +94,22 @@ function ByDay({ data }: { data: AllCosts }) {
             <div className="h-56 w-full" role="img" aria-label={t('costs.chartLabel', { title: t('costs.byDay') })}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barCategoryGap={6}>
-                  <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="0" />
-                  <XAxis dataKey="key" tickFormatter={fmtDay} tickLine={false} axisLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                  <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="2 4" />
+                  <XAxis dataKey="key" tickFormatter={fmtDay} tickLine={false} axisLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontFamily: 'Geist Mono Variable, ui-monospace, monospace' }} />
                   <YAxis
                     tickFormatter={(v: number) => formatEur(v, intl, data.currency)}
                     tickLine={false}
                     axisLine={false}
                     width={72}
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontFamily: 'Geist Mono Variable, ui-monospace, monospace' }}
                   />
                   <Tooltip
-                    cursor={{ fill: 'hsl(var(--muted))' }}
+                    cursor={{ fill: 'hsl(var(--accent))' }}
                     contentStyle={{
                       background: 'hsl(var(--popover))',
                       border: '1px solid hsl(var(--border))',
-                      borderRadius: 8,
+                      borderRadius: 10,
+                      fontFamily: 'Geist Mono Variable, ui-monospace, monospace',
                       color: 'hsl(var(--popover-foreground))',
                       fontSize: 12,
                     }}
@@ -119,7 +119,7 @@ function ByDay({ data }: { data: AllCosts }) {
                       t('costs.total'),
                     ]}
                   />
-                  <Bar dataKey="eur" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={36} isAnimationActive={false} />
+                  <Bar dataKey="eur" fill="hsl(var(--chart-2))" radius={[3, 3, 0, 0]} maxBarSize={28} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -176,7 +176,7 @@ function AllView({ data, days }: { data: AllCosts; days: number }) {
   const outTok = data.by_day.reduce((s, r) => s + r.output_tokens, 0);
   return (
     <div className="space-y-6">
-      <section aria-label={t('costs.total')} className="grid gap-4 sm:grid-cols-3">
+      <section aria-label={t('costs.total')} className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-3">
         <Stat icon={Coins} label={t('costs.total')} value={formatEur(data.total_eur, intl, data.currency)} sub={t('costs.days', { days })} />
         <Stat icon={Hash} label={t('costs.calls')} value={formatNumber(calls, intl)} />
         <Stat
@@ -279,7 +279,7 @@ export function CostsPage() {
   }, [days, me.user]);
 
   return (
-    <div className="container max-w-5xl py-8">
+    <div className="mx-auto w-full max-w-[1040px] px-4 py-12 sm:px-6">
       <PageHeader
         title={t('costs.title')}
         description={t('costs.subtitle')}
@@ -311,7 +311,7 @@ export function CostsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-3xl font-semibold tabular-nums tracking-tight">{formatEur(data.today_eur, intl)}</p>
+            <p className="text-[40px] font-medium leading-none tabular-nums tracking-[-0.03em]">{formatEur(data.today_eur, intl)}</p>
             {data.budget_daily_eur != null ? (
               <>
                 <Meter value={data.today_eur} max={data.budget_daily_eur} label={t('costs.dailyBudget')} />

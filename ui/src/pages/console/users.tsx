@@ -95,7 +95,7 @@ export function UsersPage() {
 
   return (
     <section aria-labelledby="users-title">
-      <h2 id="users-title" className="text-lg font-semibold">
+      <h2 id="users-title" className="text-[20px] font-medium tracking-[-0.02em]">
         {t('users.title')}
       </h2>
       <p className="mb-5 mt-1 max-w-2xl text-sm text-muted-foreground">{t('users.subtitle')}</p>

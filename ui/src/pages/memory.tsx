@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Alert, PageHeader, Skeleton } from '@/components/ui/misc';
+import { Alert, EmptyNote, PageHeader, Skeleton } from '@/components/ui/misc';
 import { useI18n } from '@/context/i18n';
 import { useToast } from '@/context/toast';
 import { api } from '@/lib/api';
@@ -63,7 +63,7 @@ export function MemoryPage() {
   const facts = data?.facts ?? [];
 
   return (
-    <div className="container max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-[760px] px-4 py-12 sm:px-6">
       <PageHeader
         title={t('memory.title')}
         description={t('memory.subtitle')}
@@ -90,27 +90,24 @@ export function MemoryPage() {
           </AlertDialog>
         }
       />
-      {data && <p className="-mt-3 mb-5 text-xs text-muted-foreground">{t('memory.retention', { days: data.retention_days })}</p>}
+      {data && <p className="-mt-4 mb-6 font-mono text-[11.5px] text-muted-foreground">{t('memory.retention', { days: data.retention_days })}</p>}
       {error ? (
-        <Alert variant="warning">{t('memory.forbidden', { error })}</Alert>
+        <Alert variant="denied">{t('memory.forbidden', { error })}</Alert>
       ) : !data ? (
         <div className="space-y-2">
           <Skeleton className="h-14" />
           <Skeleton className="h-14" />
         </div>
       ) : facts.length === 0 ? (
-        <div className="flex flex-col items-center rounded-lg border border-dashed p-10 text-center">
-          <Brain className="mb-3 h-8 w-8 text-muted-foreground" aria-hidden />
-          <p className="text-sm text-muted-foreground">{t('memory.empty')}</p>
-        </div>
+        <EmptyNote icon={Brain}>{t('memory.empty')}</EmptyNote>
       ) : (
-        <ul className="divide-y rounded-lg border bg-card shadow-sm">
+        <ul className="divide-y rounded-lg border bg-card">
           {facts.map((f) => (
-            <li key={f.id} className="flex items-center gap-3 px-4 py-3">
-              <Brain className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+            <li key={f.id} className="flex items-center gap-4 px-5 py-4">
+              <Brain className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
               <div className="min-w-0 flex-1">
-                <p className="break-words text-sm">{f.text}</p>
-                <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <p className="break-words text-[15px]">{f.text}</p>
+                <p className="mt-1 flex flex-wrap items-center gap-2 font-mono text-[11.5px] text-muted-foreground">
                   {t('memory.created', { date: formatDate(f.created_at, intl) })}
                   {f.team && <Badge variant="muted">{t('memory.team', { team: f.team })}</Badge>}
                 </p>

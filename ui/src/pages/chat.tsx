@@ -1,10 +1,13 @@
-import { ArrowUp, Coins, Eraser, Lightbulb, Mic, Square, Volume2, VolumeX } from 'lucide-react';
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { ArrowUp, Coins, Eraser, Mic, Square, Volume2, VolumeX } from 'lucide-react';
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { VoiceBeam } from 'voice-glow';
 
 import { ActivityTimeline } from '@/components/activity';
-import { BotAvatar, ThinkingOrb, UserAvatar } from '@/components/avatars';
+import { Beam, Orb } from '@/components/avatars';
 import { CitationCard } from '@/components/citation';
+import { VerdictDot, VerdictTrail } from '@/components/decision';
 import { Markdown } from '@/components/markdown';
+import { PresenceView } from '@/components/presence';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/misc';
@@ -12,9 +15,13 @@ import { Switch } from '@/components/ui/switch';
 import { useChat } from '@/context/chat';
 import { useI18n } from '@/context/i18n';
 import { useMe } from '@/context/session';
+import { useReducedMotion, useResolvedTheme } from '@/lib/motion';
+import { usePresence } from '@/lib/use-presence';
 import type { CitationItem, Turn } from '@/lib/timeline';
 import { cn, formatEur, formatNumber } from '@/lib/utils';
 import { useVoice } from '@/lib/voice';
+
+const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
 function CostChip({ turn }: { turn: Turn }) {
   const { t, intl } = useI18n();
@@ -23,10 +30,10 @@ function CostChip({ turn }: { turn: Turn }) {
   const tokens = turn.cost.inputTokens + turn.cost.outputTokens;
   const detail = `${t('act.costTokens', { input: formatNumber(turn.cost.inputTokens, intl), output: formatNumber(turn.cost.outputTokens, intl) })} · ${t('act.costCalls', { count: turn.cost.calls })}${turn.cost.models.length ? ` · ${turn.cost.models.join(', ')}` : ''}`;
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border bg-muted/50 px-2.5 py-0.5 text-xs text-muted-foreground" title={detail} data-testid="cost-chip">
+    <span className="inline-flex items-center gap-1.5 font-mono text-[11.5px] text-muted-foreground" title={detail} data-testid="cost-chip">
       <Coins className="h-3.5 w-3.5" aria-hidden />
       <span className="sr-only">{t('act.cost')}: </span>
-      <span className="font-medium tabular-nums text-foreground">{formatEur(eur, intl)}</span>
+      <span className="tabular-nums text-foreground">{formatEur(eur, intl)}</span>
       <span aria-hidden>·</span>
       <span className="tabular-nums">
         {formatNumber(tokens, intl)} {t('costs.tokens')}
@@ -43,93 +50,74 @@ function TurnView({ turn, isLast }: { turn: Turn; isLast: boolean }) {
   const citations = turn.items.filter((x): x is CitationItem => x.kind === 'citation');
   const empty = !streaming && !turn.answer;
   return (
-    <li className="space-y-4" data-testid="turn" data-status={turn.status}>
-      <div className="flex justify-end gap-3">
-        <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-primary px-4 py-2.5 text-sm text-primary-foreground shadow-sm">
+    <li className="space-y-5" data-testid="turn" data-status={turn.status}>
+      <div className="flex justify-end">
+        <div className="max-w-[85%] rounded-[20px] rounded-tr-md bg-secondary px-4 py-2.5 text-[15px] leading-relaxed text-secondary-foreground">
           <span className="sr-only">{t('chat.you')}: </span>
           <p className="whitespace-pre-wrap break-words">{turn.question}</p>
         </div>
-        <UserAvatar name={me.name} size={30} className="mt-0.5 hidden sm:inline-flex" />
       </div>
 
-      <div className="flex gap-3">
-        <div className="mt-0.5 w-[30px] shrink-0">
-          {streaming ? <ThinkingOrb size={30} /> : <BotAvatar seed={me.agent || me.assistant} size={30} />}
+      <div className="min-w-0 space-y-4">
+        <p className="flex items-center gap-3 text-[13px]">
+          <span className="font-medium text-foreground">{me.assistant}</span>
+          {turn.restored && <span className="font-mono text-[11.5px] text-muted-foreground">{t('chat.restored')}</span>}
+          <VerdictTrail turn={turn} />
+        </p>
+        <ActivityTimeline turn={turn} />
+        <div aria-live={isLast ? 'polite' : undefined} aria-busy={streaming} aria-atomic="false" className="text-[15px]" data-testid="answer">
+          {turn.answer ? (
+            <div className={cn(streaming && 'streaming-caret')}>
+              <Markdown text={turn.answer} />
+            </div>
+          ) : streaming ? (
+            <p className="text-sm text-muted-foreground">{t('chat.thinking', { assistant: me.assistant })}</p>
+          ) : empty && turn.status !== 'error' ? (
+            <p className="text-sm text-muted-foreground">{t('chat.emptyAnswer')}</p>
+          ) : null}
         </div>
-        <div className="min-w-0 flex-1 space-y-3">
-          <p className="text-xs font-medium text-muted-foreground">
-            {me.assistant}
-            {turn.restored && <span className="ml-2 font-normal">· {t('chat.restored')}</span>}
-          </p>
-          <ActivityTimeline turn={turn} />
-          <div
-            aria-live={isLast ? 'polite' : undefined}
-            aria-busy={streaming}
-            aria-atomic="false"
-            className="text-[15px]"
-            data-testid="answer"
-          >
-            {turn.answer ? (
-              <div className={cn(streaming && 'streaming-caret')}>
-                <Markdown text={turn.answer} />
-              </div>
-            ) : streaming ? (
-              <p className="text-sm text-muted-foreground">{t('chat.thinking', { assistant: me.assistant })}</p>
-            ) : empty && turn.status !== 'error' ? (
-              <p className="text-sm text-muted-foreground">{t('chat.emptyAnswer')}</p>
-            ) : null}
-          </div>
-          {citations.length > 0 && (
-            <section aria-label={t('cite.sources')} className="space-y-2">
-              <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('cite.sources')}</h3>
-              <ul className="flex flex-wrap gap-2">
-                {citations.map((c) => (
-                  <li key={c.key} className="w-full max-w-md">
-                    <CitationCard c={c} />
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-          {!streaming && <CostChip turn={turn} />}
-        </div>
+        {citations.length > 0 && (
+          <section aria-label={t('cite.sources')} className="space-y-2.5">
+            <h2 className="eyebrow">{t('cite.sources')}</h2>
+            <ul className="flex flex-wrap gap-2">
+              {citations.map((c) => (
+                <li key={c.key} className="w-full max-w-md">
+                  <CitationCard c={c} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {!streaming && <CostChip turn={turn} />}
       </div>
     </li>
   );
 }
 
-function EmptyState({ onPick, disabled }: { onPick: (s: string) => void; disabled: boolean }) {
-  const me = useMe();
+/** "Color means Warden decided": the twist, explained once, quietly. */
+function Legend({ className }: { className?: string }) {
   const { t } = useI18n();
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center px-4 py-10 text-center sm:py-16">
-      <ThinkingOrb size={56} active={false} />
-      <h2 className="mt-5 text-xl font-semibold tracking-tight">{me.greeting}</h2>
-      <p className="mt-2 text-sm text-muted-foreground">{t('chat.tools', { count: me.tools.length })}</p>
-      {me.suggestions.length > 0 && (
-        <section aria-labelledby="suggestions-title" className="mt-8 w-full">
-          <h3 id="suggestions-title" className="mb-3 flex items-center justify-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            <Lightbulb className="h-3.5 w-3.5" aria-hidden />
-            {t('chat.suggestions')}
-          </h3>
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {me.suggestions.map((s) => (
-              <li key={s}>
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => onPick(s)}
-                  className="h-full w-full rounded-xl border bg-card px-4 py-3 text-left text-sm shadow-sm transition-colors hover:border-primary/40 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
-                >
-                  {s}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-    </div>
+    <p className={cn('flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-mono text-[11px] text-muted-foreground', className)}>
+      <span>{t('legend.title')}:</span>
+      <span className="inline-flex items-center gap-1.5">
+        <VerdictDot tone="allow" />
+        {t('legend.allow')}
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <VerdictDot tone="approval" />
+        {t('legend.approval')}
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <VerdictDot tone="deny" />
+        {t('legend.deny')}
+      </span>
+    </p>
   );
+}
+
+function Kbd({ children }: { children: ReactNode }) {
+  return <kbd>{children}</kbd>;
 }
 
 export function ChatPage() {
@@ -137,6 +125,7 @@ export function ChatPage() {
   const { t } = useI18n();
   const { turns, busy, send, cancel, clear } = useChat();
   const [text, setText] = useState('');
+  const [focused, setFocused] = useState(false);
   const [voiceMode, setVoiceMode] = useState(false);
   const inputId = useId();
   const voiceId = useId();
@@ -144,11 +133,23 @@ export function ChatPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const stick = useRef(true);
   const pressing = useRef(false);
+  const refocus = useRef(false);
+  const theme = useResolvedTheme();
+  const reduced = useReducedMotion();
 
   const voice = useVoice(me.voice.mode, me.voice.language, {
     unsupported: t('voice.unsupported'),
     denied: t('voice.denied'),
     failed: (error) => t('voice.failed', { error }),
+  });
+
+  const last = turns[turns.length - 1];
+  const { presence, nonce } = usePresence({
+    turn: last,
+    typing: focused && text.trim().length > 0,
+    listening: voice.state === 'listening',
+    testAs: !!me.impersonated_by,
+    kill: me.kill_switch,
   });
 
   // Keep the newest content in view unless the user scrolled up.
@@ -169,6 +170,7 @@ export function ChatPage() {
       if (!m || busy) return;
       setText('');
       stick.current = true;
+      refocus.current = !viaVoice;
       const turn = await send(m, { voice: viaVoice });
       if (viaVoice && turn?.answer) void voice.speak(turn.answer);
     },
@@ -181,6 +183,27 @@ export function ChatPage() {
       void submit(text);
     }
   };
+
+  // Ctrl/⌘K focuses the composer from anywhere on the chat page.
+  useEffect(() => {
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const empty = turns.length === 0;
+  // The composer moves from the hero to the dock after the first message: keep the focus.
+  useEffect(() => {
+    if (refocus.current) {
+      refocus.current = false;
+      inputRef.current?.focus();
+    }
+  }, [empty]);
 
   const startTalk = () => {
     if (pressing.current || busy) return;
@@ -203,30 +226,232 @@ export function ChatPage() {
     const border = el.offsetHeight - el.clientHeight;
     el.style.height = `${Math.min(el.scrollHeight + border, 200)}px`;
     el.style.overflowY = el.scrollHeight + border > 200 ? 'auto' : 'hidden';
-  }, [text]);
+  }, [text, empty, voiceMode]);
 
   const readOnly = !!me.impersonated_by;
+  const listening = voice.state === 'listening';
+
+  const composer = (
+    <div className="space-y-2.5">
+      {readOnly && <Alert variant="info">{t('chat.readOnly')}</Alert>}
+      {voice.error && <Alert variant="error">{voice.error}</Alert>}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void submit(text);
+        }}
+      >
+        <VoiceBeam
+          stream={listening ? voice.micStream : null}
+          level={voice.speaking ? voice.outputLevel : 0}
+          active={voiceMode && (listening || voice.speaking) && !reduced}
+          colorVariant="mono"
+          theme={theme}
+          idle={0}
+          borderRadius={26}
+          className="block"
+        >
+          <Beam variant="working" active={busy}>
+            <div
+              className={cn(
+                'rounded-[26px] border border-input bg-card transition-colors duration-micro focus-within:border-ring',
+                busy && 'border-border',
+              )}
+            >
+              {voiceMode ? (
+                <div className="flex min-h-[64px] items-center gap-3 px-3 py-2.5">
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant={listening ? 'outline' : 'default'}
+                    className={cn('h-11 w-11 shrink-0', listening && 'border-foreground')}
+                    aria-label={t('voice.holdKey')}
+                    aria-pressed={listening}
+                    disabled={busy || !voice.supported || voice.state === 'transcribing'}
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      startTalk();
+                    }}
+                    onPointerUp={() => void endTalk()}
+                    onPointerLeave={() => void endTalk()}
+                    onKeyDown={(e) => {
+                      if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
+                        e.preventDefault();
+                        startTalk();
+                      }
+                    }}
+                    onKeyUp={(e) => {
+                      if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        void endTalk();
+                      }
+                    }}
+                  >
+                    <Mic aria-hidden />
+                  </Button>
+                  <p className="flex min-w-0 flex-1 items-center gap-2 text-[15px]" aria-live="polite">
+                    {listening ? (
+                      <span className="text-foreground">{voice.interim || t('voice.listening')}</span>
+                    ) : voice.state === 'transcribing' ? (
+                      <>
+                        <Orb state="working" size={20} />
+                        <span className="text-muted-foreground">{t('voice.transcribing')}</span>
+                      </>
+                    ) : !voice.supported ? (
+                      <span className="text-muted-foreground">{t('voice.unsupported')}</span>
+                    ) : voice.interim ? (
+                      <span className="text-muted-foreground">
+                        {t('voice.transcript')}: {voice.interim}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">{t('voice.hold')}</span>
+                    )}
+                  </p>
+                  {voice.speaking && (
+                    <Button type="button" variant="ghost" size="icon-sm" onClick={voice.stopSpeaking} aria-label={t('voice.stopSpeaking')}>
+                      <VolumeX aria-hidden />
+                    </Button>
+                  )}
+                  {busy && (
+                    <Button type="button" size="icon" variant="outline" className="h-9 w-9 shrink-0" onClick={cancel} aria-label={t('chat.stop')} title={t('chat.stop')}>
+                      <Square className="!size-3.5" aria-hidden />
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-end gap-2 py-2 pl-5 pr-2">
+                  <Label htmlFor={inputId} className="sr-only">
+                    {t('chat.inputLabel', { assistant: me.assistant })}
+                  </Label>
+                  <textarea
+                    id={inputId}
+                    ref={inputRef}
+                    rows={1}
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    onKeyDown={onKeyDown}
+                    onFocus={() => setFocused(true)}
+                    onBlur={() => setFocused(false)}
+                    placeholder={t('chat.placeholder')}
+                    maxLength={4000}
+                    data-testid="chat-input"
+                    className={cn(
+                      'block max-h-[200px] w-full flex-1 resize-none bg-transparent py-2.5 text-[16px] leading-6 placeholder:text-muted-foreground focus-visible:outline-none',
+                      empty ? 'min-h-[76px]' : 'min-h-[44px]',
+                    )}
+                  />
+                  {busy ? (
+                    <Button type="button" size="icon" variant="outline" className="mb-0.5 h-10 w-10 shrink-0" onClick={cancel} aria-label={t('chat.stop')} title={t('chat.stop')}>
+                      <Square className="!size-3.5" aria-hidden />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      size="icon"
+                      className="mb-0.5 h-10 w-10 shrink-0"
+                      disabled={!text.trim()}
+                      aria-label={t('chat.send')}
+                      title={t('chat.send')}
+                      data-testid="chat-send"
+                    >
+                      <ArrowUp aria-hidden />
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          </Beam>
+        </VoiceBeam>
+      </form>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1 text-[12px] text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Switch
+            id={voiceId}
+            checked={voiceMode}
+            onCheckedChange={(v) => {
+              setVoiceMode(v);
+              if (!v) voice.stopSpeaking();
+            }}
+            aria-describedby={`${voiceId}-hint`}
+          />
+          <Label htmlFor={voiceId} className="text-[12px] font-medium text-foreground">
+            {t('voice.mode')}
+          </Label>
+          <span id={`${voiceId}-hint`} className="hidden sm:inline">
+            {voiceMode ? t('approval.clickOnly') : t('voice.modeHint')}
+          </span>
+          {voice.speaking && (
+            <span className="inline-flex items-center gap-1">
+              <Volume2 className="h-3.5 w-3.5" aria-hidden />
+              {t('voice.speaking')}
+            </span>
+          )}
+        </div>
+        {!voiceMode && (
+          <p className="hidden items-center gap-3 md:flex" aria-hidden>
+            <span className="inline-flex items-center gap-1.5">
+              <Kbd>⏎</Kbd> {t('chat.kbd.send')}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Kbd>⇧⏎</Kbd> {t('chat.kbd.newline')}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Kbd>{isMac ? '⌘K' : 'Ctrl K'}</Kbd> {t('chat.kbd.focus')}
+            </span>
+          </p>
+        )}
+        <span className="sr-only" role="status">
+          {busy ? t('chat.status.streaming') : turns.length > 0 ? t('chat.status.done') : ''}
+        </span>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="border-b bg-background/60">
-        <div className="container flex max-w-4xl items-center justify-between gap-2 py-2">
-          <h1 className="text-sm font-semibold">
-            {t('chat.title')} <span className="font-normal text-muted-foreground">· {me.assistant}</span>
-          </h1>
-          <Button variant="ghost" size="sm" onClick={() => void clear()} disabled={busy || turns.length === 0}>
-            <Eraser aria-hidden />
-            {t('chat.clear')}
-          </Button>
-        </div>
-      </div>
-
-      <div ref={listRef} onScroll={onScroll} className="min-h-0 flex-1 overflow-y-auto">
-        {turns.length === 0 ? (
-          <EmptyState onPick={(s) => void submit(s)} disabled={busy} />
+      <h1 className="sr-only">
+        {t('chat.title')} · {me.assistant}
+      </h1>
+      <div ref={listRef} onScroll={onScroll} className="relative min-h-0 flex-1 overflow-y-auto">
+        {empty ? (
+          <div className="relative flex min-h-full flex-col">
+            <div aria-hidden className="hero-grid pointer-events-none absolute inset-0" />
+            <div className="relative mx-auto flex w-full max-w-[760px] flex-1 flex-col items-center justify-center px-4 py-12">
+              <PresenceView presence={presence} nonce={nonce} variant="hero" assistant={me.assistant} />
+              <h2 className="mt-7 text-balance text-center text-[34px] font-medium leading-[1.08] tracking-[-0.035em] sm:text-[44px]">{me.greeting}</h2>
+              <p className="eyebrow mt-4 text-center">
+                <span className="tabular-nums">{t('chat.tools', { count: me.tools.length })}</span>
+                <span aria-hidden> · </span>
+                {t('chat.governed')}
+              </p>
+              <div className="mt-9 w-full">{composer}</div>
+              {me.suggestions.length > 0 && (
+                <section aria-labelledby="suggestions-title" className="mt-6 w-full">
+                  <h3 id="suggestions-title" className="sr-only">
+                    {t('chat.suggestions')}
+                  </h3>
+                  <ul className="flex flex-wrap justify-center gap-2">
+                    {me.suggestions.map((s) => (
+                      <li key={s}>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void submit(s)}
+                          className="h-8 rounded-full border px-3.5 text-[13px] text-muted-foreground transition-colors duration-micro hover:border-foreground/30 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                        >
+                          {s}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+              <Legend className="mt-12" />
+            </div>
+          </div>
         ) : (
-          <section aria-label={t('chat.messages')} className="container max-w-4xl py-6">
-            <ol className="space-y-8">
+          <section aria-label={t('chat.messages')} className="mx-auto w-full max-w-[760px] px-4 pb-10 pt-8">
+            <ol className="space-y-12">
               {turns.map((turn, i) => (
                 <TurnView key={turn.id} turn={turn} isLast={i === turns.length - 1} />
               ))}
@@ -235,130 +460,21 @@ export function ChatPage() {
         )}
       </div>
 
-      <div className="shrink-0 border-t bg-card/60 pb-[env(safe-area-inset-bottom)]">
-        <div className="container max-w-4xl space-y-2 py-3">
-          {readOnly && <Alert variant="warning">{t('chat.readOnly')}</Alert>}
-          {voice.error && <Alert variant="error">{voice.error}</Alert>}
-          <form
-            className="flex items-end gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void submit(text);
-            }}
-          >
-            {voiceMode ? (
-              <div className="flex min-h-[44px] flex-1 items-center gap-3 rounded-xl border bg-card px-3 py-2 shadow-sm">
-                <Button
-                  type="button"
-                  size="icon"
-                  variant={voice.state === 'listening' ? 'destructive' : 'default'}
-                  className="h-10 w-10 shrink-0 rounded-full"
-                  aria-label={t('voice.holdKey')}
-                  aria-pressed={voice.state === 'listening'}
-                  disabled={busy || !voice.supported || voice.state === 'transcribing'}
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    startTalk();
-                  }}
-                  onPointerUp={() => void endTalk()}
-                  onPointerLeave={() => void endTalk()}
-                  onKeyDown={(e) => {
-                    if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
-                      e.preventDefault();
-                      startTalk();
-                    }
-                  }}
-                  onKeyUp={(e) => {
-                    if (e.key === ' ' || e.key === 'Enter') {
-                      e.preventDefault();
-                      void endTalk();
-                    }
-                  }}
-                >
-                  <Mic aria-hidden />
-                </Button>
-                <p className="min-w-0 flex-1 text-sm" aria-live="polite">
-                  {voice.state === 'listening' ? (
-                    <span className="text-foreground">{voice.interim || t('voice.listening')}</span>
-                  ) : voice.state === 'transcribing' ? (
-                    <span className="text-muted-foreground">{t('voice.transcribing')}</span>
-                  ) : !voice.supported ? (
-                    <span className="text-muted-foreground">{t('voice.unsupported')}</span>
-                  ) : voice.interim ? (
-                    <span className="text-muted-foreground">
-                      {t('voice.transcript')}: {voice.interim}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">{t('voice.hold')}</span>
-                  )}
-                </p>
-                {voice.speaking && (
-                  <Button type="button" variant="ghost" size="icon-sm" onClick={voice.stopSpeaking} aria-label={t('voice.stopSpeaking')}>
-                    <VolumeX aria-hidden />
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="flex-1">
-                <Label htmlFor={inputId} className="sr-only">
-                  {t('chat.inputLabel', { assistant: me.assistant })}
-                </Label>
-                <textarea
-                  id={inputId}
-                  ref={inputRef}
-                  rows={1}
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  onKeyDown={onKeyDown}
-                  placeholder={t('chat.placeholder')}
-                  maxLength={4000}
-                  data-testid="chat-input"
-                  className="block max-h-[200px] min-h-[44px] w-full resize-none rounded-xl border border-input bg-card px-4 py-2.5 text-[15px] shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-              </div>
-            )}
-            {busy ? (
-              <Button type="button" size="icon" variant="outline" className="h-11 w-11 shrink-0 rounded-xl" onClick={cancel} aria-label={t('chat.stop')} title={t('chat.stop')}>
-                <Square aria-hidden />
+      {!empty && (
+        <div className="relative shrink-0 pb-[max(env(safe-area-inset-bottom),12px)]">
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-8 h-8 bg-gradient-to-t from-background to-transparent" />
+          <div className="mx-auto w-full max-w-[760px] space-y-2 px-4">
+            <div className="flex items-center justify-between gap-3">
+              <PresenceView presence={presence} nonce={nonce} variant="dock" assistant={me.assistant} className="min-w-0" />
+              <Button variant="ghost" size="sm" onClick={() => void clear()} disabled={busy || turns.length === 0} className="shrink-0">
+                <Eraser aria-hidden />
+                {t('chat.clear')}
               </Button>
-            ) : (
-              !voiceMode && (
-                <Button
-                  type="submit"
-                  size="icon"
-                  className="h-11 w-11 shrink-0 rounded-xl"
-                  disabled={!text.trim()}
-                  aria-label={t('chat.send')}
-                  title={t('chat.send')}
-                  data-testid="chat-send"
-                >
-                  <ArrowUp aria-hidden />
-                </Button>
-              )
-            )}
-          </form>
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Switch id={voiceId} checked={voiceMode} onCheckedChange={(v) => { setVoiceMode(v); if (!v) voice.stopSpeaking(); }} aria-describedby={`${voiceId}-hint`} />
-              <Label htmlFor={voiceId} className="text-xs font-medium text-foreground">
-                {t('voice.mode')}
-              </Label>
-              <span id={`${voiceId}-hint`} className="hidden sm:inline">
-                {voiceMode ? t('approval.clickOnly') : t('voice.modeHint')}
-              </span>
-              {voice.speaking && (
-                <span className="inline-flex items-center gap-1">
-                  <Volume2 className="h-3.5 w-3.5" aria-hidden />
-                  {t('voice.speaking')}
-                </span>
-              )}
             </div>
-            <span className="sr-only" role="status">
-              {busy ? t('chat.status.streaming') : turns.length > 0 ? t('chat.status.done') : ''}
-            </span>
+            {composer}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

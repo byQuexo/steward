@@ -42,7 +42,7 @@ export function TestAsPage() {
 
   return (
     <section aria-labelledby="test-as-title">
-      <h2 id="test-as-title" className="text-lg font-semibold">
+      <h2 id="test-as-title" className="text-[20px] font-medium tracking-[-0.02em]">
         {t('testAs.title')}
       </h2>
       <p className="mb-5 mt-1 max-w-2xl text-sm text-muted-foreground">{t('testAs.subtitle')}</p>
@@ -54,7 +54,7 @@ export function TestAsPage() {
           {users.users.map(({ user, title }) => {
             const self = user.id === me.user;
             return (
-              <li key={user.id} className="flex items-center gap-3 rounded-lg border bg-card p-4 shadow-sm">
+              <li key={user.id} className="flex items-center gap-3 rounded-lg border bg-card p-4">
                 <UserAvatar name={user.name} size={36} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{user.name}</p>

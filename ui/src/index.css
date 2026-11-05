@@ -2,84 +2,110 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Steward "Verdict" design tokens (DESIGN.md §2). Ink on black by default, ink on paper in light.
+ * The only chroma in the product is the three Warden verdicts: allow (teal), approval (ember),
+ * deny (red). If something is colored, Warden decided something there.
+ */
 @layer base {
   :root {
-    --background: 220 20% 98%;
-    --foreground: 224 25% 12%;
+    --background: 0 0% 98.5%;
+    --foreground: 0 0% 7%;
     --card: 0 0% 100%;
-    --card-foreground: 224 25% 12%;
+    --card-foreground: 0 0% 7%;
     --popover: 0 0% 100%;
-    --popover-foreground: 224 25% 12%;
-    --primary: 243 70% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 16% 94%;
-    --secondary-foreground: 224 25% 15%;
-    --muted: 220 16% 94%;
-    --muted-foreground: 220 10% 38%;
-    --accent: 232 80% 96%;
-    --accent-foreground: 243 55% 34%;
-    --destructive: 0 72% 44%;
+    --popover-foreground: 0 0% 7%;
+    --primary: 0 0% 7%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 36%;
+    --subtle: 0 0% 55%;
+    --accent: 0 0% 92%;
+    --accent-foreground: 0 0% 7%;
+    --destructive: 0 74% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 14% 87%;
-    --input: 220 13% 78%;
-    --ring: 243 70% 50%;
-    --radius: 0.65rem;
+    --border: 0 0% 88%;
+    --input: 0 0% 78%;
+    --ring: 0 0% 9%;
+    --radius: 0.875rem;
 
-    --allow: 152 62% 30%;
-    --allow-soft: 150 55% 94%;
-    --allow-foreground: 153 70% 21%;
-    --approval: 35 92% 45%;
-    --approval-soft: 42 95% 92%;
-    --approval-foreground: 28 85% 27%;
-    --deny: 0 72% 46%;
+    --allow: 170 85% 26%;
+    --allow-soft: 166 55% 94%;
+    --allow-foreground: 170 90% 22%;
+    --allow-ink: 0 0% 100%;
+    --approval: 30 95% 42%;
+    --approval-soft: 40 95% 93%;
+    --approval-foreground: 26 90% 28%;
+    --approval-ink: 0 0% 0%;
+    --deny: 0 74% 45%;
     --deny-soft: 0 85% 96%;
-    --deny-foreground: 0 70% 36%;
+    --deny-foreground: 0 75% 36%;
+    --deny-ink: 0 0% 100%;
 
-    --chart-1: 243 70% 56%;
-    --chart-2: 173 70% 34%;
-    --chart-3: 35 92% 48%;
-    --chart-4: 330 65% 50%;
-    --chart-5: 200 80% 42%;
+    /* Charts: a grey ramp, never verdict colors. */
+    --chart-1: 0 0% 15%;
+    --chart-2: 0 0% 35%;
+    --chart-3: 0 0% 52%;
+    --chart-4: 0 0% 68%;
+    --chart-5: 0 0% 82%;
+
+    --grid-line: 0 0% 0% / 0.05;
+    --grain-opacity: 0.025;
+
+    --dur-micro: 120ms;
+    --dur-enter: 220ms;
+    --dur-layout: 320ms;
+    --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --ease-in-out: cubic-bezier(0.6, 0, 0.2, 1);
 
     color-scheme: light;
   }
 
   .dark {
-    --background: 228 22% 7%;
-    --foreground: 220 15% 92%;
-    --card: 228 20% 10%;
-    --card-foreground: 220 15% 92%;
-    --popover: 228 20% 11%;
-    --popover-foreground: 220 15% 92%;
-    --primary: 238 85% 74%;
-    --primary-foreground: 235 40% 12%;
-    --secondary: 228 16% 16%;
-    --secondary-foreground: 220 15% 92%;
-    --muted: 228 16% 15%;
-    --muted-foreground: 220 12% 68%;
-    --accent: 238 30% 20%;
-    --accent-foreground: 236 90% 86%;
-    --destructive: 0 70% 52%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 228 14% 20%;
-    --input: 228 13% 30%;
-    --ring: 238 85% 74%;
+    --background: 0 0% 3%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 0 0% 95%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 62%;
+    --subtle: 0 0% 46%;
+    --accent: 0 0% 13%;
+    --accent-foreground: 0 0% 96%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 4%;
+    --border: 0 0% 15%;
+    --input: 0 0% 22%;
+    --ring: 0 0% 92%;
 
-    --allow: 152 55% 52%;
-    --allow-soft: 153 40% 13%;
-    --allow-foreground: 150 60% 72%;
-    --approval: 38 92% 56%;
-    --approval-soft: 35 55% 13%;
-    --approval-foreground: 42 95% 72%;
-    --deny: 0 80% 64%;
-    --deny-soft: 0 45% 14%;
-    --deny-foreground: 0 90% 80%;
+    --allow: 166 62% 50%;
+    --allow-soft: 166 45% 8%;
+    --allow-foreground: 164 70% 66%;
+    --allow-ink: 166 60% 6%;
+    --approval: 34 96% 56%;
+    --approval-soft: 32 60% 8%;
+    --approval-foreground: 38 100% 68%;
+    --approval-ink: 30 60% 6%;
+    --deny: 0 84% 60%;
+    --deny-soft: 0 50% 9%;
+    --deny-foreground: 0 95% 75%;
+    --deny-ink: 0 0% 4%;
 
-    --chart-1: 238 85% 72%;
-    --chart-2: 170 60% 50%;
-    --chart-3: 38 92% 58%;
-    --chart-4: 330 75% 68%;
-    --chart-5: 200 85% 62%;
+    --chart-1: 0 0% 88%;
+    --chart-2: 0 0% 68%;
+    --chart-3: 0 0% 50%;
+    --chart-4: 0 0% 36%;
+    --chart-5: 0 0% 24%;
+
+    --grid-line: 0 0% 100% / 0.045;
+    --grain-opacity: 0.035;
 
     color-scheme: dark;
   }
@@ -94,91 +120,70 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: 'cv11', 'ss01';
+    font-feature-settings: 'ss01', 'cv11';
+  }
+
+  ::selection {
+    background: hsl(var(--foreground) / 0.18);
   }
 
   :focus-visible {
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
   }
+
+  kbd {
+    @apply inline-flex h-[18px] min-w-[18px] items-center justify-center rounded border border-border bg-muted px-1 font-mono text-[10px] font-medium leading-none text-muted-foreground;
+  }
 }
 
 @layer components {
-  /* --- Thinking orb: a soft, slowly turning sphere while the assistant works. --------------- */
-  .thinking-orb {
-    position: relative;
-    display: inline-block;
-    flex: none;
-    width: var(--orb-size, 1.75rem);
-    height: var(--orb-size, 1.75rem);
-    border-radius: 9999px;
-    background:
-      radial-gradient(circle at 32% 30%, hsl(0 0% 100% / 0.85), transparent 42%),
-      radial-gradient(circle at 70% 75%, hsl(var(--chart-2) / 0.9), transparent 60%),
-      radial-gradient(circle at 50% 50%, hsl(var(--primary)), hsl(var(--chart-4) / 0.8));
-    box-shadow:
-      0 0 0 1px hsl(var(--primary) / 0.25),
-      0 4px 18px -4px hsl(var(--primary) / 0.55);
-    animation: orb-breathe 2.6s ease-in-out infinite;
-  }
-  .thinking-orb::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: conic-gradient(from 0deg, transparent 0 55%, hsl(0 0% 100% / 0.55) 70%, transparent 85%);
-    mix-blend-mode: soft-light;
-    animation: orb-spin 3.2s linear infinite;
-  }
-  .thinking-orb.is-idle {
-    animation: none;
-    opacity: 0.9;
-  }
-  .thinking-orb.is-idle::before {
-    animation: none;
+  /* Eyebrow: mono caps section labels. */
+  .eyebrow {
+    @apply font-mono text-eyebrow font-medium uppercase text-muted-foreground;
   }
 
-  /* --- Border beam: a light that travels around the active approval card. ------------------ */
-  .border-beam {
-    position: relative;
-    isolation: isolate;
-  }
-  .border-beam::before {
+  /* Decoration lives in position: fixed pseudo-elements: they paint under the content, take no
+     pointer events, and contrast checkers (axe) ignore them, so text is always measured against
+     the real background color. */
+
+  /* Film grain over the whole canvas. */
+  body::before {
     content: '';
-    position: absolute;
+    position: fixed;
     inset: 0;
     z-index: -1;
-    padding: 1.5px;
-    border-radius: inherit;
-    background: conic-gradient(
-      from var(--beam-angle),
-      hsl(var(--approval) / 0.15) 0deg,
-      hsl(var(--approval) / 0.15) 250deg,
-      hsl(var(--approval)) 300deg,
-      hsl(var(--chart-4) / 0.9) 330deg,
-      hsl(var(--approval) / 0.15) 360deg
-    );
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask:
-      linear-gradient(#000 0 0) content-box exclude,
-      linear-gradient(#000 0 0);
-    animation: beam-spin 4s linear infinite;
     pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
   }
 
-  /* --- Streaming caret ---------------------------------------------------------------------- */
-  .streaming-caret::after {
+  /* Faint grid behind hero areas (login, empty chat), faded out radially. */
+  .hero-grid::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, hsl(var(--grid-line)) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--grid-line)) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: center top;
+    -webkit-mask-image: radial-gradient(ellipse 60% 55% at 50% 40%, #000 15%, transparent 75%);
+    mask-image: radial-gradient(ellipse 60% 55% at 50% 40%, #000 15%, transparent 75%);
+  }
+
+  /* Streaming caret: a thin foreground bar. */
+  .streaming-caret > .prose-answer > :last-child::after {
     content: '';
     display: inline-block;
-    width: 0.5ch;
-    height: 1.1em;
-    margin-left: 2px;
+    width: 2px;
+    height: 1.05em;
+    margin-left: 3px;
     vertical-align: text-bottom;
-    background: hsl(var(--primary) / 0.7);
-    border-radius: 1px;
+    background: hsl(var(--foreground) / 0.8);
     animation: caret-blink 1s steps(2, start) infinite;
   }
 
@@ -188,23 +193,27 @@
     overflow-wrap: anywhere;
   }
   .prose-answer > * + * {
-    margin-top: 0.75em;
+    margin-top: 0.8em;
+  }
+  .prose-answer strong {
+    font-weight: 600;
   }
   .prose-answer h3,
   .prose-answer h4,
   .prose-answer h5 {
     font-weight: 600;
+    letter-spacing: -0.01em;
     line-height: 1.3;
-    margin-top: 1.1em;
+    margin-top: 1.3em;
   }
   .prose-answer h3 {
-    font-size: 1.15rem;
+    font-size: 1.125rem;
   }
   .prose-answer h4 {
-    font-size: 1.05rem;
+    font-size: 1.025rem;
   }
   .prose-answer h5 {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
   .prose-answer ul {
     list-style: disc;
@@ -212,95 +221,95 @@
   }
   .prose-answer ol {
     list-style: decimal;
-    padding-left: 1.25rem;
+    padding-left: 1.35rem;
+  }
+  .prose-answer li::marker {
+    color: hsl(var(--muted-foreground));
   }
   .prose-answer li + li {
-    margin-top: 0.25em;
+    margin-top: 0.3em;
   }
   .prose-answer a {
-    color: hsl(var(--primary));
+    color: hsl(var(--foreground));
     text-decoration: underline;
-    text-underline-offset: 2px;
+    text-decoration-color: hsl(var(--foreground) / 0.4);
+    text-underline-offset: 3px;
+  }
+  .prose-answer a:hover {
+    text-decoration-color: hsl(var(--foreground));
   }
   .prose-answer code {
     font-family: theme('fontFamily.mono');
     font-size: 0.85em;
     background: hsl(var(--muted));
-    padding: 0.1em 0.35em;
-    border-radius: 0.3rem;
+    border: 1px solid hsl(var(--border));
+    padding: 0.05em 0.35em;
+    border-radius: 0.375rem;
   }
   .prose-answer pre {
     background: hsl(var(--muted));
-    padding: 0.75rem 0.9rem;
-    border-radius: 0.5rem;
+    border: 1px solid hsl(var(--border));
+    padding: 0.8rem 1rem;
+    border-radius: 0.625rem;
     overflow-x: auto;
   }
   .prose-answer pre code {
     background: transparent;
+    border: 0;
     padding: 0;
   }
   .prose-answer blockquote {
-    border-left: 3px solid hsl(var(--border));
-    padding-left: 0.8rem;
+    border-left: 2px solid hsl(var(--foreground) / 0.5);
+    padding-left: 0.9rem;
     color: hsl(var(--muted-foreground));
+  }
+  .prose-answer hr {
+    border-color: hsl(var(--border));
   }
   .prose-answer table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.9em;
+    font-variant-numeric: tabular-nums;
   }
   .prose-answer th,
   .prose-answer td {
-    border: 1px solid hsl(var(--border));
-    padding: 0.35rem 0.55rem;
+    border-bottom: 1px solid hsl(var(--border));
+    padding: 0.45rem 0.6rem;
     text-align: left;
   }
   .prose-answer th {
-    background: hsl(var(--muted));
-    font-weight: 600;
+    font-family: theme('fontFamily.mono');
+    font-size: 0.75em;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: hsl(var(--muted-foreground));
   }
 
   .quote-highlight {
-    background: linear-gradient(transparent 55%, hsl(var(--approval) / 0.35) 55%);
+    background: linear-gradient(transparent 60%, hsl(var(--foreground) / 0.16) 60%);
     color: inherit;
     padding: 0 0.1em;
   }
+
+  /* Hide the scrollbar of horizontal scrollers (console rail on small screens). */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-@property --beam-angle {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
-}
-
-@keyframes beam-spin {
-  to {
-    --beam-angle: 360deg;
-  }
-}
-@keyframes orb-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@keyframes orb-breathe {
-  0%,
-  100% {
-    transform: scale(0.94);
-    filter: saturate(1);
-  }
-  50% {
-    transform: scale(1.04);
-    filter: saturate(1.25);
-  }
-}
 @keyframes caret-blink {
   to {
     visibility: hidden;
   }
 }
 
-/* No motion for people who asked for none: orb, beam, caret, toasts and transitions stop. */
+/* No motion for people who asked for none (DESIGN.md §5). Orbs, avatars and beams are paused by
+   their props (lib/motion.ts); this stops every CSS animation and transition. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -310,13 +319,7 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .thinking-orb,
-  .thinking-orb::before,
-  .border-beam::before,
-  .streaming-caret::after {
+  .streaming-caret > .prose-answer > :last-child::after {
     animation: none !important;
-  }
-  .border-beam::before {
-    background: hsl(var(--approval));
   }
 }

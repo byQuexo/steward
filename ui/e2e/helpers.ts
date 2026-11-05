@@ -1,6 +1,12 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Browser, type Page } from '@playwright/test';
 
+/** Storage state that pins the UI theme (the UI defaults to dark). */
+export function themeState(theme: 'light' | 'dark') {
+  const origin = new URL(process.env.STEWARD_URL ?? 'http://127.0.0.1:8000').origin;
+  return { cookies: [], origins: [{ origin, localStorage: [{ name: 'steward.theme', value: theme === 'light' ? 'light' : 'dark' }] }] };
+}
+
 /** Dev login through the login screen (user cards). */
 export async function login(page: Page, user: string) {
   await page.goto('/');

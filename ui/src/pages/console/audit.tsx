@@ -53,12 +53,12 @@ export function AuditPage() {
   const v = data?.verify;
   const verify =
     v?.status === 'ok' ? (
-      <Badge variant="allow">
+      <Badge variant="outline">
         <ShieldCheck aria-hidden />
         {t('audit.verify.ok', { chains: String(v.chains ?? 0) })}
       </Badge>
     ) : v?.status === 'failed' ? (
-      <Badge variant="deny">
+      <Badge variant="default">
         <ShieldAlert aria-hidden />
         {t('audit.verify.failed', { error: String(v.error ?? '') })}
       </Badge>
@@ -73,7 +73,7 @@ export function AuditPage() {
     <section aria-labelledby="audit-title">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 id="audit-title" className="text-lg font-semibold">
+          <h2 id="audit-title" className="text-[20px] font-medium tracking-[-0.02em]">
             {t('audit.title')}
           </h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t('audit.subtitle')}</p>

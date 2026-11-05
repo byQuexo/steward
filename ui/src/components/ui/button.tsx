@@ -5,22 +5,24 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 export const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium transition-colors duration-micro ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90',
-        destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
-        outline: 'border border-input bg-card shadow-sm hover:bg-accent hover:text-accent-foreground',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
-        allow: 'bg-allow text-white shadow-sm hover:bg-allow/90 dark:text-[hsl(153_60%_8%)]',
+        // Inverted ink: the only "primary" color is the foreground itself (DESIGN.md §1).
+        default: 'bg-primary text-primary-foreground hover:bg-primary/85',
+        destructive: 'bg-deny text-deny-ink hover:bg-deny/90',
+        outline: 'border border-input bg-transparent text-foreground hover:border-foreground/40 hover:bg-accent',
+        secondary: 'border border-border bg-secondary text-secondary-foreground hover:bg-accent',
+        ghost: 'text-muted-foreground hover:bg-accent hover:text-foreground',
+        link: 'text-foreground underline decoration-foreground/40 underline-offset-4 hover:decoration-foreground',
+        // Approving is granting authority: the one button that wears a verdict color.
+        allow: 'bg-allow text-allow-ink hover:bg-allow/90',
       },
       size: {
-        default: 'h-9 px-4 py-2',
-        sm: 'h-8 rounded-md px-3 text-xs',
-        lg: 'h-10 rounded-md px-6',
+        default: 'h-9 px-4',
+        sm: 'h-8 px-3 text-[13px]',
+        lg: 'h-11 px-6 text-[15px]',
         icon: 'h-9 w-9',
         'icon-sm': 'h-8 w-8',
       },

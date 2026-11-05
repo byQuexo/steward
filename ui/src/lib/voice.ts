@@ -3,6 +3,7 @@
 // /api/voice/speak (the profile's STT/TTS models). Approvals are never given by voice.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getAudioContext } from 'voice-glow';
 
 import { api } from './api';
 import { errorMessage } from './utils';
@@ -76,8 +77,20 @@ export function useVoice(mode: string, language: string, errors: VoiceErrors) {
   const recorder = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
   const audio = useRef<HTMLAudioElement | null>(null);
+  // Level metering for the voice glow (DESIGN.md §9): the mic stream while listening, the speech
+  // output while speaking (an analyser on server TTS, word boundaries for browser TTS).
+  const [micStream, setMicStream] = useState<MediaStream | null>(null);
+  const meter = useRef<MediaStream | null>(null);
+  const analyser = useRef<AnalyserNode | null>(null);
+  const boundary = useRef(0);
   const errorsRef = useRef(errors);
   errorsRef.current = errors;
+
+  const releaseMeter = () => {
+    meter.current?.getTracks().forEach((tr) => tr.stop());
+    meter.current = null;
+    setMicStream(null);
+  };
 
   const start = useCallback(async () => {
     setError(null);
@@ -98,6 +111,7 @@ export function useVoice(mode: string, language: string, errors: VoiceErrors) {
         };
         recorder.current = r;
         r.start();
+        setMicStream(stream);
         setState('listening');
       } catch (e) {
         setError(e instanceof DOMException && e.name === 'NotAllowedError' ? errorsRef.current.denied : errorsRef.current.failed(errorMessage(e)));
@@ -128,6 +142,7 @@ export function useVoice(mode: string, language: string, errors: VoiceErrors) {
     r.onend = () => {
       setState('idle');
       rec.current = null;
+      releaseMeter();
       const resolve = endResolve.current;
       endResolve.current = null;
       resolve?.(finalText.current.trim());
@@ -136,6 +151,15 @@ export function useVoice(mode: string, language: string, errors: VoiceErrors) {
     try {
       r.start();
       setState('listening');
+      // A second, metering-only stream for the glow; recognition itself owns its own capture.
+      navigator.mediaDevices
+        ?.getUserMedia({ audio: true })
+        .then((m) => {
+          if (rec.current !== r) return m.getTracks().forEach((tr) => tr.stop());
+          meter.current = m;
+          setMicStream(m);
+        })
+        .catch(() => {});
     } catch (e) {
       setError(errorsRef.current.failed(errorMessage(e)));
     }
@@ -152,6 +176,7 @@ export function useVoice(mode: string, language: string, errors: VoiceErrors) {
         r.stop();
       });
       r.stream.getTracks().forEach((tr) => tr.stop());
+      setMicStream(null);
       if (blob.size === 0) {
         setState('idle');
         return '';
@@ -182,7 +207,22 @@ export function useVoice(mode: string, language: string, errors: VoiceErrors) {
       audio.current.pause();
       audio.current = null;
     }
+    analyser.current = null;
     setSpeaking(false);
+  }, []);
+
+  /** 0–1 loudness of what Steward is saying right now (for the voice glow). */
+  const outputLevel = useCallback((): number => {
+    const an = analyser.current;
+    if (an) {
+      const buf = new Uint8Array(an.fftSize);
+      an.getByteTimeDomainData(buf);
+      let sum = 0;
+      for (const v of buf) sum += ((v - 128) / 128) ** 2;
+      return Math.min(1, Math.sqrt(sum / buf.length) * 3);
+    }
+    if (!boundary.current) return 0;
+    return 0.2 + 0.6 * Math.exp(-(performance.now() - boundary.current) / 220);
   }, []);
 
   const speak = useCallback(
@@ -196,6 +236,20 @@ export function useVoice(mode: string, language: string, errors: VoiceErrors) {
           const url = URL.createObjectURL(blob);
           const a = new Audio(url);
           audio.current = a;
+          const ctx = getAudioContext();
+          if (ctx) {
+            try {
+              const src = ctx.createMediaElementSource(a);
+              const an = ctx.createAnalyser();
+              an.fftSize = 1024;
+              src.connect(an);
+              an.connect(ctx.destination);
+              analyser.current = an;
+              void ctx.resume?.();
+            } catch {
+              analyser.current = null;
+            }
+          }
           a.onended = () => {
             URL.revokeObjectURL(url);
             setSpeaking(false);
@@ -213,8 +267,18 @@ export function useVoice(mode: string, language: string, errors: VoiceErrors) {
       u.lang = language;
       const v = pickVoice(window.speechSynthesis.getVoices(), language);
       if (v) u.voice = v;
-      u.onend = () => setSpeaking(false);
-      u.onerror = () => setSpeaking(false);
+      boundary.current = performance.now();
+      u.onboundary = () => {
+        boundary.current = performance.now();
+      };
+      u.onend = () => {
+        boundary.current = 0;
+        setSpeaking(false);
+      };
+      u.onerror = () => {
+        boundary.current = 0;
+        setSpeaking(false);
+      };
       setSpeaking(true);
       window.speechSynthesis.speak(u);
     },
@@ -225,11 +289,12 @@ export function useVoice(mode: string, language: string, errors: VoiceErrors) {
     () => () => {
       rec.current?.abort();
       recorder.current?.stream.getTracks().forEach((tr) => tr.stop());
+      meter.current?.getTracks().forEach((tr) => tr.stop());
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
       audio.current?.pause();
     },
     [],
   );
 
-  return { supported, state, interim, error, speaking, start, stop, speak, stopSpeaking, setError };
+  return { supported, state, interim, error, speaking, start, stop, speak, stopSpeaking, setError, micStream, outputLevel };
 }

@@ -15,7 +15,8 @@ function Health({ c }: { c: Connector }) {
   const { t } = useI18n();
   const state = c.health?.state ?? 'unknown';
   const failures = c.health?.consecutive_failures ?? 0;
-  const variant = state === 'closed' ? 'allow' : state === 'open' ? 'deny' : state === 'half_open' ? 'approval' : 'muted';
+  // Circuit health is not a Warden verdict: monochrome (open = inverted, the loud one).
+  const variant = state === 'closed' ? 'outline' : state === 'open' ? 'default' : state === 'half_open' ? 'secondary' : 'muted';
   const Icon = state === 'closed' ? Activity : state === 'open' ? AlertOctagon : CircleHelp;
   const key = (['closed', 'open', 'half_open'].includes(state) ? `conn.health.${state}` : 'conn.health.unknown') as
     | 'conn.health.closed'
@@ -53,7 +54,7 @@ export function ConnectorsPage() {
     <section aria-labelledby="conn-title">
       <div className="mb-5 flex items-end justify-between gap-3">
         <div>
-          <h2 id="conn-title" className="text-lg font-semibold">
+          <h2 id="conn-title" className="text-[20px] font-medium tracking-[-0.02em]">
             {t('conn.title')}
           </h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t('conn.subtitle')}</p>
@@ -101,7 +102,7 @@ export function ConnectorsPage() {
                           <TableCell className="font-mono text-xs">{tool.name}</TableCell>
                           <TableCell className="font-mono text-xs">{tool.scopes.join(', ')}</TableCell>
                           <TableCell>
-                            <Badge variant={tool.sensitivity === 'write' ? 'approval' : 'muted'}>
+                            <Badge variant={tool.sensitivity === 'write' ? 'outline' : 'muted'}>
                               {tool.sensitivity === 'write' ? t('conn.sens.write') : t('conn.sens.read')}
                             </Badge>
                           </TableCell>

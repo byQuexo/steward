@@ -7,12 +7,13 @@ import { useI18n } from '@/context/i18n';
 type Theme = 'system' | 'light' | 'dark';
 const KEY = 'steward.theme';
 
+// Dark is the default (DESIGN.md §2); light and "follow the system" are opt-in.
 function stored(): Theme {
   try {
     const v = localStorage.getItem(KEY);
-    return v === 'light' || v === 'dark' ? v : 'system';
+    return v === 'light' || v === 'system' ? v : 'dark';
   } catch {
-    return 'system';
+    return 'dark';
   }
 }
 
@@ -28,7 +29,7 @@ export function ThemeToggle() {
   useEffect(() => {
     apply(theme);
     try {
-      if (theme === 'system') localStorage.removeItem(KEY);
+      if (theme === 'dark') localStorage.removeItem(KEY);
       else localStorage.setItem(KEY, theme);
     } catch {
       /* private mode */
@@ -40,7 +41,7 @@ export function ThemeToggle() {
     return () => mq.removeEventListener('change', onChange);
   }, [theme]);
 
-  const next: Record<Theme, Theme> = { system: 'light', light: 'dark', dark: 'system' };
+  const next: Record<Theme, Theme> = { dark: 'light', light: 'system', system: 'dark' };
   const Icon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor;
   const label = t(`theme.${theme}`);
   return (

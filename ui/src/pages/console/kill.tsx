@@ -60,7 +60,7 @@ export function KillPage() {
 
   return (
     <section aria-labelledby="kill-title" className="max-w-3xl">
-      <h2 id="kill-title" className="text-lg font-semibold">
+      <h2 id="kill-title" className="text-[20px] font-medium tracking-[-0.02em]">
         {t('kill.title')}
       </h2>
       <p className="mb-5 mt-1 text-sm text-muted-foreground">{t('kill.subtitle')}</p>
@@ -81,7 +81,7 @@ export function KillPage() {
                 key={m}
                 htmlFor={`kill-${m}`}
                 className={cn(
-                  'flex cursor-pointer items-start gap-3 rounded-lg border bg-card p-4 shadow-sm transition-colors hover:bg-muted/40',
+                  'flex cursor-pointer items-start gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-muted/40',
                   mode === m && (m === 'off' ? 'border-allow bg-allow-soft' : m === 'writes' ? 'border-approval bg-approval-soft' : 'border-deny bg-deny-soft'),
                 )}
               >

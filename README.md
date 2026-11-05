@@ -40,6 +40,13 @@ answers instead. For the full stack with Keycloak: `make demo`.
 
 All eleven Acme stories are in the [demo script](docs/demo-script.md).
 
+<p align="center">
+  <img alt="The chat: Steward's activity log for a prompt-injection ticket. ticket.get allowed in teal, the salary lookup and the chat post denied in red, the ticket close held for approval in amber with the exact arguments." src="docs/assets/screens/chat-injection.png" width="49%">
+  <img alt="The approvals inbox: Sara sees Sven's held deal change with the exact arguments that will run, and approves or rejects it." src="docs/assets/screens/approvals.png" width="49%">
+  <br>
+  <sub>Monochrome until Warden decides: teal allowed, amber waiting for a human, red denied. Design system: <a href="DESIGN.md">DESIGN.md</a>.</sub>
+</p>
+
 ## What makes it different
 
 Most assistants decide in the prompt what a user may do. Steward never asks the model: every
@@ -81,7 +88,7 @@ every call       = scope gate → rules that can only restrict → allow | appro
 | **Sub-agents** (`steward-a2a`) | Research and action agents as A2A servers behind Warden's A2A proxy (per-caller agent cards, skill checks, task ownership). |
 | **MCP servers** (`steward-mcp`) | HR, CRM (read-only SQL), helpdesk, documents ([docrag-bench](https://github.com/byQuexo/docrag-bench) or a built-in verified-quote backend), Jira, chat, GitHub over seed data. Swap any for a real server by URL. |
 | **Memory, cost** | Facts per user/team (every access a Warden action, PII refused); a ledger with per-run, daily and monthly budgets; model calls as OpenTelemetry spans for Phoenix. |
-| **UI** (`ui/`) | React, Tailwind, shadcn/ui: chat with a live decision timeline, approvals, console, costs, memory, voice mode. |
+| **UI** (`ui/`) | React, Tailwind, shadcn/ui and [libraries.dev](https://libraries.dev) components: chat with a live decision log, an animated Steward presence, approvals, console with in-browser what-if (Warden as WebAssembly), costs, memory, voice mode. See [DESIGN.md](DESIGN.md). |
 
 More: [architecture](docs/architecture.md) (a chat turn step by step, the A2A token flow,
 where each decision is made) and the [threat model](docs/threat-model.md) (20 threats, each
@@ -100,7 +107,7 @@ Every number is produced by CI.
 | Hard gates | scope violation, unapproved write, delegation escalation, failed cases | **0** |
 | Decision latency (Acme policy, release) | `warden bench`, 100k decisions | p50 **27 µs**, p99 **66 µs** |
 | Rust tests | unit and end-to-end (gateway, agent loop, console, scenarios) | **38** passing |
-| UI | unit tests; Playwright end-to-end (approvals across two browsers, citations, injection, console) with axe on every page, light and dark | **34** unit, **12 / 12** e2e, 0 serious a11y violations |
+| UI | unit tests; Playwright end-to-end (approvals across two browsers, citations, injection, console) with axe on every page, light and dark | **44** unit, **12 / 12** e2e, 0 serious a11y violations |
 | Docker stack with Keycloak | `deploy/smoke.sh`: real Keycloak tokens through gateway, token exchange, inbox approval, A2A with a delegated write, network isolation, audit verification | **13 / 13** |
 | Seed | byte-identical regeneration of both profiles | ✅ |
 | Quality eval (offline, CI) | 88 questions over 7 users; harness and hard gates on the scripted subset | gates **0** (`pii_leak`, `scope_violation`, `unapproved_write`, `unverified_citation`, `delegation_escalation`) |

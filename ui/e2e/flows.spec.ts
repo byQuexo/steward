@@ -17,6 +17,8 @@ test('sven asks for an 80k deal, sara approves in her inbox, sven sees the tool 
   await expect(card).toContainText('sara');
   const approvalId = await card.getAttribute('data-approval-id');
   expect(approvalId).toBeTruthy();
+  // Steward's presence settles and waits for the human (DESIGN.md §7).
+  await expect(sven.getByTestId('presence')).toHaveAttribute('data-presence', 'awaiting_approval');
 
   // Sara: the inbox badge counts it, she approves with a click.
   const sara = await newUserPage(browser, 'sara');

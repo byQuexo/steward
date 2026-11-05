@@ -215,7 +215,7 @@ function WhatIf({ eff, policy }: { eff: Effective; policy: PolicyInfo | null }) 
               <dd className="italic">{result.model_message}</dd>
             </dl>
             <div>
-              <h4 className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('whatif.trace')}</h4>
+              <h4 className="mb-1.5 eyebrow">{t('whatif.trace')}</h4>
               <Table label={t('whatif.trace')}>
                 <TableHeader>
                   <TableRow>
@@ -276,8 +276,8 @@ export function EffectivePage() {
   if (error) return <Alert variant="error">{t('common.error', { error })}</Alert>;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-      <Card>
+    <div className="grid items-start gap-6 xl:grid-cols-[372px_minmax(0,1fr)]">
+      <Card className="xl:sticky xl:top-6">
         <CardHeader className="pb-2">
           <CardTitle>{t('eff.users')}</CardTitle>
         </CardHeader>
@@ -307,13 +307,13 @@ export function EffectivePage() {
                         >
                           <UserAvatar name={user.name} size={26} />
                           <span>
-                            <span className="block font-medium">{user.name}</span>
-                            <span className="block text-xs text-muted-foreground">{title ?? user.id}</span>
+                            <span className="block whitespace-nowrap font-medium">{user.name}</span>
+                            <span className="block whitespace-nowrap text-xs text-muted-foreground">{title ?? user.id}</span>
                           </span>
                           <span className="sr-only">{t('eff.select', { name: user.name })}</span>
                         </button>
                       </TableCell>
-                      <TableCell className="font-mono text-xs">{user.roles.join(', ')}</TableCell>
+                      <TableCell className="whitespace-nowrap font-mono text-xs">{user.roles.join(', ')}</TableCell>
                       <TableCell className="text-right tabular-nums">{effective_scopes.length}</TableCell>
                     </TableRow>
                   );
@@ -326,7 +326,7 @@ export function EffectivePage() {
 
       <div className="space-y-6">
         {!selected ? (
-          <p className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">{t('eff.pick')}</p>
+          <p className="rounded-lg border border-dashed p-8 text-sm text-muted-foreground">{t('eff.pick')}</p>
         ) : !eff ? (
           <Skeleton className="h-64" />
         ) : (
@@ -343,15 +343,15 @@ export function EffectivePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h3 className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('eff.scopesCount', { count: eff.effective_scopes.length })}</h3>
+                  <h3 className="mb-1.5 eyebrow">{t('eff.scopesCount', { count: eff.effective_scopes.length })}</h3>
                   <Chips items={eff.effective_scopes} />
                 </div>
                 <div>
-                  <h3 className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('eff.tools')}</h3>
+                  <h3 className="mb-1.5 eyebrow">{t('eff.tools')}</h3>
                   <Chips items={eff.tools} />
                 </div>
                 <div>
-                  <h3 className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('eff.attrs')}</h3>
+                  <h3 className="mb-1.5 eyebrow">{t('eff.attrs')}</h3>
                   <dl className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1 font-mono text-xs">
                     {Object.entries(eff.user.attrs).map(([k, v]) => (
                       <div key={k} className="contents">

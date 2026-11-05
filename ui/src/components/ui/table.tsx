@@ -6,7 +6,7 @@ export const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTM
   ({ className, wrapperClassName, label, ...props }, ref) => (
     // The wrapper scrolls horizontally on small screens; keyboard users can focus it to scroll.
     <div className={cn('relative w-full overflow-x-auto', wrapperClassName)} tabIndex={0} role={label ? 'region' : undefined} aria-label={label}>
-      <table ref={ref} className={cn('w-full caption-bottom text-sm', className)} {...props} />
+      <table ref={ref} className={cn('w-full caption-bottom text-[13.5px]', className)} {...props} />
     </div>
   ),
 );
@@ -23,7 +23,7 @@ export const TableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAtt
 TableBody.displayName = 'TableBody';
 
 export const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(({ className, ...props }, ref) => (
-  <tr ref={ref} className={cn('border-b transition-colors hover:bg-muted/40 data-[state=selected]:bg-accent', className)} {...props} />
+  <tr ref={ref} className={cn('border-b transition-colors duration-micro hover:bg-accent/40 data-[state=selected]:bg-accent/70', className)} {...props} />
 ));
 TableRow.displayName = 'TableRow';
 
@@ -31,13 +31,13 @@ export const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttr
   <th
     ref={ref}
     scope="col"
-    className={cn('h-9 whitespace-nowrap px-3 text-left align-middle text-xs font-medium uppercase tracking-wide text-muted-foreground', className)}
+    className={cn('h-10 whitespace-nowrap px-3 text-left align-middle font-mono text-eyebrow font-medium uppercase text-muted-foreground', className)}
     {...props}
   />
 ));
 TableHead.displayName = 'TableHead';
 
 export const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<HTMLTableCellElement>>(({ className, ...props }, ref) => (
-  <td ref={ref} className={cn('px-3 py-2.5 align-middle', className)} {...props} />
+  <td ref={ref} className={cn('px-3 py-2.5 align-middle tabular-nums', className)} {...props} />
 ));
 TableCell.displayName = 'TableCell';

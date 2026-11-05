@@ -1,6 +1,7 @@
-import { Check, Hand, MousePointerClick, ShieldAlert, Users, X } from 'lucide-react';
+import { Check, Hand, MousePointerClick, Users, X } from 'lucide-react';
 import { useId, useState } from 'react';
 
+import { Beam } from '@/components/avatars';
 import { ApprovalStatusBadge } from '@/components/decision';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -33,12 +34,16 @@ interface Props {
   decideDisabledReason?: string;
   /** The current user requested it (cannot approve). */
   isRequester?: boolean;
-  /** Highlight with the border beam (the active pending card). */
+  /** Highlight with the ember border beam (the active pending card). */
   active?: boolean;
   headingLevel?: 'h2' | 'h3';
   className?: string;
 }
 
+/**
+ * A call Warden held for a human. Pending: ember eyebrow and hairline, the first one on screen
+ * wears the ember border beam. Decided: monochrome except for its status chip.
+ */
 export function ApprovalCard({ approval: a, onDecide, decideDisabledReason, isRequester, active, headingLevel = 'h3', className }: Props) {
   const { t, intl } = useI18n();
   const [reason, setReason] = useState('');
@@ -60,52 +65,46 @@ export function ApprovalCard({ approval: a, onDecide, decideDisabledReason, isRe
     }
   };
 
-  return (
+  const card = (
     <article
       aria-labelledby={headingId}
       data-testid="approval-card"
       data-status={a.status}
       data-approval-id={a.id}
-      className={cn(
-        'rounded-lg border bg-card p-4 shadow-sm',
-        pending ? 'border-approval/50' : a.status === 'approved' ? 'border-allow/40' : a.status === 'denied' ? 'border-deny/40' : '',
-        pending && active && 'border-beam border-transparent',
-        className,
-      )}
+      className={cn('rounded-lg border bg-card p-5', pending && 'border-approval/50')}
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <span
-            className={cn(
-              'flex h-8 w-8 shrink-0 items-center justify-center rounded-md',
-              pending ? 'bg-approval-soft text-approval-foreground' : 'bg-muted text-muted-foreground',
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className={cn('eyebrow', pending && 'text-approval-foreground')}>
+            {t('approval.heldBy')} <span aria-hidden>·</span> <span className="normal-case tracking-normal">{a.rule}</span>
+          </p>
+          <Heading id={headingId} className="mt-2 text-[15px] font-medium leading-tight">
+            <span className="sr-only">{t('approval.title')}: </span>
+            <code className="font-mono text-[15px]">{a.tool}</code>
+          </Heading>
+          <p className="mt-1.5 text-[12.5px] text-muted-foreground">
+            {t('approval.title')}
+            {a.requester && <> · {t('approval.requester', { user: a.requester })}</>}
+            {a.agent && (
+              <>
+                {' '}
+                · <span className="font-mono text-[11.5px]">{t('approval.via', { agent: a.agent })}</span>
+              </>
             )}
-            aria-hidden
-          >
-            <ShieldAlert className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <Heading id={headingId} className="text-sm font-semibold leading-tight">
-              {t('approval.title')}: <code className="font-mono">{a.tool}</code>
-            </Heading>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {t('approval.rule', { rule: a.rule })}
-              {a.requester && <> · {t('approval.requester', { user: a.requester })}</>}
-              {a.agent && <> · {t('approval.via', { agent: a.agent })}</>}
-              {a.created ? <> · {formatRelative(a.created, intl)}</> : null}
-            </p>
-          </div>
+            {a.created ? <> · {formatRelative(a.created, intl)}</> : null}
+          </p>
+          <p className="sr-only">{t('approval.rule', { rule: a.rule })}</p>
         </div>
         <ApprovalStatusBadge status={a.status} />
       </div>
 
-      <div className="mt-3 rounded-md border bg-muted/40 p-3">
-        <p className="mb-2 text-xs font-medium text-muted-foreground">{t('approval.exactArgs')}</p>
+      <div className="mt-4 rounded-md border bg-muted/50 p-3.5">
+        <p className="eyebrow mb-2.5">{t('approval.exactArgs')}</p>
         <ArgsTable args={a.args} label={t('act.args')} />
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">{t('approval.argsHashNote')}</p>
+      <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">{t('approval.argsHashNote')}</p>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12.5px]">
         <span className="inline-flex items-center gap-1.5 text-muted-foreground">
           <Users className="h-3.5 w-3.5" aria-hidden />
           {t('approval.waitingFor', { approvers: a.approvers.join(', ') || t('common.none') })}
@@ -122,10 +121,10 @@ export function ApprovalCard({ approval: a, onDecide, decideDisabledReason, isRe
               className="inline-flex gap-1"
             >
               {Array.from({ length: needed }, (_, i) => (
-                <span key={i} className={cn('h-1.5 w-6 rounded-full', i < approvedVotes ? 'bg-allow' : 'bg-muted-foreground/30')} />
+                <span key={i} className={cn('h-1 w-6 rounded-full', i < approvedVotes ? 'bg-allow' : 'bg-foreground/20')} />
               ))}
             </span>
-            <span className="tabular-nums text-muted-foreground">
+            <span className="font-mono tabular-nums text-muted-foreground">
               {approvedVotes}/{needed}
             </span>
           </span>
@@ -133,34 +132,34 @@ export function ApprovalCard({ approval: a, onDecide, decideDisabledReason, isRe
       </div>
 
       {a.votes.length > 0 && (
-        <ul className="mt-2 flex flex-wrap gap-2 text-xs" aria-label={t('approval.votes')}>
+        <ul className="mt-3 flex flex-wrap gap-2 text-[12px]" aria-label={t('approval.votes')}>
           {a.votes.map((v) => (
             <li
               key={v.user}
               className={cn(
-                'inline-flex items-center gap-1 rounded-full border px-2 py-0.5',
-                v.approve ? 'border-allow/30 bg-allow-soft text-allow-foreground' : 'border-deny/30 bg-deny-soft text-deny-foreground',
+                'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5',
+                v.approve ? 'border-allow/35 bg-allow-soft text-allow-foreground' : 'border-deny/40 bg-deny-soft text-deny-foreground',
               )}
             >
               {v.approve ? <Check className="h-3 w-3" aria-hidden /> : <X className="h-3 w-3" aria-hidden />}
               {t(v.approve ? 'approval.votedApprove' : 'approval.votedDeny', { user: v.user })}
-              {v.reason ? <span className="text-muted-foreground">– {v.reason}</span> : null}
+              {v.reason ? <span className="opacity-80">– {v.reason}</span> : null}
             </li>
           ))}
         </ul>
       )}
 
       {isRequester && pending && (
-        <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <p className="mt-4 inline-flex items-center gap-1.5 text-[12.5px] text-muted-foreground">
           <Hand className="h-3.5 w-3.5" aria-hidden />
           {t('approval.selfNote')}
         </p>
       )}
 
       {onDecide && pending && (
-        <div className="mt-4 space-y-3 border-t pt-4">
-          <div className="space-y-1.5">
-            <Label htmlFor={reasonId} className="text-xs">
+        <div className="mt-5 space-y-3 border-t pt-5">
+          <div className="space-y-2">
+            <Label htmlFor={reasonId} className="text-[12.5px] text-muted-foreground">
               {t('approval.reason')}
             </Label>
             <Textarea
@@ -177,11 +176,11 @@ export function ApprovalCard({ approval: a, onDecide, decideDisabledReason, isRe
               <Check aria-hidden />
               {t('approval.approve')}
             </Button>
-            <Button variant="outline" className="text-deny-foreground" onClick={() => decide('deny')} disabled={!!busy || !!decideDisabledReason}>
+            <Button variant="outline" className="text-deny-foreground hover:text-deny-foreground" onClick={() => decide('deny')} disabled={!!busy || !!decideDisabledReason}>
               <X aria-hidden />
               {t('approval.deny')}
             </Button>
-            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+            <span className="ml-1 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground">
               <MousePointerClick className="h-3.5 w-3.5" aria-hidden />
               {decideDisabledReason ?? t('approval.clickOnly')}
             </span>
@@ -189,5 +188,12 @@ export function ApprovalCard({ approval: a, onDecide, decideDisabledReason, isRe
         </div>
       )}
     </article>
+  );
+
+  // Always wrapped (so the card is never remounted when it becomes or stops being the active one).
+  return (
+    <Beam variant="held" active={pending && !!active} className={className}>
+      {card}
+    </Beam>
   );
 }

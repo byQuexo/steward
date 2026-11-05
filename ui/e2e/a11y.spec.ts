@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-import { ask, expectNoSeriousA11yViolations, login } from './helpers';
+import { ask, expectNoSeriousA11yViolations, login, themeState } from './helpers';
 
 for (const scheme of ['light', 'dark'] as const) {
   test.describe(`axe (${scheme})`, () => {
     // Reduced motion: entry fades would otherwise be caught mid-way by the contrast check.
-    test.use({ colorScheme: scheme, contextOptions: { reducedMotion: 'reduce' } });
+    // Dark is the UI's default theme; pin the stored theme so "light" really checks light.
+    test.use({ colorScheme: scheme, contextOptions: { reducedMotion: 'reduce' }, storageState: themeState(scheme) });
 
     test('login and chat with activity, citation and costs', async ({ page }) => {
       await page.goto('/');
@@ -22,7 +23,7 @@ for (const scheme of ['light', 'dark'] as const) {
 
     test('approvals: pending card in the chat and in the inbox', async ({ browser, page }) => {
       // Sven's request is held by Warden; check his chat and Sara's inbox while it is pending.
-      const svenContext = await browser.newContext({ colorScheme: scheme, reducedMotion: 'reduce' });
+      const svenContext = await browser.newContext({ colorScheme: scheme, reducedMotion: 'reduce', storageState: themeState(scheme) });
       const sven = await svenContext.newPage();
       await login(sven, 'sven');
       await ask(sven, 'Setz den Deal d-1007 auf 80.000 Euro');

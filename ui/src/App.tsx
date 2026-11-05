@@ -2,7 +2,7 @@ import { RefreshCw, ServerCrash } from 'lucide-react';
 import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom';
 
 import { AppShell } from '@/components/app-shell';
-import { ThinkingOrb } from '@/components/avatars';
+import { Orb } from '@/components/avatars';
 import { Button } from '@/components/ui/button';
 import { ChatProvider } from '@/context/chat';
 import { I18nProvider, useI18n } from '@/context/i18n';
@@ -26,9 +26,10 @@ import { MemoryPage } from '@/pages/memory';
 function NotFound() {
   const { t } = useI18n();
   return (
-    <div className="container max-w-xl py-16 text-center">
-      <h1 className="text-2xl font-semibold">{t('notFound.title')}</h1>
-      <Link to="/" className="mt-4 inline-block text-primary underline-offset-4 hover:underline">
+    <div className="container max-w-xl py-24">
+      <p className="eyebrow">404</p>
+      <h1 className="mt-3 text-[32px] font-medium tracking-[-0.03em]">{t('notFound.title')}</h1>
+      <Link to="/" className="mt-6 inline-block text-sm text-foreground underline decoration-foreground/40 underline-offset-4 hover:decoration-foreground">
         {t('notFound.back')}
       </Link>
     </div>
@@ -39,8 +40,8 @@ function Splash() {
   const { t } = useI18n();
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-4" aria-busy="true">
-      <ThinkingOrb size={44} />
-      <p className="text-sm text-muted-foreground">{t('app.loading')}</p>
+      <Orb state="working" size={32} />
+      <p className="font-mono text-[12px] text-muted-foreground">{t('app.loading')}</p>
     </main>
   );
 }
@@ -50,7 +51,7 @@ function Offline({ error }: { error: string | null }) {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-3 p-6 text-center">
       <ServerCrash className="h-10 w-10 text-muted-foreground" aria-hidden />
-      <h1 className="text-xl font-semibold">{t('app.backendDown')}</h1>
+      <h1 className="text-xl font-medium tracking-[-0.02em]">{t('app.backendDown')}</h1>
       {error && <p className="font-mono text-xs text-muted-foreground">{error}</p>}
       <Button onClick={() => window.location.reload()}>
         <RefreshCw aria-hidden />

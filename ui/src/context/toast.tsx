@@ -1,4 +1,4 @@
-import { CheckCircle2, Info, X, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Info, X } from 'lucide-react';
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -37,7 +37,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 
   const api = useMemo(() => ({ toast }), [toast]);
-  const icons = { info: Info, success: CheckCircle2, error: XCircle };
+  const icons = { info: Info, success: CheckCircle2, error: AlertTriangle };
 
   return (
     <Ctx.Provider value={api}>
@@ -52,23 +52,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             return (
               <div
                 key={x.id}
+                // Monochrome: a toast reports an outcome, not a Warden verdict (DESIGN.md §6).
                 className={cn(
-                  'pointer-events-auto flex animate-fade-in items-start gap-3 rounded-lg border bg-popover p-3.5 text-sm text-popover-foreground shadow-lg',
-                  x.variant === 'error' && 'border-deny/40',
-                  x.variant === 'success' && 'border-allow/40',
+                  'pointer-events-auto flex animate-fade-in items-start gap-3 rounded-lg border bg-popover p-3.5 text-sm text-popover-foreground shadow-[0_16px_48px_-20px_rgb(0_0_0/0.55)]',
+                  x.variant === 'error' && 'border-dashed border-foreground/35',
                 )}
               >
-                <Icon
-                  className={cn(
-                    'mt-0.5 h-4 w-4 shrink-0',
-                    x.variant === 'error' ? 'text-deny' : x.variant === 'success' ? 'text-allow' : 'text-primary',
-                  )}
-                  aria-hidden
-                />
+                <Icon className={cn('mt-0.5 h-4 w-4 shrink-0', x.variant === 'info' ? 'text-muted-foreground' : 'text-foreground')} aria-hidden />
                 <div className="min-w-0 flex-1">
                   <p>{x.text}</p>
                   {x.link && (
-                    <Link to={x.link.to} className="mt-1 inline-block font-medium text-primary underline-offset-4 hover:underline" onClick={() => dismiss(x.id)}>
+                    <Link to={x.link.to} className="mt-1 inline-block font-medium text-foreground underline decoration-foreground/40 underline-offset-4 hover:decoration-foreground" onClick={() => dismiss(x.id)}>
                       {x.link.label}
                     </Link>
                   )}
@@ -76,7 +70,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 <button
                   type="button"
                   onClick={() => dismiss(x.id)}
-                  className="rounded-sm p-0.5 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="rounded-full p-0.5 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <X className="h-4 w-4" aria-hidden />
                   <span className="sr-only">{t('common.dismiss')}</span>
