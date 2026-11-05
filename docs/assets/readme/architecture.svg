@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="620" viewBox="0 0 1280 620" role="img" aria-label="Architecture: the browser talks to Steward; Steward talks to tools only through the Warden gateway with the user's token; sub-agents are reached over A2A through Warden's A2A proxy with exchanged tokens; MCP servers live on an internal network.">
+  <title>Steward architecture</title>
+  <style>
+    .t { font-family: Inter, Segoe UI, Helvetica, Arial, sans-serif; fill: #e7e5e4; }
+    .h { font-size: 19px; font-weight: 700; fill: #fff; }
+    .s { font-size: 14px; fill: #d6d3d1; }
+    .l { font-size: 13px; fill: #fcd34d; }
+    .box { fill: #292524; stroke: #57534e; stroke-width: 1.5; }
+    .warden { fill: #134e4a; stroke: #2dd4bf; stroke-width: 2; }
+    .steward { fill: #431407; stroke: #fb923c; stroke-width: 2; }
+    .arrow { stroke: #a8a29e; stroke-width: 2; fill: none; marker-end: url(#a); }
+    .arrow-w { stroke: #2dd4bf; stroke-width: 2.5; fill: none; marker-end: url(#aw); }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#a8a29e"/></marker>
+    <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#2dd4bf"/></marker>
+  </defs>
+  <rect width="1280" height="620" rx="18" fill="#1c1917"/>
+
+  <!-- browser -->
+  <rect class="box" x="40" y="70" width="210" height="120" rx="14"/>
+  <text class="t h" x="60" y="104">Browser</text>
+  <text class="t s" x="60" y="130">Chat · Freigaben · Console</text>
+  <text class="t s" x="60" y="152">Voice mode</text>
+  <text class="t s" x="60" y="174">HttpOnly session cookie</text>
+
+  <!-- keycloak -->
+  <rect class="box" x="40" y="250" width="210" height="96" rx="14"/>
+  <text class="t h" x="60" y="284">Keycloak</text>
+  <text class="t s" x="60" y="310">OIDC · code + PKCE</text>
+  <text class="t s" x="60" y="332">users, roles, attributes</text>
+
+  <!-- steward -->
+  <rect class="steward" x="320" y="50" width="330" height="300" rx="16"/>
+  <text class="t h" x="342" y="86">Steward (Rust)</text>
+  <text class="t s" x="342" y="114">BFF · SSE chat · approvals inbox</text>
+  <text class="t s" x="342" y="138">Orchestrator on rig 0.46</text>
+  <text class="t s" x="360" y="162">• guard hook (Warden, 2nd line)</text>
+  <text class="t s" x="360" y="184">• budget hook · cost ledger</text>
+  <text class="t s" x="342" y="212">Memory (x-memory, warden-core)</text>
+  <text class="t s" x="342" y="236">Page images (x-docs-page)</text>
+  <text class="t s" x="342" y="260">Console: rights, what-if, test-as,</text>
+  <text class="t s" x="342" y="282">roles, audit, kill switch</text>
+  <text class="t s" x="342" y="320">Profile: acme | devteam | yours</text>
+
+  <!-- sts -->
+  <rect class="warden" x="320" y="420" width="330" height="150" rx="16"/>
+  <text class="t h" x="342" y="456">warden sts</text>
+  <text class="t s" x="342" y="484">token exchange (RFC 8693)</text>
+  <text class="t s" x="342" y="508">delegate_to → act chains</text>
+  <text class="t s" x="342" y="532">test-as (read-only) · revocation</text>
+  <text class="t s" x="342" y="556">introspection</text>
+
+  <!-- gateway -->
+  <rect class="warden" x="760" y="50" width="250" height="210" rx="16"/>
+  <text class="t h" x="782" y="86">Warden gateway</text>
+  <text class="t s" x="782" y="114">tools/list per user</text>
+  <text class="t s" x="782" y="138">every call decided</text>
+  <text class="t s" x="782" y="162">approvals (webhook v1)</text>
+  <text class="t s" x="782" y="186">kill switch · circuit breaker</text>
+  <text class="t s" x="782" y="210">hash-chained audit</text>
+  <text class="t s" x="782" y="234">exchanged token per upstream</text>
+
+  <!-- a2a -->
+  <rect class="warden" x="760" y="320" width="250" height="110" rx="16"/>
+  <text class="t h" x="782" y="354">Warden A2A proxy</text>
+  <text class="t s" x="782" y="380">skill checks · task owners</text>
+  <text class="t s" x="782" y="404">token exchange to agent</text>
+  <rect class="steward" x="760" y="460" width="250" height="110" rx="16"/>
+  <text class="t h" x="782" y="494">Sub-agents (A2A)</text>
+  <text class="t s" x="782" y="520">research · action</text>
+  <text class="t s" x="782" y="544">same runtime, own ceilings</text>
+
+  <!-- internal network -->
+  <rect x="1060" y="40" width="190" height="540" rx="16" fill="none" stroke="#78716c" stroke-dasharray="6 6"/>
+  <text class="t l" x="1078" y="68">internal network</text>
+  <rect class="box" x="1076" y="86" width="158" height="300" rx="12"/>
+  <text class="t h" x="1094" y="118">MCP servers</text>
+  <text class="t s" x="1094" y="146">hr · crm · ticket</text>
+  <text class="t s" x="1094" y="170">docs · jira · chat</text>
+  <text class="t s" x="1094" y="194">github</text>
+  <text class="t s" x="1094" y="226">or your own,</text>
+  <text class="t s" x="1094" y="248">by URL / stdio</text>
+  <rect class="box" x="1076" y="410" width="158" height="96" rx="12"/>
+  <text class="t h" x="1094" y="442">docrag-bench</text>
+  <text class="t s" x="1094" y="468">verified citations</text>
+  <text class="t s" x="1094" y="490">(optional)</text>
+
+  <!-- arrows -->
+  <path class="arrow" d="M250 130 H318"/>
+  <path class="arrow" d="M250 298 H318"/>
+  <path class="arrow-w" d="M650 130 H758"/>
+  <text class="t l" x="664" y="120">MCP, user token</text>
+  <path class="arrow-w" d="M650 300 C 700 300 710 370 758 370"/>
+  <text class="t l" x="660" y="292">A2A, delegation</text>
+  <path class="arrow" d="M885 430 V458"/>
+  <path class="arrow" d="M760 520 C 700 520 700 220 760 220"/>
+  <path class="arrow" d="M485 350 V418"/>
+  <text class="t l" x="494" y="392">delegate · test-as</text>
+  <path class="arrow-w" d="M1010 150 H1074"/>
+  <path class="arrow" d="M1155 386 V408"/>
+  <path class="arrow" d="M760 250 C 700 400 690 470 652 480"/>
+  <text class="t l" x="664" y="452">exchange</text>
+  <path class="arrow" d="M760 90 C 700 40 680 40 652 70"/>
+  <text class="t l" x="664" y="44">approval webhook</text>
+</svg>
