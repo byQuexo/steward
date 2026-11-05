@@ -112,7 +112,7 @@ async fn demo(profile: PathBuf, listen: String, ui: PathBuf, data: Option<PathBu
 async fn replay(profile: PathBuf, json: Option<PathBuf>, markdown: Option<PathBuf>) -> Result<i32, String> {
     let results = steward::replay::run_all(&profile).await?;
     let passed = results.iter().filter(|r| r.passed).count();
-    let mut md = format!("| Scenario | User | Result | Events | Cost (EUR) | ms |\n|---|---|---|---:|---:|---:|\n");
+    let mut md = String::from("| Scenario | User | Result | Events | Cost (EUR) | ms |\n|---|---|---|---:|---:|---:|\n");
     for r in &results {
         println!("{} {:<26} {:>4} events {:>6} ms  {}", if r.passed { "PASS" } else { "FAIL" }, r.id, r.events, r.millis, r.title);
         for f in &r.failures {
