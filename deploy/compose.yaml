@@ -76,14 +76,14 @@ services:
   agent-research:
     <<: *steward
     command: ["agent", "--config", "/etc/steward/steward.yaml", "--role", "research", "--listen", "0.0.0.0:9600", "--public-url", "http://agent-research:9600"]
-    volumes: [../profiles/${PROFILE:-acme}:/profile:ro, ./${PROFILE:-acme}:/etc/steward:ro, data:/data]
+    volumes: ["../profiles/${PROFILE:-acme}:/profile:ro", "./${PROFILE:-acme}:/etc/steward:ro", "data:/data"]
     networks: [agents]
     depends_on: [gateway]
 
   agent-action:
     <<: *steward
     command: ["agent", "--config", "/etc/steward/steward.yaml", "--role", "action", "--listen", "0.0.0.0:9600", "--public-url", "http://agent-action:9600"]
-    volumes: [../profiles/${PROFILE:-acme}:/profile:ro, ./${PROFILE:-acme}:/etc/steward:ro, data:/data]
+    volumes: ["../profiles/${PROFILE:-acme}:/profile:ro", "./${PROFILE:-acme}:/etc/steward:ro", "data:/data"]
     networks: [agents]
     depends_on: [gateway]
 
@@ -106,7 +106,7 @@ services:
       - ./${PROFILE:-acme}:/etc/steward:ro
       - data:/data
       - audit:/audit:ro
-    ports: ["8000:8000"]
+    ports: ["${STEWARD_PORT:-8000}:8000"]
     networks: [edge, agents]
     depends_on:
       keycloak: { condition: service_healthy }
@@ -117,7 +117,7 @@ services:
 
   phoenix:
     image: arizephoenix/phoenix:version-20.23.0
-    ports: ["6006:6006"]
+    ports: ["${PHOENIX_PORT:-6006}:6006"]
     networks: [edge, agents]
 
 networks:

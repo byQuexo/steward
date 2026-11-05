@@ -101,6 +101,7 @@ Every number is produced by CI.
 | Decision latency (Acme policy, release) | `warden bench`, 100k decisions | p50 **27 µs**, p99 **66 µs** |
 | Rust tests | unit and end-to-end (gateway, agent loop, console, scenarios) | **38** passing |
 | UI | unit tests; Playwright end-to-end (approvals across two browsers, citations, injection, console) with axe on every page, light and dark | **34** unit, **12 / 12** e2e, 0 serious a11y violations |
+| Docker stack with Keycloak | `deploy/smoke.sh`: real Keycloak tokens through gateway, token exchange, inbox approval, A2A with a delegated write, network isolation, audit verification | **13 / 13** |
 | Seed | byte-identical regeneration of both profiles | ✅ |
 | Quality eval (offline, CI) | 88 questions over 7 users; harness and hard gates on the scripted subset | gates **0** (`pii_leak`, `scope_violation`, `unapproved_write`, `unverified_citation`, `delegation_escalation`) |
 
@@ -216,10 +217,8 @@ cd profiles/acme && warden eval --policy warden/policy.yaml --catalog warden/cat
 
 ## What's next
 
-- **Voice agent.** Voice mode today is push-to-talk in the browser (or OpenAI-compatible
-  speech endpoints): the same turn, answered short and read aloud, approvals still by click.
-  Next is a realtime voice agent (streaming speech in and out, barge-in) on the same
-  orchestrator, with confirmation phrases for approvals and the same Warden checks.
+- **Add a Voice Agent**: a realtime speech agent (streaming in and out, barge-in) as a third
+  agent next to research and action, under the same Warden checks and approvals.
 - **Durable approvals** that survive restarts (serialize the held rig run).
 - **Per-user credentials for real SaaS connectors** (GitHub App installation tokens or a token
   vault in Warden), so live connectors act with each tenant's or user's own access.
