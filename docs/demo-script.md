@@ -77,7 +77,3 @@ cargo run --release -p steward -- demo --profile profiles/devteam
 ```
 Northwind Labs in English: GitHub, incidents, runbooks. **dana** merges a PR → **marco**
 approves; **sam** asks the on-call runbook (scanned) → citation.
-
-## Voice mode
-Toggle „Sprachmodus“ in the chat, hold the microphone button and ask any of the questions
-above. Answers are short and read aloud; approvals still need a click.

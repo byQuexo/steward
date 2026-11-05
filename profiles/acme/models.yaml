@@ -19,9 +19,3 @@ routes:
   judge: fast
 # Without the API key the assistant falls back to the scripted model.
 fallback: scripted
-
-voice:
-  # `browser`: speech recognition and synthesis in the browser (no server keys).
-  # `server`: OpenAI-compatible transcription and speech endpoints configured below.
-  mode: browser
-  language: de-DE

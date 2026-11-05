@@ -146,7 +146,6 @@ async fn rpc(State(s): State<AgentServer>, headers: HeaderMap, Json(msg): Json<V
                 token: gateway_token,
                 message: text,
                 history: vec![],
-                voice: false,
                 session_id: None,
                 only_tools: None,
             };

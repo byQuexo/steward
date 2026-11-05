@@ -26,31 +26,6 @@ impl ModelRef {
     }
 }
 
-/// Speech for voice mode. Browser speech (Web Speech API) is the default and needs nothing
-/// here; a server model can be configured for transcription and synthesis instead.
-#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct VoiceConfig {
-    /// `browser` (default) or `server`.
-    #[serde(default = "browser")]
-    pub mode: String,
-    /// OpenAI-compatible `/audio/transcriptions` endpoint model, e.g. `whisper-1`.
-    #[serde(default)]
-    pub stt: Option<ModelRef>,
-    /// OpenAI-compatible `/audio/speech` model, e.g. `gpt-4o-mini-tts`.
-    #[serde(default)]
-    pub tts: Option<ModelRef>,
-    #[serde(default)]
-    pub tts_voice: Option<String>,
-    /// BCP 47 language for recognition and synthesis; defaults to the profile locale.
-    #[serde(default)]
-    pub language: Option<String>,
-}
-
-fn browser() -> String {
-    "browser".into()
-}
-
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ModelsConfig {
@@ -61,8 +36,6 @@ pub struct ModelsConfig {
     /// Used when the configured key is missing: `scripted` keeps the demo runnable offline.
     #[serde(default)]
     pub fallback: Option<String>,
-    #[serde(default)]
-    pub voice: VoiceConfig,
 }
 
 impl ModelsConfig {
@@ -81,12 +54,6 @@ impl ModelsConfig {
             if !self.models.contains_key(f) {
                 return Err(format!("models.yaml: fallback `{f}` is not a model"));
             }
-        }
-        if !matches!(self.voice.mode.as_str(), "browser" | "server") {
-            return Err(format!("models.yaml: voice.mode must be `browser` or `server`, got `{}`", self.voice.mode));
-        }
-        if self.voice.mode == "server" && (self.voice.stt.is_none() || self.voice.tts.is_none()) {
-            return Err("models.yaml: voice.mode `server` needs `stt` and `tts`".into());
         }
         Ok(())
     }

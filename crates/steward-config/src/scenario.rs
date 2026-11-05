@@ -37,7 +37,7 @@ pub struct UsageSpec {
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Turn {
-    /// What the user types (or says, in voice mode).
+    /// What the user types.
     pub user: String,
     /// What the scripted model does, in order.
     #[serde(with = "serde_norway::with::singleton_map_recursive")]

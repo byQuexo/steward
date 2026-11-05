@@ -322,7 +322,6 @@ async fn info(State(st): State<Shared>) -> Response {
 async fn me(State(st): State<Shared>, a: Authed) -> Response {
     let p = &a.principal;
     let suggestions: Vec<String> = p.subject.roles.iter().filter_map(|r| st.profile.meta.suggestions.get(r)).flatten().cloned().collect();
-    let voice = &st.profile.models.voice;
     let visible = crate::admin::visible_tools(&st.engine, p, &st.context());
     Json(json!({
         "user": p.subject.id,
@@ -338,7 +337,6 @@ async fn me(State(st): State<Shared>, a: Authed) -> Response {
         "greeting": st.profile.meta.messages.greeting,
         "suggestions": suggestions,
         "tools": visible,
-        "voice": {"mode": voice.mode, "language": voice.language.clone().unwrap_or_else(|| st.profile.meta.locale.clone())},
         "kill_switch": st.context().kill_switch,
     }))
     .into_response()
@@ -359,8 +357,6 @@ pub fn router(st: Shared) -> Router {
         .route("/memory", get(crate::pages::memory_list).delete(crate::pages::memory_forget_all))
         .route("/memory/{id}", delete(crate::pages::memory_forget))
         .route("/costs", get(crate::pages::costs))
-        .route("/voice/transcribe", post(crate::pages::transcribe))
-        .route("/voice/speak", post(crate::pages::speak))
         .route("/admin/users", get(crate::admin::users))
         .route("/admin/users/{id}/roles", post(crate::admin::set_roles))
         .route("/admin/effective/{id}", get(crate::admin::effective))

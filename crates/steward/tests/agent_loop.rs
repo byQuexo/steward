@@ -48,7 +48,6 @@ async fn turn(rt: &Runtime, stack: &Stack, user: &str, msg: &str) -> Vec<ChatEve
         token,
         message: msg.into(),
         history: vec![],
-        voice: false,
         session_id: None,
         only_tools: None,
     };

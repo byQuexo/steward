@@ -5,7 +5,7 @@
 //! ```text
 //! profiles/<name>/
 //! ├── profile.yaml        # name, locale, agents, messages, memory settings
-//! ├── models.yaml         # model routes per agent, voice models
+//! ├── models.yaml         # model routes per agent
 //! ├── pricing.yaml        # prices per model, budgets
 //! ├── approvals.yaml      # which Warden rule is approved by whom (four-eyes)
 //! ├── docs_acl.yaml       # documents per team
@@ -26,7 +26,7 @@ mod scenario;
 
 pub use connectors::{generate_catalog, generate_gateway_yaml, Connector, GatewayTargets, ServerSpec, ToolSpec, BUILTINS};
 pub use error::ConfigError;
-pub use models::{ApprovalRoute, ApprovalRouting, Budgets, DocsAcl, ModelPrice, ModelRef, ModelsConfig, Pricing, VoiceConfig};
+pub use models::{ApprovalRoute, ApprovalRouting, Budgets, DocsAcl, ModelPrice, ModelRef, ModelsConfig, Pricing};
 pub use profile::{AgentRole, AgentSpec, DemoUser, MemorySettings, Messages, Profile, ProfileMeta};
 pub use scenario::{DemoScenario, Expect, ScriptStep, Turn, UsageSpec};
 

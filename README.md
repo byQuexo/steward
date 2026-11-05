@@ -88,7 +88,7 @@ every call       = scope gate → rules that can only restrict → allow | appro
 | **Sub-agents** (`steward-a2a`) | Research and action agents as A2A servers behind Warden's A2A proxy (per-caller agent cards, skill checks, task ownership). |
 | **MCP servers** (`steward-mcp`) | HR, CRM (read-only SQL), helpdesk, documents ([docrag-bench](https://github.com/byQuexo/docrag-bench) or a built-in verified-quote backend), Jira, chat, GitHub over seed data. Swap any for a real server by URL. |
 | **Memory, cost** | Facts per user/team (every access a Warden action, PII refused); a ledger with per-run, daily and monthly budgets; model calls as OpenTelemetry spans for Phoenix. |
-| **UI** (`ui/`) | React, Tailwind, shadcn/ui and [libraries.dev](https://libraries.dev) components: chat with a live decision log, an animated Steward presence, approvals, console with in-browser what-if (Warden as WebAssembly), costs, memory, voice mode. See [DESIGN.md](DESIGN.md). |
+| **UI** (`ui/`) | React, Tailwind, shadcn/ui and [libraries.dev](https://libraries.dev) components: chat with a live decision log, an animated Steward presence, approvals, console with in-browser what-if (Warden as WebAssembly), costs, memory. See [DESIGN.md](DESIGN.md). |
 
 More: [architecture](docs/architecture.md) (a chat turn step by step, the A2A token flow,
 where each decision is made) and the [threat model](docs/threat-model.md) (20 threats, each

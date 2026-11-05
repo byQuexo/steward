@@ -43,8 +43,6 @@ pub struct TurnInput {
     pub token: String,
     pub message: String,
     pub history: Vec<Message>,
-    /// Answer for speech: short, no tables or markdown.
-    pub voice: bool,
     pub session_id: Option<String>,
     /// Restrict the agent to these gateway tools (sub-agents executing one skill).
     pub only_tools: Option<Vec<String>>,
@@ -91,9 +89,6 @@ impl Runtime {
             for f in facts {
                 s.push_str(&format!("- {f}\n"));
             }
-        }
-        if input.voice {
-            s.push_str("\n## Sprachmodus\nAntworte in ein bis drei kurzen Sätzen, ohne Tabellen, Listen oder Markdown. Nenne Quellen als „laut <Dokument>, Seite <n>“.\n");
         }
         s
     }

@@ -1,12 +1,11 @@
-//! Page images (ACL-checked on every fetch), memory, costs and voice.
+//! Page images (ACL-checked on every fetch), memory and costs.
 
-use axum::body::{Body, Bytes};
 use axum::extract::{Path, Query, State};
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
 use serde::Deserialize;
-use serde_json::{json, Value};
+use serde_json::json;
 use warden_core::{Action, ActionKind, Effect};
 
 use crate::app::{err, Authed, Shared};
@@ -106,73 +105,4 @@ pub async fn costs(State(st): State<Shared>, a: Authed, Query(q): Query<CostQuer
 
 fn chrono_like_now() -> i64 {
     std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0)
-}
-
-fn voice_server(st: &Shared) -> Option<(&steward_config::ModelRef, &steward_config::ModelRef)> {
-    let v = &st.profile.models.voice;
-    if v.mode != "server" {
-        return None;
-    }
-    Some((v.stt.as_ref()?, v.tts.as_ref()?))
-}
-
-fn openai_base(m: &steward_config::ModelRef) -> String {
-    m.base_url.clone().unwrap_or_else(|| "https://api.openai.com/v1".into()).trim_end_matches('/').to_string()
-}
-
-fn key(m: &steward_config::ModelRef) -> Option<String> {
-    m.api_key_env.as_ref().and_then(|v| std::env::var(v).ok())
-}
-
-/// `POST /api/voice/transcribe` (server voice mode): audio in, text out.
-pub async fn transcribe(State(st): State<Shared>, _a: Authed, body: Bytes) -> Response {
-    let Some((stt, _)) = voice_server(&st) else { return err(StatusCode::NOT_FOUND, "voice runs in the browser for this profile") };
-    if body.len() > 10 * 1024 * 1024 {
-        return err(StatusCode::PAYLOAD_TOO_LARGE, "audio too large");
-    }
-    let model = stt.model.rsplit('/').next().unwrap_or(&stt.model).to_string();
-    let lang = st.profile.models.voice.language.clone().unwrap_or_else(|| st.profile.meta.locale.clone());
-    let part = reqwest::multipart::Part::bytes(body.to_vec()).file_name("speech.webm").mime_str("audio/webm");
-    let Ok(part) = part else { return err(StatusCode::BAD_REQUEST, "audio") };
-    let form =
-        reqwest::multipart::Form::new().text("model", model).text("language", lang.chars().take(2).collect::<String>()).part("file", part);
-    let mut req = reqwest::Client::new().post(format!("{}/audio/transcriptions", openai_base(stt))).multipart(form);
-    if let Some(k) = key(stt) {
-        req = req.bearer_auth(k);
-    }
-    match req.send().await {
-        Ok(r) if r.status().is_success() => {
-            let v: Value = r.json().await.unwrap_or(Value::Null);
-            Json(json!({"text": v["text"]})).into_response()
-        }
-        Ok(r) => err(StatusCode::BAD_GATEWAY, format!("transcription: HTTP {}", r.status())),
-        Err(e) => err(StatusCode::BAD_GATEWAY, e.to_string()),
-    }
-}
-
-#[derive(Deserialize)]
-pub struct SpeakBody {
-    pub text: String,
-}
-
-/// `POST /api/voice/speak` (server voice mode): text in, audio out.
-pub async fn speak(State(st): State<Shared>, _a: Authed, Json(b): Json<SpeakBody>) -> Response {
-    let Some((_, tts)) = voice_server(&st) else { return err(StatusCode::NOT_FOUND, "voice runs in the browser for this profile") };
-    let model = tts.model.rsplit('/').next().unwrap_or(&tts.model).to_string();
-    let voice = st.profile.models.voice.tts_voice.clone().unwrap_or_else(|| "alloy".into());
-    let text: String = b.text.chars().take(1500).collect();
-    let mut req = reqwest::Client::new()
-        .post(format!("{}/audio/speech", openai_base(tts)))
-        .json(&json!({"model": model, "voice": voice, "input": text, "response_format": "mp3"}));
-    if let Some(k) = key(tts) {
-        req = req.bearer_auth(k);
-    }
-    match req.send().await {
-        Ok(r) if r.status().is_success() => match r.bytes().await {
-            Ok(bytes) => ([(header::CONTENT_TYPE, "audio/mpeg")], Body::from(bytes)).into_response(),
-            Err(e) => err(StatusCode::BAD_GATEWAY, e.to_string()),
-        },
-        Ok(r) => err(StatusCode::BAD_GATEWAY, format!("speech: HTTP {}", r.status())),
-        Err(e) => err(StatusCode::BAD_GATEWAY, e.to_string()),
-    }
 }

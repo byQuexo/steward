@@ -16,7 +16,7 @@ and its language; the binaries stay the same. Two profiles ship:
 profiles/<name>/
 ├── profile.yaml        name, locale, agents (client ids, prompts, A2A skills), messages,
 │                       memory settings, admin and cost roles, suggested questions
-├── models.yaml         model per agent role (provider/model), fallback, voice settings
+├── models.yaml         model per agent role (provider/model), fallback
 ├── pricing.yaml        price per model route, budgets (per run, per user per day, per team)
 ├── approvals.yaml      Warden rule → approvers (role:… / user:…), four_eyes
 ├── docs_acl.yaml       team → document id patterns (becomes the doc_scope claim)

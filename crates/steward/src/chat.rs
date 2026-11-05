@@ -22,8 +22,6 @@ use crate::app::{err, Authed, Shared};
 #[derive(Deserialize)]
 pub struct ChatRequest {
     pub message: String,
-    #[serde(default)]
-    pub voice: bool,
 }
 
 fn sse_event(v: &Value) -> Event {
@@ -54,7 +52,6 @@ pub async fn chat(State(st): State<Shared>, a: Authed, Json(req): Json<ChatReque
         token: a.session.access_token.clone(),
         message: message.clone(),
         history,
-        voice: req.voice,
         session_id: Some(a.session.id.clone()),
         only_tools: None,
     };

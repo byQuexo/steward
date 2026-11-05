@@ -11,7 +11,7 @@ systems only ever see tokens exchanged for them.
 ```mermaid
 flowchart LR
   subgraph Browser
-    UI[React UI<br/>chat · approvals · console · voice]
+    UI[React UI<br/>chat · approvals · console]
   end
   subgraph Steward[steward - Rust, axum]
     BFF[BFF<br/>sessions, SSE, inbox]
