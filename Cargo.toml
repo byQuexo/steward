@@ -72,7 +72,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 clap = { version = "4", features = ["derive", "env"] }
 async-trait = "0.1"
 tempfile = "3"
-keyring = { version = "=3.6.3", features = ["windows-native", "apple-native", "sync-secret-service", "crypto-rust"] }
+keyring = { version = "=3.6.3", features = ["windows-native", "apple-native", "linux-native"] }
 
 [profile.release]
 panic = "unwind"

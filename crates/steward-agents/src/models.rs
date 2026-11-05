@@ -16,7 +16,7 @@ use crate::scripted::{scripted_model, ScriptBook};
 const KEYRING_SERVICES: &[&str] = &["steward", "docrag"];
 
 /// An API key from the environment, else from the OS credential store (Windows Credential
-/// Manager, macOS Keychain, Secret Service). The key never leaves this process.
+/// Manager, macOS Keychain, Linux kernel keyring). The key never leaves this process.
 pub fn api_key(var: &str) -> Option<String> {
     if let Ok(v) = std::env::var(var) {
         if !v.trim().is_empty() {

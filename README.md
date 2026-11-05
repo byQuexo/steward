@@ -201,12 +201,12 @@ Phoenix shows model spans at http://localhost:6006.
 
 **Use a real model:** set the key named in `profiles/<p>/models.yaml` (`OPENROUTER_API_KEY` for
 both profiles) or change the routes to any provider rig supports (`openai/…`,
-`anthropic/…`, `ollama/qwen3:8b`, …). The key can also live in the OS credential store
-(Windows Credential Manager, macOS Keychain, Secret Service) under the service `steward` and
-the variable's name as user, so it never sits in a shell profile:
+`anthropic/…`, `ollama/qwen3:8b`, …). On Windows and macOS the key can also live in the OS
+credential store (service `steward`, user = the variable's name), so it never sits in a shell
+profile:
 
 ```bash
-python -m keyring set steward OPENROUTER_API_KEY   # or: cmdkey /generic:steward /user:OPENROUTER_API_KEY /pass
+python -m keyring set steward OPENROUTER_API_KEY
 ```
 
 Replays and tests always use the scripted model, key or not.
