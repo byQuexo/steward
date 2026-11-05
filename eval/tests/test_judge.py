@@ -40,7 +40,10 @@ def test_default_model_and_env(profile, monkeypatch):
     assert default_judge_model(profile) == "openrouter/deepseek/deepseek-v4.1-flash"
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     monkeypatch.delenv("STEWARD_EVAL_JUDGE_KEY", raising=False)
+    monkeypatch.setattr("steward_eval.judge.stored_key", lambda name: None)
     assert Judge.from_env("openrouter/x") is None
+    monkeypatch.setattr("steward_eval.judge.stored_key", lambda name: "from-keyring")
+    assert Judge.from_env("openrouter/x") is not None
 
 
 def test_grade_over_openai_compatible_api(profile):

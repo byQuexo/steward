@@ -31,6 +31,8 @@ pub struct DevOptions {
     /// SQLite files for memory and the cost ledger; in memory when `None`.
     pub data_dir: Option<PathBuf>,
     pub otlp_traces: Option<String>,
+    /// Scripted model only, even with an API key at hand (replays, tests, `demo --offline`).
+    pub offline: bool,
 }
 
 /// The app state plus the A2A tasks it started (stopped on drop).
@@ -92,7 +94,11 @@ pub async fn dev_app(stack: &Stack, opts: DevOptions) -> Result<DevApp, String> 
     let base = Runtime {
         profile: profile.clone(),
         engine: engine.clone(),
-        models: Arc::new(ModelFactory::new(profile.models.clone(), book)),
+        models: Arc::new(if opts.offline {
+            ModelFactory::offline(profile.models.clone(), book)
+        } else {
+            ModelFactory::new(profile.models.clone(), book)
+        }),
         ledger: ledger.clone(),
         gateway_url: stack.gateway_url.clone(),
         memory: None,

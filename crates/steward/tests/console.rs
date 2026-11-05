@@ -25,7 +25,9 @@ async fn env() -> Env {
         ..Default::default()
     };
     let stack = Stack::start(profile, opts).await.unwrap();
-    let app = dev_app(&stack, DevOptions { public_url: base.clone(), ui_dir: None, data_dir: None, otlp_traces: None }).await.unwrap();
+    let app = dev_app(&stack, DevOptions { public_url: base.clone(), ui_dir: None, data_dir: None, otlp_traces: None, offline: true })
+        .await
+        .unwrap();
     let router = steward::app::router(app.state.clone());
     tokio::spawn(async move { axum::serve(listener, router).await.unwrap() });
     Env { base, stack, _app: app }
@@ -216,7 +218,9 @@ async fn a_failing_connector_disappears_and_shows_in_the_console() {
     let base = format!("http://{}", listener.local_addr().unwrap());
     let opts = StackOptions { circuit_open_after: 1, ..Default::default() };
     let stack = Stack::start(profile, opts).await.unwrap();
-    let app = dev_app(&stack, DevOptions { public_url: base.clone(), ui_dir: None, data_dir: None, otlp_traces: None }).await.unwrap();
+    let app = dev_app(&stack, DevOptions { public_url: base.clone(), ui_dir: None, data_dir: None, otlp_traces: None, offline: true })
+        .await
+        .unwrap();
     let router = steward::app::router(app.state.clone());
     tokio::spawn(async move { axum::serve(listener, router).await.unwrap() });
 

@@ -28,7 +28,7 @@ One process boots a token service, the Warden gateway, seven MCP servers, two A2
 and the assistant, with the demo company **Acme GmbH** and seven people to log in as. No
 Docker, no API key: a scripted model replays the demo scenarios through the real agent loop.
 Set `OPENROUTER_API_KEY` (or any provider in `profiles/acme/models.yaml`) and a real model
-answers instead. For the full stack with Keycloak: `make demo`.
+answers instead; `--offline` keeps the scripted one. For the full stack with Keycloak: `make demo`.
 
 | Log in as | Ask | What happens |
 |---|---|---|
@@ -201,7 +201,15 @@ Phoenix shows model spans at http://localhost:6006.
 
 **Use a real model:** set the key named in `profiles/<p>/models.yaml` (`OPENROUTER_API_KEY` for
 both profiles) or change the routes to any provider rig supports (`openai/…`,
-`anthropic/…`, `ollama/qwen3:8b`, …).
+`anthropic/…`, `ollama/qwen3:8b`, …). The key can also live in the OS credential store
+(Windows Credential Manager, macOS Keychain, Secret Service) under the service `steward` and
+the variable's name as user, so it never sits in a shell profile:
+
+```bash
+python -m keyring set steward OPENROUTER_API_KEY   # or: cmdkey /generic:steward /user:OPENROUTER_API_KEY /pass
+```
+
+Replays and tests always use the scripted model, key or not.
 
 **Make it your company:** see [profiles](docs/profiles.md).
 

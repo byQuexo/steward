@@ -93,7 +93,8 @@ correctness is low by construction, while the gates are still computed on every 
 ### With a real model
 
 Set `OPENROUTER_API_KEY` **before starting the backend** (the assistant then answers everything)
-and in the eval's environment (the judge):
+and in the eval's environment (the judge), or keep it in the OS credential store, which both
+read (service `steward`, user `OPENROUTER_API_KEY`):
 
 ```sh
 uv run steward-eval --base http://127.0.0.1:8000 --profile ../profiles/acme \
@@ -106,7 +107,7 @@ verdicts are reused unless `--rejudge`). `STEWARD_EVAL_JUDGE_BASE` / `STEWARD_EV
 point the judge at another OpenAI-compatible endpoint.
 
 The backend keeps memory and ledger in process: restart it between runs for a clean state
-(the per-user daily budget is 1.50 EUR, the run budget 0.05 EUR).
+(the per-user daily budget is 1.50 EUR, the run budget 0.02 EUR).
 
 ### Cost estimate (real model)
 

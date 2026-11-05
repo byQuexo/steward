@@ -11,7 +11,8 @@ cargo run --release -p steward -- demo --profile profiles/acme      # http://127
 ```
 
 No Docker and no API key needed: the scripted model replays the scenarios. With
-`OPENROUTER_API_KEY` set, a real model answers instead. For the full stack with Keycloak:
+`OPENROUTER_API_KEY` set (environment or OS credential store, see the README), a real model
+answers instead; with a real model the conversations vary, but Warden's decisions do not. For the full stack with Keycloak:
 `make demo` then log in at http://localhost:8000 with user = password (e.g. `sven`/`sven`).
 
 ## 1. Hanna asks for a salary (1 min)

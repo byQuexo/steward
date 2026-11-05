@@ -23,7 +23,7 @@ async fn runtime(stack: &Stack) -> Runtime {
     Runtime {
         profile: p.clone(),
         engine,
-        models: Arc::new(ModelFactory::new(p.models.clone(), book)),
+        models: Arc::new(ModelFactory::offline(p.models.clone(), book)),
         ledger: Arc::new(Ledger::in_memory().unwrap()),
         gateway_url: stack.gateway_url.clone(),
         memory: Some(memory),

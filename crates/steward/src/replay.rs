@@ -145,7 +145,8 @@ pub async fn run_scenario(profile: Profile, sc: &DemoScenario) -> Result<Scenari
         ..Default::default()
     };
     let stack = Stack::start(profile, opts).await?;
-    let app = dev_app(&stack, DevOptions { public_url: base.clone(), ui_dir: None, data_dir: None, otlp_traces: None }).await?;
+    let app =
+        dev_app(&stack, DevOptions { public_url: base.clone(), ui_dir: None, data_dir: None, otlp_traces: None, offline: true }).await?;
     let router = crate::app::router(app.state.clone());
     let server = tokio::spawn(async move {
         let _ = axum::serve(listener, router).await;

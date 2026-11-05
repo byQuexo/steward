@@ -132,6 +132,22 @@ def default_judge_model(profile: Profile) -> str | None:
     return spec.get("model")
 
 
+def stored_key(name: str) -> str | None:
+    """The key from the OS credential store, under the same services Steward reads."""
+    try:
+        import keyring
+    except ImportError:
+        return None
+    for service in filter(None, [os.environ.get("STEWARD_KEYRING_SERVICE"), "steward", "docrag"]):
+        try:
+            key = keyring.get_password(service, name)
+        except Exception:  # no backend on this machine
+            continue
+        if key and key.strip():
+            return key
+    return None
+
+
 class Judge:
     def __init__(
         self,
@@ -149,7 +165,7 @@ class Judge:
 
     @classmethod
     def from_env(cls, model: str | None) -> Judge | None:
-        key = os.environ.get("STEWARD_EVAL_JUDGE_KEY") or os.environ.get("OPENROUTER_API_KEY")
+        key = os.environ.get("STEWARD_EVAL_JUDGE_KEY") or os.environ.get("OPENROUTER_API_KEY") or stored_key("OPENROUTER_API_KEY")
         if not key or not model:
             return None
         base = os.environ.get("STEWARD_EVAL_JUDGE_BASE", OPENROUTER_BASE)

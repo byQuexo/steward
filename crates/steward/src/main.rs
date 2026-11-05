@@ -36,6 +36,9 @@ enum Cmd {
         /// OTLP/HTTP traces endpoint (Phoenix: http://localhost:6006/v1/traces).
         #[arg(long)]
         otlp: Option<String>,
+        /// Use the scripted model even if an API key is available.
+        #[arg(long)]
+        offline: bool,
     },
     /// Replay the profile's demo scenarios against the full stack and report.
     Replay {
@@ -104,7 +107,14 @@ enum ProfileCmd {
     },
 }
 
-async fn demo(profile: PathBuf, listen: String, ui: PathBuf, data: Option<PathBuf>, otlp: Option<String>) -> Result<i32, String> {
+async fn demo(
+    profile: PathBuf,
+    listen: String,
+    ui: PathBuf,
+    data: Option<PathBuf>,
+    otlp: Option<String>,
+    offline: bool,
+) -> Result<i32, String> {
     let profile = Profile::load(&profile).map_err(|e| e.to_string())?;
     let listener = tokio::net::TcpListener::bind(&listen).await.map_err(|e| format!("{listen}: {e}"))?;
     let base = format!("http://{}", listener.local_addr().map_err(|e| e.to_string())?);
@@ -114,10 +124,11 @@ async fn demo(profile: PathBuf, listen: String, ui: PathBuf, data: Option<PathBu
     };
     let stack = Stack::start(profile, opts).await?;
     let ui_dir = ui.join("index.html").exists().then_some(ui);
-    let app = dev_app(&stack, DevOptions { public_url: base.clone(), ui_dir: ui_dir.clone(), data_dir: data, otlp_traces: otlp }).await?;
+    let app = dev_app(&stack, DevOptions { public_url: base.clone(), ui_dir: ui_dir.clone(), data_dir: data, otlp_traces: otlp, offline })
+        .await?;
     app.state.spawn_kill_sync();
     let p = &stack.profile;
-    let live = p.models.for_role("orchestrator").and_then(|(_, m)| m.api_key_env.as_ref()).is_some_and(|v| std::env::var(v).is_ok());
+    let live = app.state.runtime.models.is_live("orchestrator");
     eprintln!("\n  {} · {} (profile `{}`)\n", p.meta.assistant_name, p.meta.display_name, p.meta.name);
     eprintln!("  assistant      {base}{}", if ui_dir.is_none() { "   (UI not built: cd ui && npm ci && npm run build)" } else { "" });
     eprintln!("  warden gateway {}   admin {}", stack.gateway_url, stack.admin_url);
@@ -164,7 +175,7 @@ async fn main() {
         .with_env_filter(tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info,rig=warn".into()))
         .init();
     let code = match Cli::parse().cmd {
-        Cmd::Demo { profile, listen, ui, data, otlp } => demo(profile, listen, ui, data, otlp).await,
+        Cmd::Demo { profile, listen, ui, data, otlp, offline } => demo(profile, listen, ui, data, otlp, offline).await,
         Cmd::Replay { profile, json, markdown } => replay(profile, json, markdown).await,
         Cmd::Serve { config } => match steward::serve::load(&config) {
             Ok(cfg) => steward::serve::serve(cfg).await.map(|_| 0),

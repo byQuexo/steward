@@ -6,6 +6,7 @@ requires-python = ">=3.12,<3.14"
 license = "MIT OR Apache-2.0"
 dependencies = [
     "httpx==0.28.1",
+    "keyring==25.7.0",
     "numpy==2.5.4",
     "pyyaml==6.0.3",
 ]
