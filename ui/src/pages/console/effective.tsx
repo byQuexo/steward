@@ -15,6 +15,7 @@ import { useI18n } from '@/context/i18n';
 import { api, ApiError } from '@/lib/api';
 import { exampleArgs, parseCatalog, type CatalogEntry } from '@/lib/catalog';
 import type { AdminUsers, Effective, PolicyInfo, WhatIfResult } from '@/lib/types';
+import { explainInBrowser } from '@/lib/wardenWasm';
 import { cn, errorMessage } from '@/lib/utils';
 
 function Chips({ items, mono = true }: { items: string[]; mono?: boolean }) {
@@ -51,6 +52,8 @@ function WhatIf({ eff, policy }: { eff: Effective; policy: PolicyInfo | null }) 
   const [args, setArgs] = useState('{}');
   const [argsError, setArgsError] = useState<string | null>(null);
   const [result, setResult] = useState<WhatIfResult | null>(null);
+  const [source, setSource] = useState<'browser' | 'server'>('browser');
+  const [agrees, setAgrees] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -86,7 +89,23 @@ function WhatIf({ eff, policy }: { eff: Effective; policy: PolicyInfo | null }) 
     setError(null);
     try {
       const principal = { ...eff.principal, agent };
-      setResult(await api.whatIf(principal, { kind: entry.kind, name: entry.name, args: parsed }));
+      const act = { kind: entry.kind, name: entry.name, args: parsed };
+      // Warden in the browser (WebAssembly) decides; the server's answer cross-checks it.
+      const [browser, server] = await Promise.allSettled([
+        policy ? explainInBrowser(policy.policy, policy.catalog, principal, act) : Promise.reject(new Error('no policy')),
+        api.whatIf(principal, act),
+      ]);
+      if (browser.status === 'fulfilled') {
+        setResult(browser.value);
+        setSource('browser');
+        setAgrees(server.status === 'fulfilled' ? server.value.effect === browser.value.effect && server.value.rule === browser.value.rule : null);
+      } else if (server.status === 'fulfilled') {
+        setResult(server.value);
+        setSource('server');
+        setAgrees(null);
+      } else {
+        throw server.reason;
+      }
     } catch (e) {
       setResult(null);
       setError(e instanceof ApiError && (e.status === 404 || e.status === 405) ? t('whatif.missing') : t('whatif.failed', { error: errorMessage(e) }));
@@ -184,6 +203,11 @@ function WhatIf({ eff, policy }: { eff: Effective; policy: PolicyInfo | null }) 
               <span className="text-sm font-medium">{t('whatif.result')}:</span>
               <DecisionBadge effect={result.effect} rule={result.rule} />
             </div>
+            <p className="text-xs text-muted-foreground" data-testid="whatif-source">
+              {source === 'browser' ? t('whatif.inBrowser') : t('whatif.onServer')}
+              {agrees === true && <> · <span className="text-allow-foreground">{t('whatif.serverAgrees')}</span></>}
+              {agrees === false && <> · <span className="text-deny-foreground">{t('whatif.serverDiffers')}</span></>}
+            </p>
             <dl className="grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[max-content_1fr]">
               <dt className="text-muted-foreground">{t('whatif.reason')}</dt>
               <dd>{result.reason}</dd>

@@ -93,6 +93,9 @@ test('ines: console loads users, effective rights, what-if and connectors', asyn
   const result = page.getByTestId('whatif-result');
   await expect(result).toContainText('big-deals-need-approval');
   await expect(result).toContainText(/Freigabe nötig|Needs approval/);
+  // Decided by Warden compiled to WebAssembly in the browser, and the server agrees.
+  await expect(page.getByTestId('whatif-source')).toContainText(/WebAssembly/);
+  await expect(page.getByTestId('whatif-source')).toContainText(/stimmt überein|agrees/);
 
   await page.getByRole('link', { name: /Connectors/ }).click();
   await expect(page.getByTestId('connector-card').first()).toBeVisible();
