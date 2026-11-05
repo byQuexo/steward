@@ -68,7 +68,10 @@ pub enum Expect {
         second_approver: Option<String>,
     },
     /// The tool ran and its result contains the text.
-    ToolResult { tool: String, contains: String },
+    ToolResult {
+        tool: String,
+        contains: String,
+    },
     /// The final answer contains the text.
     AnswerContains(String),
     /// The final answer does not contain the text (e.g. a salary figure).

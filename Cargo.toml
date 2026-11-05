@@ -68,7 +68,7 @@ rand = "0.8"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std", "serde"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-clap = { version = "4", features = ["derive"] }
+clap = { version = "4", features = ["derive", "env"] }
 async-trait = "0.1"
 tempfile = "3"
 

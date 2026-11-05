@@ -12,7 +12,7 @@ roles:
   sales-rep:  [crm:read, crm:write, docs:read, ticket:create, chat:read, chat:write, memory:own]
   sales-lead: [crm:read, crm:write, crm:export, docs:read, ticket:create, chat:read, chat:write, jira:read, jira:write, research, memory:own, memory:team]
   it-member:  [ticket:read, ticket:write, ticket:create, docs:read, jira:read, jira:write, memory:own]
-  it-admin:   [ticket:read, ticket:write, ticket:create, docs:read, jira:read, jira:write, chat:read, chat:write, admin, memory:own, memory:team]
+  it-admin:   [ticket:read, ticket:write, ticket:create, docs:read, jira:read, jira:write, chat:read, chat:write, memory:own, memory:team]
   finance:    [crm:read, crm:export, docs:read, ticket:create, memory:own]
 
 agents:

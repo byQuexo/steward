@@ -4,8 +4,8 @@ description: Accounts und Deals pro Mandant.
 server: { builtin: crm }
 data: data/crm.json
 tools:
-  list_deals:   { scopes: [crm:read], tags: [tenant-scoped], description: Deals eines Mandanten auflisten. }
-  get_deal:     { scopes: [crm:read], tags: [tenant-scoped], description: Einen Deal lesen. }
-  update_deal:  { scopes: [crm:write], sensitivity: write, tags: [tenant-scoped], description: Betrag oder Stufe eines Deals ändern. }
-  export_deals: { scopes: [crm:export], tags: [tenant-scoped, bulk], description: Alle Deals eines Mandanten als CSV. }
-  query:        { scopes: [crm:read], description: Lesende SQL-Abfrage auf deals und accounts. }
+  list_deals:   { scopes: [crm:read], tags: [tenant-scoped], description: "Deals eines Mandanten auflisten." }
+  get_deal:     { scopes: [crm:read], tags: [tenant-scoped], description: "Einen Deal lesen." }
+  update_deal:  { scopes: [crm:write], sensitivity: write, tags: [tenant-scoped], description: "Betrag oder Stufe eines Deals ändern." }
+  export_deals: { scopes: [crm:export], tags: [tenant-scoped, bulk], description: "Alle Deals eines Mandanten als CSV." }
+  query:        { scopes: [crm:read], description: "Lesende SQL-Abfrage auf deals und accounts." }

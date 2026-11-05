@@ -197,8 +197,7 @@ pub struct DocsAcl {
 impl DocsAcl {
     pub fn allowed<'a>(&self, teams: &[String], doc_ids: impl IntoIterator<Item = &'a str>) -> Vec<String> {
         let patterns: Vec<&String> = teams.iter().filter_map(|t| self.teams.get(t)).flatten().collect();
-        let mut out: Vec<String> =
-            doc_ids.into_iter().filter(|d| patterns.iter().any(|p| wildcard(p, d))).map(str::to_string).collect();
+        let mut out: Vec<String> = doc_ids.into_iter().filter(|d| patterns.iter().any(|p| wildcard(p, d))).map(str::to_string).collect();
         out.sort();
         out.dedup();
         out
@@ -246,7 +245,8 @@ mod tests {
 
     #[test]
     fn cost_uses_cached_price() {
-        let p: Pricing = serde_norway::from_str("models:\n  m: { input_per_mtok: 1.0, output_per_mtok: 4.0, cached_input_per_mtok: 0.1 }\n").unwrap();
+        let p: Pricing =
+            serde_norway::from_str("models:\n  m: { input_per_mtok: 1.0, output_per_mtok: 4.0, cached_input_per_mtok: 0.1 }\n").unwrap();
         let c = p.cost("m", 1_000_000, 1_000_000, 500_000);
         assert!((c - (0.5 + 0.05 + 4.0)).abs() < 1e-9, "{c}");
         assert_eq!(p.cost("unknown", 10, 10, 0), 0.0);

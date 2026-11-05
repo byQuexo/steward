@@ -1,12 +1,34 @@
 [package]
 name = "steward-mcp-servers"
+description = "Steward's built-in MCP servers (hr, crm, ticket, docs, jira, chat, github) over seed data, in one binary."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[[bin]]
+name = "steward-mcp"
+path = "src/main.rs"
+
 [dependencies]
+steward-config.workspace = true
+warden-core.workspace = true
+warden-identity.workspace = true
+axum.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+rusqlite.workspace = true
+reqwest.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+clap.workspace = true
+async-trait.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
 
 [lints]
 workspace = true

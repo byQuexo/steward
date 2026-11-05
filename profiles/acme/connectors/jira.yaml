@@ -4,5 +4,5 @@ description: Projekt-Issues. Ein Mock aus Seed-Daten; ein echtes Jira wird per U
 server: { builtin: jira }
 data: data/jira.json
 tools:
-  list_issues:  { scopes: [jira:read], description: Issues eines Projekts. }
-  create_issue: { scopes: [jira:write], sensitivity: write, description: Ein Issue anlegen. }
+  list_issues:  { scopes: [jira:read], description: "Issues eines Projekts." }
+  create_issue: { scopes: [jira:write], sensitivity: write, description: "Ein Issue anlegen." }
