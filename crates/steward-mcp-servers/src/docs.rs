@@ -36,7 +36,8 @@ const STOP: &[&str] = &[
     "der", "die", "das", "und", "oder", "ist", "sind", "wie", "was", "wer", "wann", "wo", "ein", "eine", "einen", "einem", "einer", "den",
     "dem", "des", "mit", "von", "für", "auf", "im", "in", "zu", "zum", "zur", "bei", "nach", "aus", "über", "ich", "du", "wir", "sie",
     "es", "man", "mein", "meine", "darf", "kann", "muss", "soll", "werden", "wird", "hat", "haben", "gibt", "nicht", "auch", "noch", "nur",
-    "bis", "ab", "the", "and", "for", "what", "how", "is", "are", "of", "to", "my", "can", "i",
+    "bis", "ab", "hoch", "viel", "viele", "welche", "welcher", "welches", "gilt", "bitte", "the", "and", "for", "what", "how", "is", "are",
+    "of", "to", "my", "can", "i",
 ];
 
 fn stem(w: &str) -> String {
@@ -50,6 +51,22 @@ fn stem(w: &str) -> String {
         }
     }
     w
+}
+
+/// How well query term `t` matches page term `x`: exact 1, inside a compound 0.5
+/// ("hotel" in "hotelkosten", "kosten" in "reisekosten"), else 0.
+fn hit(t: &str, x: &str) -> f64 {
+    if x == t {
+        1.0
+    } else if t.chars().count() >= 5 && x.len() > t.len() && (x.starts_with(t) || x.ends_with(t)) {
+        0.5
+    } else {
+        0.0
+    }
+}
+
+fn tf(t: &str, terms: &[String]) -> f64 {
+    terms.iter().map(|x| hit(t, x)).sum()
 }
 
 pub(crate) fn terms(text: &str) -> Vec<String> {
@@ -139,7 +156,7 @@ impl Docs {
         let n = candidates.len() as f64;
         let avg = candidates.iter().map(|p| p.terms.len()).sum::<usize>() as f64 / n;
         let idf = |t: &str| {
-            let df = candidates.iter().filter(|p| p.terms.iter().any(|x| x == t)).count() as f64;
+            let df = candidates.iter().filter(|p| tf(t, &p.terms) > 0.0).count() as f64;
             ((n - df + 0.5) / (df + 0.5) + 1.0).ln()
         };
         let mut best: Option<(&Page, f64, usize)> = None;
@@ -147,7 +164,7 @@ impl Docs {
             let mut score = 0.0;
             let mut matched = 0;
             for t in &q {
-                let tf = p.terms.iter().filter(|x| *x == t).count() as f64;
+                let tf = tf(t, &p.terms);
                 if tf > 0.0 {
                     matched += 1;
                     score += idf(t) * tf * 2.2 / (tf + 1.2 * (0.25 + 0.75 * p.terms.len() as f64 / avg.max(1.0)));
@@ -167,8 +184,9 @@ impl Docs {
             .into_iter()
             .filter(|s| s.chars().count() > 12)
             .map(|s| {
-                let st: BTreeSet<String> = terms(s).into_iter().collect();
-                (q.intersection(&st).count() as f64 + st.len().min(30) as f64 * 0.001, s)
+                let st: Vec<String> = terms(s).into_iter().collect::<BTreeSet<_>>().into_iter().collect();
+                let overlap: f64 = q.iter().map(|t| tf(t, &st).min(1.0)).sum();
+                (overlap + st.len().min(30) as f64 * 0.001, s)
             })
             .filter(|(s, _)| *s >= 1.0)
             .collect();
@@ -298,7 +316,9 @@ mod tests {
                 {"page": 1, "text": "VPN-Einrichtung\nAcme nutzt WireGuard für den Fernzugriff. Der Server ist vpn.acme.example auf Port 51820."},
                 {"page": 2, "text": "Fehlerbehebung\nMeldung handshake did not complete: Die Systemzeit des Geräts weicht ab. Zeit synchronisieren und neu verbinden."}
             ]},
-            {"doc_id": "hr-salary", "title": "Gehälter", "pages": [{"page": 1, "text": "Die Gehaltsbänder gelten ab 1. Januar 2026. Stufe E3 Senior 72.000 bis 94.000."}]}
+            {"doc_id": "hr-salary", "title": "Gehälter", "pages": [{"page": 1, "text": "Die Gehaltsbänder gelten ab 1. Januar 2026. Stufe E3 Senior 72.000 bis 94.000."}]},
+            {"doc_id": "finance-travel", "title": "Reiserichtlinie", "pages": [{"page": 1, "text": "Übernachtung
+        Die Hotelkosten sind auf 150 Euro pro Nacht begrenzt, in München und Hamburg auf 180 Euro."}]}
         ]);
         Docs::new("docs", corpus, None, None).unwrap()
     }
@@ -337,6 +357,17 @@ mod tests {
         // No verified caller, no documents.
         let anon = d.call(&Caller::anonymous(), "search", &json!({"question": "VPN WireGuard Server", "doc_ids": []})).await.unwrap();
         assert_eq!(anon["status"], "abstained");
+    }
+
+    /// Real users ask "Hotel-Limit", the policy says "Hotelkosten … begrenzt".
+    #[tokio::test]
+    async fn compound_words_match_their_parts() {
+        let r = docs()
+            .call(&caller(&["finance-travel"]), "search", &json!({"question": "Wie hoch ist das Hotel-Limit in München?", "doc_ids": []}))
+            .await
+            .unwrap();
+        assert_eq!(r["status"], "supported", "{r}");
+        assert!(r["answer"].as_str().unwrap().contains("180 Euro"), "{r}");
     }
 
     #[tokio::test]
