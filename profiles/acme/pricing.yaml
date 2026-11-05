@@ -8,6 +8,6 @@ models:
   ollama/qwen3:8b: { input_per_mtok: 0.0, output_per_mtok: 0.0 }
   scripted: { input_per_mtok: 0.92, output_per_mtok: 4.60 }
 budgets:
-  per_run: 0.05
+  per_run: 0.02
   per_user_daily: 1.50
   team_monthly: { sales: 40.0, hr: 20.0, it: 30.0, finance: 10.0 }

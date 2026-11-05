@@ -1,6 +1,6 @@
 id: 08-fiona-budget
 title: "Fiona stößt an das Budget"
-description: Ein Lauf darf höchstens 0,05 Euro kosten; der Budget-Hook stoppt vor dem nächsten Modellaufruf.
+description: Ein Lauf darf höchstens 0,02 Euro kosten (ein echter Lauf kostet 0,001 bis 0,003 Euro); der Budget-Hook stoppt vor dem nächsten Modellaufruf.
 user: fiona
 usage: { input_tokens: 60000, output_tokens: 1500 }
 turns:
