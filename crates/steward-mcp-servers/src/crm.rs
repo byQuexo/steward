@@ -204,7 +204,10 @@ mod tests {
         assert_eq!(r["rows"][0]["amount"], 1000);
         assert!(c.call(&Caller::anonymous(), "query", &json!({"tenant": "dach", "sql": "DELETE FROM deals"})).await.is_err());
         // Another tenant's query database is empty: no SQL reaches dach's rows.
-        let other = c.call(&Caller::anonymous(), "query", &json!({"tenant": "nordics", "sql": "SELECT id FROM deals WHERE tenant = 'dach'"})).await.unwrap();
+        let other = c
+            .call(&Caller::anonymous(), "query", &json!({"tenant": "nordics", "sql": "SELECT id FROM deals WHERE tenant = 'dach'"}))
+            .await
+            .unwrap();
         assert_eq!(other["rows"].as_array().unwrap().len(), 0);
     }
 
