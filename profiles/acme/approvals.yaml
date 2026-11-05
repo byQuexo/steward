@@ -2,7 +2,7 @@
 timeout_s: 120
 routes:
   - { rule: big-deals-need-approval, approvers: ["role:sales-lead"] }
-  - { rule: bulk-export-four-eyes, approvers: ["role:sales-lead", "role:it-admin"], four_eyes: true }
+  - { rule: bulk-export-four-eyes, approvers: ["role:sales-lead", "role:it-admin", "role:finance"], four_eyes: true }
   - { rule: ticket-close-approval, approvers: ["role:it-admin"] }
   - { rule: jira-create-approval, approvers: ["role:it-admin", "role:sales-lead"] }
   - { rule: "*", approvers: ["role:it-admin"] }

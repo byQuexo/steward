@@ -1,0 +1,13 @@
+id: 11-sara-four-eyes
+title: "Sara exportiert einen Mandanten: vier Augen"
+description: Ein Export aller Deals eines Mandanten braucht zwei verschiedene Freigaben; Sara selbst zählt nie.
+user: sara
+turns:
+  - user: "Exportiere alle Deals von Nordics als CSV"
+    script:
+      - tool: { name: crm.export_deals, args: { tenant: nordics } }
+      - say: "Der Export der Nordics-Deals liegt bereit; Ines und Fiona haben ihn freigegeben."
+    expect:
+      - decision: { tool: crm.export_deals, effect: require_approval, rule: bulk-export-four-eyes }
+      - approval: { approver: ines, decide: approve, second_approver: fiona }
+      - tool_result: { tool: crm.export_deals, contains: "id;account;title" }

@@ -9,7 +9,7 @@ use std::time::Duration;
 
 use serde_json::{json, Value};
 use steward_config::{AgentRole, Profile, ServerSpec};
-use steward_mcp_servers::{router as mcp_router, servers_for, CallerAuth, EffectLog, ServerOptions};
+use steward_mcp_servers::{router_with as mcp_router, servers_for, CallerAuth, EffectLog, Outages, ServerOptions};
 use tokio::net::TcpListener;
 use tokio::task::JoinHandle;
 use warden_audit::{AuditSink, MemorySink};
@@ -48,11 +48,13 @@ pub struct StackOptions {
     pub token_ttl_s: i64,
     /// Gateway → token service introspection cache (0 = revocation takes effect immediately).
     pub introspection_cache_s: u64,
+    /// Failures after which the gateway's circuit breaker takes an upstream out.
+    pub circuit_open_after: u32,
 }
 
 impl Default for StackOptions {
     fn default() -> Self {
-        Self { approver: ApproverMode::DenyAll, docrag_url: None, token_ttl_s: 900, introspection_cache_s: 0 }
+        Self { approver: ApproverMode::DenyAll, docrag_url: None, token_ttl_s: 900, introspection_cache_s: 0, circuit_open_after: 3 }
     }
 }
 
@@ -68,6 +70,8 @@ pub struct Stack {
     pub mcp_base: String,
     pub effects: EffectLog,
     pub audit: Arc<MemorySink>,
+    /// Take built-in MCP servers down (outage drills).
+    pub outages: Outages,
     tasks: Vec<JoinHandle<()>>,
 }
 
@@ -168,7 +172,8 @@ impl Stack {
         let server_opts = ServerOptions { docrag_url: opts.docrag_url.clone(), page_url_prefix: None };
         let servers = servers_for(&profile, &server_opts, &effects)?;
         let auth = CallerAuth::Verify(Arc::new(Verifier::new(upstream_identity(&sts_url)?)));
-        let r = mcp_router(servers, auth);
+        let outages = Outages::default();
+        let r = mcp_router(servers, auth, outages.clone());
         tasks.push(tokio::spawn(async move {
             let _ = axum::serve(mcp_l, r).await;
         }));
@@ -190,7 +195,8 @@ impl Stack {
             .audit(audit.clone() as Arc<dyn AuditSink>)
             .hmac_key(b"steward-dev-hmac".to_vec())
             .public_url(gateway_url.clone())
-            .admin_token(Some(ADMIN_TOKEN.into()));
+            .admin_token(Some(ADMIN_TOKEN.into()))
+            .circuit(warden_gateway::gateway::CircuitConfig { open_after: opts.circuit_open_after, cooldown: Duration::from_secs(30) });
         for c in &profile.connectors {
             let url = match &c.server {
                 ServerSpec::Builtin(_) => format!("{mcp_base}/{}/mcp", c.name),
@@ -212,7 +218,7 @@ impl Stack {
             let _ = g.serve(gw_l, Some(admin_l)).await;
         }));
 
-        Ok(Self { profile, sts, sts_url, gateway, gateway_url, admin_url, mcp_base, effects, audit, tasks })
+        Ok(Self { profile, sts, sts_url, gateway, gateway_url, admin_url, mcp_base, effects, audit, outages, tasks })
     }
 
     /// A login token for a seed user, as the identity provider would issue it to the assistant.

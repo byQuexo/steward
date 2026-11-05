@@ -23,7 +23,7 @@ use serde_json::{json, Value};
 use steward_config::{Profile, ServerSpec};
 use warden_core::Principal;
 
-pub use mcp::{router, Caller, CallerAuth};
+pub use mcp::{router, router_with, Caller, CallerAuth, Outages};
 
 /// A tool as listed to the gateway.
 #[derive(Clone, Debug)]

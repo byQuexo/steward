@@ -1,7 +1,7 @@
 //! The MCP wire protocol, server side: JSON-RPC over `POST /<server>/mcp` with JSON responses.
 
-use std::collections::BTreeMap;
-use std::sync::Arc;
+use std::collections::{BTreeMap, BTreeSet};
+use std::sync::{Arc, RwLock};
 
 use axum::body::Body;
 use axum::extract::{Path, State};
@@ -44,18 +44,42 @@ impl Caller {
     }
 }
 
+/// Servers taken down on purpose (outage drills, tests): they answer 503.
+#[derive(Clone, Default)]
+pub struct Outages(Arc<RwLock<BTreeSet<String>>>);
+
+impl Outages {
+    pub fn set(&self, server: &str, down: bool) {
+        if let Ok(mut s) = self.0.write() {
+            if down {
+                s.insert(server.to_string());
+            } else {
+                s.remove(server);
+            }
+        }
+    }
+    pub fn is_down(&self, server: &str) -> bool {
+        self.0.read().map(|s| s.contains(server)).unwrap_or(false)
+    }
+}
+
 #[derive(Clone)]
 struct AppState {
     servers: Arc<BTreeMap<String, Arc<dyn McpServer>>>,
     auth: CallerAuth,
+    outages: Outages,
 }
 
 /// `/<name>/mcp` for every server, plus `/health`.
 pub fn router(servers: BTreeMap<String, Arc<dyn McpServer>>, auth: CallerAuth) -> Router {
+    router_with(servers, auth, Outages::default())
+}
+
+pub fn router_with(servers: BTreeMap<String, Arc<dyn McpServer>>, auth: CallerAuth, outages: Outages) -> Router {
     Router::new()
         .route("/health", get(|| async { Json(json!({"status": "ok"})) }))
         .route("/{server}/mcp", post(handle))
-        .with_state(AppState { servers: Arc::new(servers), auth })
+        .with_state(AppState { servers: Arc::new(servers), auth, outages })
 }
 
 fn ok(id: Value, result: Value) -> Value {
@@ -81,6 +105,9 @@ async fn handle(State(st): State<AppState>, Path(name): Path<String>, headers: H
     let Some(server) = st.servers.get(&name).cloned() else {
         return respond(StatusCode::NOT_FOUND, Some(json!({"error": "unknown server"})), false);
     };
+    if st.outages.is_down(&name) {
+        return respond(StatusCode::SERVICE_UNAVAILABLE, Some(json!({"error": "server is down"})), false);
+    }
     let caller = match &st.auth {
         CallerAuth::None => Caller::anonymous(),
         CallerAuth::Verify(v) => {
