@@ -1,5 +1,6 @@
 [package]
 name = "steward-cost"
+description = "Steward cost accounting: a ledger per user, team and agent, budgets enforced as a rig hook, model calls exported as OpenTelemetry spans."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -7,6 +8,24 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+steward-config.workspace = true
+rig-agent.workspace = true
+rig-core.workspace = true
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+chrono.workspace = true
+reqwest.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+rand.workspace = true
+hex.workspace = true
+
+[dev-dependencies]
+rig-agent = { version = "=0.46.0", default-features = false, features = ["test-utils"] }
+rig-core = { version = "=0.46.0", default-features = false, features = ["reqwest", "rustls", "test-utils"] }
+futures.workspace = true
 
 [lints]
 workspace = true

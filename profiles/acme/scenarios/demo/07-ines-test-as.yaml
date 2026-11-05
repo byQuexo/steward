@@ -1,0 +1,18 @@
+id: 07-ines-test-as
+title: "Ines testet als Hanna"
+description: Die Administratorin sieht den Assistenten genau wie Hanna, kann aber nichts in Hannas Namen ändern.
+user: hanna
+impersonated_by: ines
+turns:
+  - user: "Welche Abwesenheiten gibt es im HR-Team?"
+    script:
+      - tool: { name: hr.list_absences, args: { unit: hr } }
+      - say: "Hier sind die Abwesenheiten im HR-Team."
+    expect:
+      - decision: { tool: hr.list_absences, effect: allow }
+  - user: "Merk dir: Ich bin Ersthelferin im 2. OG"
+    script:
+      - remember: { fact: "Ersthelferin im 2. OG" }
+      - say: "In einer Testsitzung speichere ich nichts."
+    expect:
+      - memory_refused

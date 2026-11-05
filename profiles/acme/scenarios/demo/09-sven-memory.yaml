@@ -1,0 +1,26 @@
+id: 09-sven-memory
+title: "Sven: merken, nicht merken, vergessen"
+description: Fakten werden gemerkt und genutzt, eine IBAN nie gespeichert, und alles lässt sich vergessen.
+user: sven
+turns:
+  - user: "Merk dir: Ich betreue die Müller Maschinenbau AG."
+    script:
+      - remember: { fact: "Betreut die Müller Maschinenbau AG" }
+      - say: "Gemerkt."
+    expect:
+      - memory_stored
+  - user: "Meine IBAN ist DE89 3704 0044 0532 0130 00, merk sie dir."
+    script:
+      - remember: { fact: "IBAN DE89 3704 0044 0532 0130 00" }
+      - say: "Bankdaten speichere ich nicht."
+    expect:
+      - memory_refused
+  - user: "Welche Kunden betreue ich?"
+    script:
+      - say: "Du betreust die Müller Maschinenbau AG."
+    expect:
+      - memory_used
+  - user: "Vergiss alles, was du über mich weißt."
+    script:
+      - tool: { name: memory_forget, args: {} }
+      - say: "Erledigt, ich habe alles vergessen."

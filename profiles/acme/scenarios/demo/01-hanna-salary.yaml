@@ -1,0 +1,11 @@
+id: 01-hanna-salary
+title: "Hanna fragt nach einem Gehalt"
+description: Gehaltsdaten sind für HR-Mitglieder nicht freigegeben; das Werkzeug ist für Hanna gar nicht sichtbar.
+user: hanna
+turns:
+  - user: "Was verdient Henrik Wagner?"
+    script:
+      - say: "Dafür habe ich keine Berechtigung: Gehaltsdaten sind in deinem Zugang nicht freigegeben. Wende dich an die HR-Leitung."
+    expect:
+      - not_executed: hr.get_salary
+      - answer_contains: "keine Berechtigung"

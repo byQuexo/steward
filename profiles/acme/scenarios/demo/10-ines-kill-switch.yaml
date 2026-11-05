@@ -1,0 +1,19 @@
+id: 10-ines-kill-switch
+title: "Kill-Switch: Schreibaktionen gestoppt"
+description: Ines stoppt alle Schreibaktionen; Lesen geht weiter.
+user: sven
+kill_switch: writes
+turns:
+  - user: "Setz den Deal d-1007 auf 45.000 Euro"
+    script:
+      - tool: { name: crm.update_deal, args: { tenant: dach, deal_id: d-1007, amount: 45000 } }
+      - say: "Schreibaktionen sind gerade gestoppt; ich habe nichts geändert."
+    expect:
+      - decision: { tool: crm.update_deal, effect: deny, rule: kill_switch }
+      - not_executed: crm.update_deal
+  - user: "Welche Deals habe ich in DACH?"
+    script:
+      - tool: { name: crm.list_deals, args: { tenant: dach } }
+      - say: "Hier sind deine Deals in DACH."
+    expect:
+      - tool_result: { tool: crm.list_deals, contains: d-1007 }

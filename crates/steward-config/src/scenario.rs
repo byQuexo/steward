@@ -18,7 +18,20 @@ pub struct DemoScenario {
     pub impersonated_by: Option<String>,
     #[serde(default)]
     pub description: String,
+    /// Kill switch set before the scenario runs (`writes` or `all`).
+    #[serde(default)]
+    pub kill_switch: Option<String>,
+    /// Token usage the scripted model reports per model call (drives the cost pages and budgets).
+    #[serde(default)]
+    pub usage: Option<UsageSpec>,
     pub turns: Vec<Turn>,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct UsageSpec {
+    pub input_tokens: u64,
+    pub output_tokens: u64,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -42,8 +55,15 @@ pub enum ScriptStep {
         #[serde(default)]
         args: Value,
     },
-    /// Delegate to a sub-agent over A2A: `{ delegate: { agent: research, skill: research.deep_search, input: "..." } }`.
-    Delegate { agent: String, skill: String, input: String },
+    /// Delegate to a sub-agent over A2A: `{ delegate: { agent: research, skill: research.deep_search, input: "...", script: [...] } }`.
+    /// `script` is what the sub-agent's scripted model does with `input`.
+    Delegate {
+        agent: String,
+        skill: String,
+        input: String,
+        #[serde(default)]
+        script: Vec<ScriptStep>,
+    },
     /// Store a fact in memory (`memory.write`).
     Remember { fact: String },
     /// Final answer text.
@@ -91,6 +111,8 @@ pub enum Expect {
     MemoryStored,
     /// The run was stopped by a budget.
     BudgetExceeded,
+    /// Memory refused to store something (PII, impersonation).
+    MemoryRefused,
     /// The tool was never executed upstream (denied or held).
     NotExecuted(String),
 }

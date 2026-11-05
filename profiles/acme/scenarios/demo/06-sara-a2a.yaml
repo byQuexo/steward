@@ -1,0 +1,29 @@
+id: 06-sara-a2a
+title: "Sara: Recherche-Agent und Aktions-Agent"
+description: >-
+  Der Orchestrator delegiert über A2A: der Recherche-Agent liest CRM und Dokumente, der Aktions-Agent
+  legt ein Jira-Issue an. Delegations-Tokens tragen die act-Kette; die Schreibaktion braucht eine Freigabe.
+user: sara
+turns:
+  - user: "Recherchiere den Deal mit Fjord Logistics und lege im Projekt OPS ein Jira-Issue für das Angebot an"
+    script:
+      - delegate:
+          agent: research
+          skill: research.deep_search
+          input: "Fasse Deal d-1012 von Fjord Logistics und die Rabattregeln für Mehrjahresverträge zusammen"
+          script:
+            - tool: { name: crm.get_deal, args: { tenant: nordics, deal_id: d-1012 } }
+            - tool: { name: docs.search, args: { question: "Rabatt Mehrjahresverträge drei Jahre", doc_ids: [] } }
+            - say: "Deal d-1012 (Fjord Logistics, Acme Flow Enterprise) liegt bei 135.000 Euro in der Stufe Angebot. Mehrjahresverträge über drei Jahre erhalten zusätzlich 5 Prozent."
+      - delegate:
+          agent: action
+          skill: action.create_jira_issue
+          input: "Lege im Projekt OPS ein Issue an: Angebot Fjord Logistics (d-1012) vorbereiten"
+          script:
+            - tool: { name: jira.create_issue, args: { project: OPS, summary: "Angebot Fjord Logistics (d-1012) vorbereiten" } }
+            - say: "Issue im Projekt OPS angelegt."
+      - say: "Deal d-1012 liegt bei 135.000 Euro (Stufe Angebot); bei drei Jahren Laufzeit gibt es 5 Prozent zusätzlich. Das Jira-Issue im Projekt OPS ist angelegt."
+    expect:
+      - handoff: research
+      - handoff: action
+      - approval: { approver: ines, decide: approve }

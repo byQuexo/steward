@@ -1,0 +1,19 @@
+id: 02-henrik-units
+title: "Henrik: eigene Einheit ja, fremde nein"
+description: Die HR-Leitung sieht Gehälter, aber nur der eigenen Einheit (Regel salary-only-own-unit).
+user: henrik
+turns:
+  - user: "Zeig mir die Gehälter meiner Einheit"
+    script:
+      - tool: { name: hr.get_salary, args: { unit: hr } }
+      - say: "Hier sind die Gehälter der Einheit HR."
+    expect:
+      - decision: { tool: hr.get_salary, effect: allow }
+      - tool_result: { tool: hr.get_salary, contains: salary_eur }
+  - user: "Und die Gehälter im Vertrieb?"
+    script:
+      - tool: { name: hr.get_salary, args: { unit: sales } }
+      - say: "Gehälter anderer Einheiten darf ich dir nicht zeigen."
+    expect:
+      - decision: { tool: hr.get_salary, effect: deny, rule: salary-only-own-unit }
+      - answer_omits: salary_eur

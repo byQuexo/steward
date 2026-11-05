@@ -28,7 +28,7 @@ pub use connectors::{generate_catalog, generate_gateway_yaml, Connector, Gateway
 pub use error::ConfigError;
 pub use models::{ApprovalRoute, ApprovalRouting, Budgets, DocsAcl, ModelPrice, ModelRef, ModelsConfig, Pricing, VoiceConfig};
 pub use profile::{AgentRole, AgentSpec, DemoUser, MemorySettings, Messages, Profile, ProfileMeta};
-pub use scenario::{DemoScenario, Expect, ScriptStep, Turn};
+pub use scenario::{DemoScenario, Expect, ScriptStep, Turn, UsageSpec};
 
 /// Read a YAML file into `T`, rejecting unknown keys (the types use `deny_unknown_fields`).
 pub(crate) fn read_yaml<T: serde::de::DeserializeOwned>(path: &std::path::Path) -> Result<T, ConfigError> {

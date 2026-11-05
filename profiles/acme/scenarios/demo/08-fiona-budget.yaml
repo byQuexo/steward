@@ -1,0 +1,12 @@
+id: 08-fiona-budget
+title: "Fiona stößt an das Budget"
+description: Ein Lauf darf höchstens 0,05 Euro kosten; der Budget-Hook stoppt vor dem nächsten Modellaufruf.
+user: fiona
+usage: { input_tokens: 60000, output_tokens: 1500 }
+turns:
+  - user: "Wie hoch ist das Hotel-Limit in München?"
+    script:
+      - tool: { name: docs.search, args: { question: "Hotelkosten Limit München", doc_ids: [] } }
+      - say: "In München liegt das Limit bei 180 Euro pro Nacht."
+    expect:
+      - budget_exceeded

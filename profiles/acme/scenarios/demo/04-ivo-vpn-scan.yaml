@@ -1,0 +1,12 @@
+id: 04-ivo-vpn-scan
+title: "Ivo fragt die gescannte VPN-Anleitung"
+description: Antwort aus einem gescannten PDF, mit verifiziertem Zitat und Seitenbild.
+user: ivo
+turns:
+  - user: "WireGuard meldet handshake did not complete. Was soll ich tun?"
+    script:
+      - tool: { name: docs.search, args: { question: "WireGuard meldet handshake did not complete", doc_ids: [] } }
+      - say: "Laut VPN-Anleitung (Seite 2) weicht die Systemzeit ab: Zeit synchronisieren und neu verbinden."
+    expect:
+      - decision: { tool: docs.search, effect: allow }
+      - citation: { doc_id: it-vpn-setup, page: 2 }
