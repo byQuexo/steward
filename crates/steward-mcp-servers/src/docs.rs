@@ -53,12 +53,14 @@ fn stem(w: &str) -> String {
     w
 }
 
-/// How well query term `t` matches page term `x`: exact 1, inside a compound 0.5
-/// ("hotel" in "hotelkosten", "kosten" in "reisekosten"), else 0.
+/// How well query term `t` matches page term `x`: exact 1; one the head or tail of the other
+/// (a German compound) 0.5, e.g. "hotel" in "hotelkosten" or "beleg" in "reisebeleg"; else 0.
 fn hit(t: &str, x: &str) -> f64 {
     if x == t {
-        1.0
-    } else if t.chars().count() >= 5 && x.len() > t.len() && (x.starts_with(t) || x.ends_with(t)) {
+        return 1.0;
+    }
+    let (short, long) = if t.len() < x.len() { (t, x) } else { (x, t) };
+    if short.chars().count() >= 4 && (long.starts_with(short) || long.ends_with(short)) {
         0.5
     } else {
         0.0
@@ -70,7 +72,11 @@ fn tf(t: &str, terms: &[String]) -> f64 {
 }
 
 pub(crate) fn terms(text: &str) -> Vec<String> {
-    text.to_lowercase().split(|c: char| !(c.is_alphanumeric())).filter(|w| w.chars().count() >= 3 && !STOP.contains(w)).map(stem).collect()
+    text.to_lowercase()
+        .split(|c: char| !(c.is_alphanumeric()))
+        .filter(|w| (w.chars().count() >= 3 || (w.len() >= 2 && w.chars().any(|c| c.is_ascii_digit()))) && !STOP.contains(w))
+        .map(stem)
+        .collect()
 }
 
 fn sentences(text: &str) -> Vec<&str> {
@@ -316,9 +322,14 @@ mod tests {
                 {"page": 1, "text": "VPN-Einrichtung\nAcme nutzt WireGuard für den Fernzugriff. Der Server ist vpn.acme.example auf Port 51820."},
                 {"page": 2, "text": "Fehlerbehebung\nMeldung handshake did not complete: Die Systemzeit des Geräts weicht ab. Zeit synchronisieren und neu verbinden."}
             ]},
-            {"doc_id": "hr-salary", "title": "Gehälter", "pages": [{"page": 1, "text": "Die Gehaltsbänder gelten ab 1. Januar 2026. Stufe E3 Senior 72.000 bis 94.000."}]},
+            {"doc_id": "hr-salary", "title": "Gehälter", "pages": [{"page": 1, "text": "Die Gehaltsbänder gelten ab 1. Januar 2026.
+Stufe   Bezeichnung   Minimum   Mitte   Maximum
+E2   Professional   58.000   67.000   76.000
+E3   Senior   72.000   83.000   94.000"}]},
             {"doc_id": "finance-travel", "title": "Reiserichtlinie", "pages": [{"page": 1, "text": "Übernachtung
-        Die Hotelkosten sind auf 150 Euro pro Nacht begrenzt, in München und Hamburg auf 180 Euro."}]}
+        Die Hotelkosten sind auf 150 Euro pro Nacht begrenzt, in München und Hamburg auf 180 Euro."},
+                {"page": 2, "text": "Spesen
+        Das Verpflegungsgeld beträgt 28 Euro für volle Abwesenheitstage. Belege werden innerhalb von 30 Tagen im Spesentool eingereicht."}]}
         ]);
         Docs::new("docs", corpus, None, None).unwrap()
     }
@@ -368,6 +379,32 @@ mod tests {
             .unwrap();
         assert_eq!(r["status"], "supported", "{r}");
         assert!(r["answer"].as_str().unwrap().contains("180 Euro"), "{r}");
+    }
+
+    /// "E3" is two characters; the band row must still be found, and quoted.
+    #[tokio::test]
+    async fn short_codes_with_digits_count() {
+        let r = docs()
+            .call(&caller(&["hr-salary"]), "search", &json!({"question": "Wie hoch ist das Minimum im Gehaltsband E3?", "doc_ids": []}))
+            .await
+            .unwrap();
+        assert_eq!(r["status"], "supported", "{r}");
+        assert!(r["answer"].as_str().unwrap().contains("72.000"), "{r}");
+    }
+
+    /// The question's compound ("Reisebelege") contains the page's word ("Belege").
+    #[tokio::test]
+    async fn page_words_inside_question_compounds_match() {
+        let r = docs()
+            .call(
+                &caller(&["finance-travel"]),
+                "search",
+                &json!({"question": "Innerhalb welcher Frist müssen Reisebelege eingereicht werden?", "doc_ids": []}),
+            )
+            .await
+            .unwrap();
+        assert_eq!(r["status"], "supported", "{r}");
+        assert!(r["answer"].as_str().unwrap().contains("30 Tagen"), "{r}");
     }
 
     #[tokio::test]
