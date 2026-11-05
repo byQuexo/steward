@@ -81,6 +81,8 @@ pub async fn chat(State(st): State<Shared>, a: Authed, Json(req): Json<ChatReque
         }
     });
     tokio::spawn(async move {
+        // Only this run's approvals: the bus also carries decisions on requests this user approves.
+        let mut mine: std::collections::HashSet<String> = std::collections::HashSet::new();
         loop {
             tokio::select! {
                 e = rx.recv() => {
@@ -91,7 +93,16 @@ pub async fn chat(State(st): State<Shared>, a: Authed, Json(req): Json<ChatReque
                 }
                 b = bus.recv() => {
                     if let Ok(v) = b {
-                        if matches!(v["type"].as_str(), Some("approval_pending" | "approval_decided")) && out_tx.send(sse_event(&v)).await.is_err() {
+                        let id = v["approval_id"].as_str().unwrap_or_default().to_string();
+                        let forward = match v["type"].as_str() {
+                            Some("approval_pending") => {
+                                mine.insert(id);
+                                true
+                            }
+                            Some("approval_decided") => mine.contains(&id),
+                            _ => false,
+                        };
+                        if forward && out_tx.send(sse_event(&v)).await.is_err() {
                             break;
                         }
                     }

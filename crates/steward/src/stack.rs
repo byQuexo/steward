@@ -192,7 +192,8 @@ impl Stack {
             .engine(engine)
             .verifier(Verifier::new(gateway_identity(&sts_url, &gateway_url, opts.introspection_cache_s)?))
             .approver(approver)
-            .approval_timeout(Duration::from_secs(profile.approvals.timeout_s))
+            // A little longer than the inbox, so the inbox decides expiry and answers first.
+            .approval_timeout(Duration::from_secs(profile.approvals.timeout_s + 5))
             .progress_interval(Duration::from_millis(500))
             .audit(audit.clone() as Arc<dyn AuditSink>)
             .hmac_key(b"steward-dev-hmac".to_vec())

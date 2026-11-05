@@ -74,6 +74,33 @@ impl Bus {
     }
 }
 
+/// Expires a still-pending request when the webhook handler is dropped before it answered.
+struct ExpireOnDrop<'a> {
+    inbox: &'a Inbox,
+    id: String,
+    armed: bool,
+}
+
+impl Drop for ExpireOnDrop<'_> {
+    fn drop(&mut self) {
+        if !self.armed {
+            return;
+        }
+        let expired = self.inbox.items.lock().ok().and_then(|mut items| {
+            let (a, tx) = items.get_mut(&self.id)?;
+            (a.status == Status::Pending).then(|| {
+                a.status = Status::Expired;
+                let _ = tx.send(Status::Expired);
+                a.clone()
+            })
+        });
+        if let Some(a) = expired {
+            tracing::info!(approval = %a.id, "gateway stopped waiting, approval expired");
+            self.inbox.publish_decided(&a);
+        }
+    }
+}
+
 pub struct Inbox {
     routing: ApprovalRouting,
     directory: Arc<dyn Directory>,
@@ -159,6 +186,9 @@ impl Inbox {
         if let Ok(mut items) = self.items.lock() {
             items.insert(id.clone(), (approval.clone(), tx));
         }
+        // If the gateway gives up first (its own timeout, a dropped connection), this future is
+        // dropped mid-wait. The guard expires the request so no approver acts on a dead call.
+        let mut guard = ExpireOnDrop { inbox: self, id: id.clone(), armed: true };
         let event = json!({"type": "approval_requested", "approval": approval});
         for a in &approvers {
             self.bus.publish(a, event.clone());
@@ -190,13 +220,10 @@ impl Inbox {
             }
             Err(_) => None,
         };
+        guard.armed = false;
         let Some(a) = final_state else { return deny("approval lost") };
+        self.publish_decided(&a);
         let approvers_str = a.votes.iter().filter(|v| v.approve).map(|v| v.user.clone()).collect::<Vec<_>>().join("+");
-        let decision_event = json!({"type": "approval_decided", "approval_id": a.id, "status": a.status, "votes": a.votes});
-        self.bus.publish(&a.requester, decision_event.clone());
-        for u in &a.approvers {
-            self.bus.publish(u, decision_event.clone());
-        }
         match a.status {
             Status::Approved => json!({"decision": "approve", "approver": approvers_str, "args_hash": a.args_hash}),
             Status::Denied => {
@@ -204,6 +231,14 @@ impl Inbox {
                 json!({"decision": "deny", "approver": by.map(|v| v.user.clone()).unwrap_or_default(), "reason": by.and_then(|v| v.reason.clone()).unwrap_or_default(), "args_hash": a.args_hash})
             }
             _ => deny("approval timed out"),
+        }
+    }
+
+    fn publish_decided(&self, a: &Approval) {
+        let event = json!({"type": "approval_decided", "approval_id": a.id, "status": a.status, "votes": a.votes});
+        self.bus.publish(&a.requester, event.clone());
+        for u in &a.approvers {
+            self.bus.publish(u, event.clone());
         }
     }
 
@@ -251,5 +286,74 @@ impl Inbox {
 
     pub fn all(&self) -> Vec<Approval> {
         self.items.lock().map(|i| i.values().map(|(a, _)| a.clone()).collect()).unwrap_or_default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+
+    use steward_config::ApprovalRoute;
+    use steward_identity::{DirUser, IdentityError};
+
+    use super::*;
+
+    struct Users;
+
+    #[async_trait::async_trait]
+    impl Directory for Users {
+        async fn users(&self) -> Result<Vec<DirUser>, IdentityError> {
+            let u = |id: &str, role: &str| DirUser {
+                id: id.into(),
+                name: id.into(),
+                email: format!("{id}@example.com"),
+                roles: vec![role.into()],
+                attrs: BTreeMap::new(),
+                enabled: true,
+            };
+            Ok(vec![u("sven", "sales-rep"), u("sara", "sales-lead")])
+        }
+        async fn set_roles(&self, _: &str, _: &[String]) -> Result<(), IdentityError> {
+            Ok(())
+        }
+    }
+
+    fn inbox() -> Inbox {
+        let routing = ApprovalRouting {
+            timeout_s: 300,
+            routes: vec![ApprovalRoute { rule: "*".into(), approvers: vec!["role:sales-lead".into()], four_eyes: false }],
+        };
+        Inbox::new(routing, Arc::new(Users), Arc::new(Bus::default()), None)
+    }
+
+    fn request() -> Value {
+        json!({"id": "a1", "subject": "sven", "kind": "tool", "name": "crm.update_deal", "args": {"amount": 80000}, "rule": "big-deals", "args_hash": "h"})
+    }
+
+    /// The gateway gave up (its timeout, a dropped connection): the request must not stay in
+    /// Sara's inbox, where approving it would do nothing.
+    #[tokio::test]
+    async fn a_dropped_webhook_expires_the_request() {
+        let inbox = inbox();
+        let waiting = tokio::time::timeout(Duration::from_millis(100), inbox.request(request())).await;
+        assert!(waiting.is_err(), "still waiting for a decision");
+        assert!(inbox.for_user("sara").0.is_empty(), "nothing left to decide");
+        assert_eq!(inbox.all()[0].status, Status::Expired);
+        assert!(matches!(inbox.decide("a1", "sara", true, None), Err(DecideError::AlreadyDecided)));
+    }
+
+    #[tokio::test]
+    async fn an_approval_answers_the_waiting_gateway() {
+        let inbox = Arc::new(inbox());
+        let i2 = inbox.clone();
+        let waiting = tokio::spawn(async move { i2.request(request()).await });
+        while inbox.for_user("sara").0.is_empty() {
+            tokio::task::yield_now().await;
+        }
+        assert!(matches!(inbox.decide("a1", "sven", true, None), Err(DecideError::SelfApproval)));
+        inbox.decide("a1", "sara", true, None).unwrap();
+        let answer = waiting.await.unwrap();
+        assert_eq!(answer["decision"], "approve");
+        assert_eq!(answer["approver"], "sara");
     }
 }
