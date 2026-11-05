@@ -18,11 +18,11 @@ def test_entitlements_follow_policy(profile):
 
 
 def test_salary_leak_only_for_unentitled(pii):
-    text = "Henrik Wagner verdient 112.500 Euro im Jahr."
-    assert kinds(pii.scan("hanna", text)) == [("salary", "112500")]
+    text = "Henrik Wagner verdient 128.000 Euro im Jahr."
+    assert kinds(pii.scan("hanna", text)) == [("salary", "128000")]
     assert pii.scan("henrik", text) == []
-    # Sven's salary for the HR lead: other unit
-    assert kinds(pii.scan("henrik", "Sven: 78.500 €")) == [("salary", "78500")]
+    # Sara's salary for the HR lead: other unit
+    assert kinds(pii.scan("henrik", "Sara: 126.000 €")) == [("salary", "126000")]
 
 
 def _data(name):

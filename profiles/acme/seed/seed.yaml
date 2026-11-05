@@ -9,10 +9,10 @@ realm: acme
 
 # The seven demo users. Their attributes become token claims that Warden checks.
 demo_users:
-  - { id: hanna,  name: Hanna Schmidt,  title: HR-Referentin,          roles: [hr-member],  teams: [hr],      unit: hr }
-  - { id: henrik, name: Henrik Wagner,  title: Leiter Personal,        roles: [hr-lead],    teams: [hr],      unit: hr }
+  - { id: hanna,  name: Hanna Schmidt,  title: HR-Referentin,          roles: [hr-member],  teams: [hr],      unit: hr,      hr: { band: E3, salary: 78500 } }
+  - { id: henrik, name: Henrik Wagner,  title: Leiter Personal,        roles: [hr-lead],    teams: [hr],      unit: hr,      hr: { band: E5, salary: 128000 } }
   - { id: sven,   name: Sven Berger,    title: Account Executive,      roles: [sales-rep],  teams: [sales],   unit: sales, tenants: [dach] }
-  - { id: sara,   name: Sara Yilmaz,    title: Vertriebsleiterin,      roles: [sales-lead], teams: [sales],   unit: sales, tenants: [dach, nordics] }
+  - { id: sara,   name: Sara Yilmaz,    title: Vertriebsleiterin,      roles: [sales-lead], teams: [sales],   unit: sales, tenants: [dach, nordics], hr: { band: E5, salary: 126000 } }
   - { id: ivo,    name: Ivo Peters,     title: IT-Support,             roles: [it-member],  teams: [it],      unit: it }
   - { id: ines,   name: Ines Hoffmann,  title: IT-Administratorin,     roles: [it-admin],   teams: [it],      unit: it }
   - { id: fiona,  name: Fiona Lang,     title: Controllerin,           roles: [finance],    teams: [finance], unit: finance, tenants: [dach, nordics, benelux] }
@@ -21,6 +21,37 @@ hr:
   units: [hr, sales, it, finance, engineering]
   employees_per_unit: 8
   salary_bands: { E1: [48000, 60000], E2: [58000, 76000], E3: [72000, 94000], E4: [88000, 114000], E5: [105000, 138000] }
+  titles:
+    hr:
+      E1: [Personalassistenz, Lohnbuchhalter|Lohnbuchhalterin]
+      E2: [Personalsachbearbeiter|Personalsachbearbeiterin]
+      E3: [HR-Referent|HR-Referentin, Recruiter|Recruiterin]
+      E4: [Senior HR Business Partner|Senior HR Business Partnerin, Referent Vergütung|Referentin Vergütung]
+      E5: [Teamleiter Personalentwicklung|Teamleiterin Personalentwicklung, Leiter Lohn und Gehalt|Leiterin Lohn und Gehalt]
+    sales:
+      E1: [Vertriebsassistenz, Vertriebsinnendienst]
+      E2: [Inside Sales Representative, Sales Development Representative]
+      E3: [Account Executive, Account Manager|Account Managerin]
+      E4: [Senior Account Executive, Key Account Manager|Key Account Managerin, Solution Consultant]
+      E5: [Head of Key Accounts, Regionalleiter Vertrieb|Regionalleiterin Vertrieb]
+    it:
+      E1: [IT-Support]
+      E2: [IT-Support, Systemadministrator|Systemadministratorin]
+      E3: [Systemadministrator|Systemadministratorin, Netzwerkadministrator|Netzwerkadministratorin]
+      E4: [Senior Systemadministrator|Senior Systemadministratorin, IT-Security Engineer]
+      E5: [Teamleiter IT-Betrieb|Teamleiterin IT-Betrieb, IT-Architekt|IT-Architektin]
+    finance:
+      E1: [Buchhaltungsassistenz, Kreditorenbuchhalter|Kreditorenbuchhalterin]
+      E2: [Finanzbuchhalter|Finanzbuchhalterin, Debitorenbuchhalter|Debitorenbuchhalterin]
+      E3: [Bilanzbuchhalter|Bilanzbuchhalterin, Controller|Controllerin]
+      E4: [Senior Controller|Senior Controllerin, Referent Treasury|Referentin Treasury]
+      E5: [Leiter Rechnungswesen|Leiterin Rechnungswesen, Head of Controlling]
+    engineering:
+      E1: [Werkstudent Softwareentwicklung|Werkstudentin Softwareentwicklung, Junior Developer]
+      E2: [Softwareentwickler|Softwareentwicklerin, QA Engineer]
+      E3: [Softwareentwickler|Softwareentwicklerin, DevOps Engineer]
+      E4: [Senior Softwareentwickler|Senior Softwareentwicklerin, Senior Data Engineer]
+      E5: [Staff Engineer, Engineering Manager]
 
 crm:
   tenants: [dach, nordics, benelux]

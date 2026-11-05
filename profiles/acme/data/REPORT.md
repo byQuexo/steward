@@ -19,7 +19,7 @@ CI checks this with `steward-seed --check`.
 | `docs/it-vpn-setup.pdf` | 186293 | `53cb3e2751dcf562` |
 | `docs/sales-playbook.pdf` | 2609 | `e5f2436acb1fdf2b` |
 | `docs/sales-pricing-2026.pdf` | 2833 | `c39dd9ada231dc92` |
-| `hr.json` | 12944 | `31d9e96476b63035` |
+| `hr.json` | 13136 | `ce1e190b5cb790c2` |
 | `jira.json` | 1203 | `2f7de42f0a99ddb2` |
 | `keycloak/realm.json` | 11058 | `7279575c13a4d780` |
 | `pages/finance-travel-policy/1.png` | 37384 | `f64e2c0b2c6b902e` |

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import fnmatch
 import random
+import re
 from datetime import date, timedelta
 from typing import Any
 
@@ -53,6 +54,25 @@ def users(cfg: dict[str, Any], acl: dict[str, list[str]], doc_ids: list[str]) ->
     return out
 
 
+# Academic and professional titles Faker's de_DE provider adds to names ("Dipl.-Ing. … B.Eng.").
+_NAME_TITLES = re.compile(r"^(?:(?:Dr|Prof|Univ\.Prof|Dipl\.-[A-Za-z]+|Ing|med|B\.[A-Za-z]+|M\.[A-Za-z]+|MBA|MBA\.)\.?$)")
+
+
+def gendered(title: str, name: str, fake: Faker) -> str:
+    """Pick `masculine|feminine` by the first name (Faker's own name lists); unknown → first."""
+    if "|" not in title:
+        return title
+    m, f = title.split("|", 1)
+    first = name.split()[0].split("-")[0]
+    female_names = {n for prov in fake.providers for n in getattr(prov, "first_names_female", ())}
+    return f if first in female_names else m
+
+
+def plain_name(name: str) -> str:
+    """A person's name without academic titles."""
+    return " ".join(p for p in name.split() if not _NAME_TITLES.match(p))
+
+
 def hr(cfg: dict[str, Any], demo: list[dict[str, Any]], seed: int, locale: str) -> dict[str, Any]:
     section = cfg["hr"]
     rng = random.Random(seed * 10 + 1)
@@ -63,16 +83,31 @@ def hr(cfg: dict[str, Any], demo: list[dict[str, Any]], seed: int, locale: str) 
     demo_by_unit: dict[str, list[dict[str, Any]]] = {}
     for u in demo:
         demo_by_unit.setdefault(u["attrs"]["org_unit"], []).append(u)
+    # Job titles per unit and band; a separate generator so the other values stay stable.
+    titles = section.get("titles") or {}
+    title_rng = random.Random(seed * 10 + 7)
+    # Fixed HR records for demo users (optional), e.g. `hr: { band: E5, salary: 128000 }`.
+    fixed = {u["id"]: u.get("hr") or {} for u in cfg.get("demo_users", [])}
     for unit in section["units"]:
         people = []
         for u in demo_by_unit.get(unit, []):
             people.append((u["name"], u["title"], u["id"]))
         while len(people) < section["employees_per_unit"]:
-            people.append((fake.name(), fake.job(), None))
+            name, _ = fake.name(), fake.job()
+            people.append((plain_name(name), None, None))
         for name, title, login in people:
+            # Draw order matters: it keeps every other seeded value stable.
             band = rng.choice(list(bands))
             lo, hi = bands[band]
             start = BASE_DATE - timedelta(days=rng.randint(60, 3650))
+            location = rng.choice(["Köln", "Hamburg", "München"])
+            salary = int(round(rng.uniform(lo, hi) / 500.0) * 500)
+            if login and fixed.get(login):
+                band = fixed[login].get("band", band)
+                salary = int(fixed[login].get("salary", salary))
+            if title is None:
+                options = (titles.get(unit) or {}).get(band) or [f"Mitarbeiter:in {unit}"]
+                title = gendered(title_rng.choice(options), name, fake)
             employees.append(
                 {
                     "id": f"e-{n:03d}",
@@ -80,10 +115,10 @@ def hr(cfg: dict[str, Any], demo: list[dict[str, Any]], seed: int, locale: str) 
                     "unit": unit,
                     "title": title,
                     "login": login,
-                    "location": rng.choice(["Köln", "Hamburg", "München"]),
+                    "location": location,
                     "start_date": start.isoformat(),
                     "band": band,
-                    "salary_eur": int(round(rng.uniform(lo, hi) / 500.0) * 500),
+                    "salary_eur": salary,
                     "vacation_days_left": rng.randint(0, 30),
                 }
             )
