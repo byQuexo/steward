@@ -13,7 +13,7 @@ use steward_config::{AgentRole, Profile};
 use steward_cost::otlp::SpanExporter;
 use steward_cost::{check_budgets, BudgetHook, Ledger, RunInfo};
 use steward_memory::Memory;
-use warden_core::{AttrValue, Context, Engine, Principal};
+use warden_core::{AttrValue, Context, Engine, KillSwitch, Principal};
 
 use crate::events::{ChatEvent, Events};
 use crate::guard::{ContextFn, GuardHook};
@@ -68,24 +68,43 @@ impl Runtime {
     fn preamble(&self, input: &TurnInput, facts: &[String]) -> String {
         let p = &self.profile;
         let user = p.user(&input.principal.subject.id);
+        let de = p.meta.locale.starts_with("de");
+        let t = |de_text: &'static str, en_text: &'static str| if de { de_text } else { en_text };
         let mut s = p.prompt(input.role).to_string();
-        s.push_str("\n\n## Kontext\n");
+        s.push_str(t("\n\n## Kontext\n", "\n\n## Context\n"));
         s.push_str(&format!(
-            "- Nutzer: {} ({}), Rollen: {}\n",
+            "- {}: {} ({}), {}: {}\n",
+            t("Nutzer", "User"),
             user.map(|u| u.name.as_str()).unwrap_or(&input.principal.subject.id),
             input.principal.subject.id,
+            t("Rollen", "roles"),
             input.principal.subject.roles.iter().cloned().collect::<Vec<_>>().join(", ")
         ));
-        if let Some(AttrValue::List(t)) = input.principal.subject.attrs.get("tenants") {
-            s.push_str(&format!("- Mandanten: {}\n", t.join(", ")));
+        if let Some(AttrValue::List(ts)) = input.principal.subject.attrs.get("tenants") {
+            s.push_str(&format!("- {}: {}\n", t("Mandanten", "Tenants"), ts.join(", ")));
         }
-        s.push_str(&format!("- Heute: {}\n", chrono::Utc::now().format("%Y-%m-%d")));
-        s.push_str(&format!("- Sprache: {}\n", p.meta.locale));
+        s.push_str(&format!("- {}: {}\n", t("Heute", "Today"), chrono::Utc::now().format("%Y-%m-%d")));
+        s.push_str(&format!("- {}: {}\n", t("Sprache", "Language"), p.meta.locale));
         if input.principal.impersonated_by.is_some() {
-            s.push_str("- Testsitzung: eine Administratorin sieht den Assistenten wie dieser Nutzer. Nur lesen.\n");
+            s.push_str(t(
+                "- Testsitzung: eine Administratorin sieht den Assistenten wie dieser Nutzer. Nur lesen.\n",
+                "- Test session: an administrator sees the assistant as this user. Read only.\n",
+            ));
+        }
+        // The gateway hides blocked tools; say why, so the model does not guess.
+        match (self.context)().kill_switch {
+            KillSwitch::Writes => s.push_str(t(
+                "- Schreibaktionen sind gerade vom Administrator gestoppt (Kill-Switch). Ändern, Anlegen und Senden geht nicht; sag das so. Lesen geht weiter.\n",
+                "- Write actions are currently stopped by an administrator (kill switch). Changing, creating and sending is not possible; say so plainly. Reading still works.\n",
+            )),
+            KillSwitch::All => s.push_str(t(
+                "- Alle Werkzeuge sind gerade vom Administrator gestoppt (Kill-Switch); sag das so.\n",
+                "- All tools are currently stopped by an administrator (kill switch); say so plainly.\n",
+            )),
+            _ => {}
         }
         if !facts.is_empty() {
-            s.push_str("\n## Was du über den Nutzer weißt\n");
+            s.push_str(t("\n## Was du über den Nutzer weißt\n", "\n## What you know about the user\n"));
             for f in facts {
                 s.push_str(&format!("- {f}\n"));
             }
@@ -189,7 +208,7 @@ impl Runtime {
                 }
                 Ok(MultiTurnStreamItem::ToolCall { tool_call }) => {
                     events.emit(ChatEvent::ToolCall {
-                        id: format!("{:?}", tool_call.id),
+                        id: tool_call.id.to_string(),
                         tool: names::to_qualified(tool_call.function.name.as_ref()),
                         args: Value::Object(tool_call.function.arguments.clone()),
                         agent: input.principal.agent.clone(),
@@ -204,7 +223,7 @@ impl Runtime {
                         }
                     }
                     events.emit(ChatEvent::ToolResult {
-                        id: format!("{:?}", tool_result.call),
+                        id: tool_result.call.to_string(),
                         tool,
                         ok: !tool_result.is_error,
                         preview: text.chars().take(2000).collect(),
