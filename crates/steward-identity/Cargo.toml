@@ -1,5 +1,6 @@
 [package]
 name = "steward-identity"
+description = "Steward identity: OIDC login (code + PKCE), sessions, a user directory (Keycloak admin API or seed users), test-as-user and revocation."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -7,6 +8,22 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+steward-config.workspace = true
+warden-identity.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+async-trait.workspace = true
+sha2.workspace = true
+base64.workspace = true
+rand.workspace = true
+hex.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+axum.workspace = true
 
 [lints]
 workspace = true

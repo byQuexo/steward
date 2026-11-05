@@ -66,7 +66,8 @@ cases:
   # A2A delegation (scenario 6)
   - { id: A1, title: Research skill for a sales lead, as: sara-research, action: { kind: a2a_skill, name: research.deep_search, args: { query: Fjord } }, expect: { effect: allow } }
   - { id: A2, title: Research skill needs the research scope, as: sven-research, action: { kind: a2a_skill, name: research.deep_search, args: { query: x } }, expect: { effect: deny, rule: scope.missing } }
-  - { id: A3, title: Delegated write is confirmed by a human, as: sara-action, action: { kind: a2a_skill, name: action.create_jira_issue, args: { project: OPS } }, expect: { effect: require_approval, rule: delegated-writes-need-approval } }
+  - { id: A3, title: Bot hands a write to the action agent, as: sara-action, action: { kind: a2a_skill, name: action.create_jira_issue, args: { project: OPS } }, expect: { effect: allow } }
+  - { id: A3b, title: The action agent's write itself waits for a human, as: sara-action, action: { kind: tool, name: jira.create_issue, args: { project: OPS, summary: x } }, expect: { effect: require_approval, rule: jira-create-approval } }
   - { id: A4, title: Research cannot escalate to a write, as: sara-research-to-action, action: { kind: a2a_skill, name: action.update_deal, args: { deal_id: d-1012 } }, expect: { effect: deny, rule: scope.missing } }
   - { id: A5, title: Research agent cannot write deals itself, as: sara-research, action: { kind: tool, name: crm.update_deal, args: { tenant: nordics, deal_id: d-1012, amount: 1 } }, expect: { effect: deny, rule: scope.missing } }
   - { id: A6, title: Jira issue by a person needs approval too, as: sara, action: { kind: tool, name: jira.create_issue, args: { project: OPS, summary: x } }, expect: { effect: require_approval, rule: jira-create-approval } }

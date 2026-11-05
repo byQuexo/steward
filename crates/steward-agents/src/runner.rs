@@ -212,7 +212,7 @@ impl Runtime {
                         id: format!("{:?}", tool_result.call),
                         tool,
                         ok: !tool_result.is_error,
-                        preview: text.chars().take(600).collect(),
+                        preview: text.chars().take(2000).collect(),
                     });
                 }
                 Ok(_) => {}

@@ -94,6 +94,9 @@ pub struct ProfileMeta {
     /// Roles that may open the admin console.
     #[serde(default)]
     pub admin_roles: Vec<String>,
+    /// Roles that may see the cost pages (besides admins).
+    #[serde(default)]
+    pub cost_roles: Vec<String>,
     /// Suggested first questions per role, shown in the empty chat.
     #[serde(default)]
     pub suggestions: BTreeMap<String, Vec<String>>,

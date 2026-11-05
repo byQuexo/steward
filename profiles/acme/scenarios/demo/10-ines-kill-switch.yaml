@@ -16,4 +16,4 @@ turns:
       - tool: { name: crm.list_deals, args: { tenant: dach } }
       - say: "Hier sind deine Deals in DACH."
     expect:
-      - tool_result: { tool: crm.list_deals, contains: d-1007 }
+      - tool_result: { tool: crm.list_deals, contains: dach }

@@ -35,13 +35,13 @@ steward-agents = { path = "crates/steward-agents" }
 steward-a2a = { path = "crates/steward-a2a" }
 
 # Warden: authorization for every tool call. Pinned to an exact commit.
-warden-core = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
-warden-identity = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
-warden-audit = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
-warden-gateway = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
-warden-a2a = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
-warden-rig = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
-warden-eval = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
+warden-core = { git = "https://github.com/byQuexo/warden", rev = "523dc981ff78aa531c5be86b368065459357132f" }
+warden-identity = { git = "https://github.com/byQuexo/warden", rev = "523dc981ff78aa531c5be86b368065459357132f" }
+warden-audit = { git = "https://github.com/byQuexo/warden", rev = "523dc981ff78aa531c5be86b368065459357132f" }
+warden-gateway = { git = "https://github.com/byQuexo/warden", rev = "523dc981ff78aa531c5be86b368065459357132f" }
+warden-a2a = { git = "https://github.com/byQuexo/warden", rev = "523dc981ff78aa531c5be86b368065459357132f" }
+warden-rig = { git = "https://github.com/byQuexo/warden", rev = "523dc981ff78aa531c5be86b368065459357132f" }
+warden-eval = { git = "https://github.com/byQuexo/warden", rev = "523dc981ff78aa531c5be86b368065459357132f" }
 
 # rig is pre-1.0: pinned exactly.
 rig-core = { version = "=0.46.0", default-features = false, features = ["reqwest", "rustls"] }
@@ -58,10 +58,11 @@ tokio-stream = { version = "0.1", features = ["sync"] }
 futures = "0.3"
 axum = "0.8"
 tower-http = { version = "0.6", features = ["fs", "trace", "catch-panic"] }
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream", "cookies"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream", "cookies", "multipart"] }
 rusqlite = { version = "0.37", features = ["bundled"] }
 regex = "1"
 sha2 = "0.10"
+hmac = "0.12"
 hex = "0.4"
 base64 = "0.22"
 rand = "0.8"

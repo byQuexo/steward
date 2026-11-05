@@ -5,5 +5,4 @@ routes:
   - { rule: bulk-export-four-eyes, approvers: ["role:sales-lead", "role:it-admin"], four_eyes: true }
   - { rule: ticket-close-approval, approvers: ["role:it-admin"] }
   - { rule: jira-create-approval, approvers: ["role:it-admin", "role:sales-lead"] }
-  - { rule: delegated-writes-need-approval, approvers: ["role:sales-lead", "role:it-admin"] }
   - { rule: "*", approvers: ["role:it-admin"] }

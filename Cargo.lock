@@ -2034,6 +2034,7 @@ dependencies = [
  "hyper-util",
  "js-sys",
  "log",
+ "mime_guess",
  "percent-encoding",
  "pin-project-lite",
  "quinn",
@@ -2806,18 +2807,24 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "axum",
+ "base64 0.22.1",
  "clap",
  "futures",
  "hex",
+ "hmac",
  "rand 0.8.8",
  "reqwest 0.12.28",
  "rig-core",
+ "rusqlite",
  "serde",
  "serde_json",
  "serde_norway",
+ "sha2 0.10.9",
+ "steward-a2a",
  "steward-agents",
  "steward-config",
  "steward-cost",
+ "steward-identity",
  "steward-mcp-servers",
  "steward-memory",
  "tempfile",
@@ -2827,6 +2834,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-subscriber",
+ "warden-a2a",
  "warden-audit",
  "warden-core",
  "warden-gateway",
@@ -2837,6 +2845,20 @@ dependencies = [
 [[package]]
 name = "steward-a2a"
 version = "0.1.0"
+dependencies = [
+ "axum",
+ "hex",
+ "rand 0.8.8",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "steward-agents",
+ "steward-config",
+ "tokio",
+ "tracing",
+ "warden-core",
+ "warden-identity",
+]
 
 [[package]]
 name = "steward-agents"
@@ -2897,6 +2919,22 @@ dependencies = [
 [[package]]
 name = "steward-identity"
 version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum",
+ "base64 0.22.1",
+ "hex",
+ "rand 0.8.8",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "steward-config",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "warden-identity",
+]
 
 [[package]]
 name = "steward-mcp-servers"
@@ -3451,9 +3489,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "warden-a2a"
+version = "0.1.0"
+source = "git+https://github.com/byQuexo/warden?rev=523dc981ff78aa531c5be86b368065459357132f#523dc981ff78aa531c5be86b368065459357132f"
+dependencies = [
+ "axum",
+ "base64 0.22.1",
+ "reqwest 0.12.28",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "warden-audit",
+ "warden-core",
+ "warden-identity",
+ "warden-mcp",
+]
+
+[[package]]
 name = "warden-audit"
 version = "0.1.0"
-source = "git+https://github.com/byQuexo/warden?rev=914d05c103aea54ec1799ee35b293c2e259b434e#914d05c103aea54ec1799ee35b293c2e259b434e"
+source = "git+https://github.com/byQuexo/warden?rev=523dc981ff78aa531c5be86b368065459357132f#523dc981ff78aa531c5be86b368065459357132f"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -3473,7 +3528,7 @@ dependencies = [
 [[package]]
 name = "warden-core"
 version = "0.1.0"
-source = "git+https://github.com/byQuexo/warden?rev=914d05c103aea54ec1799ee35b293c2e259b434e#914d05c103aea54ec1799ee35b293c2e259b434e"
+source = "git+https://github.com/byQuexo/warden?rev=523dc981ff78aa531c5be86b368065459357132f#523dc981ff78aa531c5be86b368065459357132f"
 dependencies = [
  "hex",
  "regex",
@@ -3489,7 +3544,7 @@ dependencies = [
 [[package]]
 name = "warden-gateway"
 version = "0.1.0"
-source = "git+https://github.com/byQuexo/warden?rev=914d05c103aea54ec1799ee35b293c2e259b434e#914d05c103aea54ec1799ee35b293c2e259b434e"
+source = "git+https://github.com/byQuexo/warden?rev=523dc981ff78aa531c5be86b368065459357132f#523dc981ff78aa531c5be86b368065459357132f"
 dependencies = [
  "async-trait",
  "axum",
@@ -3519,7 +3574,7 @@ dependencies = [
 [[package]]
 name = "warden-identity"
 version = "0.1.0"
-source = "git+https://github.com/byQuexo/warden?rev=914d05c103aea54ec1799ee35b293c2e259b434e#914d05c103aea54ec1799ee35b293c2e259b434e"
+source = "git+https://github.com/byQuexo/warden?rev=523dc981ff78aa531c5be86b368065459357132f#523dc981ff78aa531c5be86b368065459357132f"
 dependencies = [
  "async-trait",
  "axum",
@@ -3542,7 +3597,7 @@ dependencies = [
 [[package]]
 name = "warden-mcp"
 version = "0.1.0"
-source = "git+https://github.com/byQuexo/warden?rev=914d05c103aea54ec1799ee35b293c2e259b434e#914d05c103aea54ec1799ee35b293c2e259b434e"
+source = "git+https://github.com/byQuexo/warden?rev=523dc981ff78aa531c5be86b368065459357132f#523dc981ff78aa531c5be86b368065459357132f"
 dependencies = [
  "reqwest 0.12.28",
  "serde",

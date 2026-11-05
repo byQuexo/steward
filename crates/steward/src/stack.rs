@@ -25,6 +25,11 @@ pub const GATEWAY_SECRET_ENV: &str = "STEWARD_DEV_GATEWAY_SECRET";
 pub const BOT_SECRET: &str = "dev-bot-secret";
 pub const CONSOLE_SECRET: &str = "dev-console-secret";
 pub const ADMIN_TOKEN: &str = "dev-admin-token";
+pub const A2A_PROXY_SECRET: &str = "dev-a2a-proxy-secret";
+/// Audience of delegation tokens the orchestrator presents to Warden's A2A proxy.
+pub const A2A_PROXY_AUDIENCE: &str = "steward-a2a";
+/// Audience of tokens the A2A proxy presents to the sub-agents.
+pub const AGENTS_AUDIENCE: &str = "steward-agents";
 
 /// How the gateway asks for approvals.
 #[derive(Clone)]
@@ -137,6 +142,16 @@ impl Stack {
         );
         clients
             .insert("steward-console".into(), ClientDef { secret: CONSOLE_SECRET.into(), can_revoke_subjects: true, ..Default::default() });
+        // Warden's A2A proxy exchanges callers' tokens for the sub-agents' audience.
+        clients.insert(
+            "a2a-proxy".into(),
+            ClientDef {
+                secret: A2A_PROXY_SECRET.into(),
+                accept_audiences: vec![A2A_PROXY_AUDIENCE.into()],
+                may_exchange_to: vec![AGENTS_AUDIENCE.into()],
+                ..Default::default()
+            },
+        );
         let policy = engine.policy().clone();
         let sts = Arc::new(
             Sts::new(StsConfig { issuer: sts_url.clone(), token_ttl_s: opts.token_ttl_s, clients }, None)?.with_delegation_check(Arc::new(

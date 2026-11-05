@@ -86,8 +86,3 @@ rules:
   - id: memory-team
     match: { kind: x-memory, name: memory.read_team }
     require: { arg: team, in: "{subject.attrs.teams}" }
-
-  - id: delegated-writes-need-approval
-    description: Writes requested through the A2A action agent are always confirmed by a human.
-    match: { kind: a2a_skill, tag: delegated-write }
-    approve_if: always

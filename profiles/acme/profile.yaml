@@ -4,6 +4,7 @@ display_name: Acme GmbH
 locale: de
 assistant_name: Acme Assistent
 admin_roles: [it-admin]
+cost_roles: [finance]
 
 agents:
   orchestrator:
