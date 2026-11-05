@@ -2,7 +2,7 @@
 name: acme
 display_name: Acme GmbH
 locale: de
-assistant_name: Acme Assistent
+assistant_name: Steward
 admin_roles: [it-admin]
 cost_roles: [finance]
 
@@ -28,7 +28,7 @@ messages:
   approval_pending: "Das braucht eine Freigabe. Ich habe die Anfrage weitergeleitet und warte auf die Entscheidung."
   approval_denied: "Die Freigabe wurde abgelehnt; ich habe nichts geändert."
   budget_exceeded: "Das Budget für diese Anfrage ist aufgebraucht; ich habe hier gestoppt."
-  greeting: "Hallo! Ich bin der Acme Assistent. Ich sehe nur, was du sehen darfst."
+  greeting: "Hallo, ich bin Steward, der Assistent der Acme GmbH. Ich sehe und tue nur, was du darfst. Warden prüft jeden meiner Schritte."
 
 memory:
   retention_days: 90

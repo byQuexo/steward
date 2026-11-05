@@ -3,7 +3,7 @@
 name: devteam
 display_name: Northwind Labs
 locale: en
-assistant_name: Northwind Assistant
+assistant_name: Steward
 admin_roles: [maintainer]
 cost_roles: [product-manager]
 
@@ -29,7 +29,7 @@ messages:
   approval_pending: "This needs an approval. I've sent the request on and I'm waiting for the decision."
   approval_denied: "The approval was declined; I didn't change anything."
   budget_exceeded: "The budget for this request is used up, so I stopped here."
-  greeting: "Hi! I'm the Northwind Assistant. I only see what you're allowed to see."
+  greeting: "Hi, I'm Steward, Northwind's assistant. I only see and do what you may. Warden checks every step I take."
 
 memory:
   retention_days: 60
