@@ -1,0 +1,124 @@
+{
+  "channels": [
+    "general",
+    "platform",
+    "payments",
+    "oncall",
+    "security",
+    "product"
+  ],
+  "messages": [
+    {
+      "id": "m-001",
+      "channel": "payments",
+      "author": "sam",
+      "text": "Late sound consumer represent threat newspaper meet wrong value beyond.",
+      "ts": "2026-10-28"
+    },
+    {
+      "id": "m-002",
+      "channel": "platform",
+      "author": "omar",
+      "text": "Onto others forward environment offer others second anyone television.",
+      "ts": "2026-11-01"
+    },
+    {
+      "id": "m-003",
+      "channel": "oncall",
+      "author": "lena",
+      "text": "Vote author remember since beyond air glass.",
+      "ts": "2026-11-02"
+    },
+    {
+      "id": "m-004",
+      "channel": "security",
+      "author": "priya",
+      "text": "Town heavy toward fund blue respond admit.",
+      "ts": "2026-11-01"
+    },
+    {
+      "id": "m-005",
+      "channel": "general",
+      "author": "priya",
+      "text": "Cold something manage very network she notice start take.",
+      "ts": "2026-10-27"
+    },
+    {
+      "id": "m-006",
+      "channel": "security",
+      "author": "lena",
+      "text": "Food reality system itself political picture rest cost remember run until loss apply.",
+      "ts": "2026-11-01"
+    },
+    {
+      "id": "m-007",
+      "channel": "payments",
+      "author": "sam",
+      "text": "Meeting wait scene although increase push in item pull black end surface.",
+      "ts": "2026-10-31"
+    },
+    {
+      "id": "m-008",
+      "channel": "security",
+      "author": "sam",
+      "text": "Population floor rest herself question majority ago role arm company play.",
+      "ts": "2026-10-27"
+    },
+    {
+      "id": "m-009",
+      "channel": "general",
+      "author": "omar",
+      "text": "Key note should morning expert trouble glass listen drive among impact ball.",
+      "ts": "2026-11-01"
+    },
+    {
+      "id": "m-010",
+      "channel": "general",
+      "author": "sam",
+      "text": "Certainly bring stuff interesting choice threat.",
+      "ts": "2026-11-01"
+    },
+    {
+      "id": "m-011",
+      "channel": "general",
+      "author": "sam",
+      "text": "Kid radio respond wide enjoy west professor think out tree time.",
+      "ts": "2026-11-02"
+    },
+    {
+      "id": "m-012",
+      "channel": "oncall",
+      "author": "omar",
+      "text": "Out something city garden theory drive accept generation offer north.",
+      "ts": "2026-10-28"
+    },
+    {
+      "id": "m-013",
+      "channel": "general",
+      "author": "dana",
+      "text": "Couple serious fall serious power newspaper human size wife leg evidence develop.",
+      "ts": "2026-11-02"
+    },
+    {
+      "id": "m-014",
+      "channel": "oncall",
+      "author": "priya",
+      "text": "Top foreign well enjoy from program enter.",
+      "ts": "2026-10-30"
+    },
+    {
+      "id": "m-015",
+      "channel": "product",
+      "author": "marco",
+      "text": "Believe evidence science sort catch require.",
+      "ts": "2026-10-29"
+    },
+    {
+      "id": "m-016",
+      "channel": "oncall",
+      "author": "lena",
+      "text": "Kitchen to project dream common those response resource value scene safe provide common.",
+      "ts": "2026-10-28"
+    }
+  ]
+}

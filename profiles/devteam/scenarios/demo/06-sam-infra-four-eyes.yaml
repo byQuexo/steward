@@ -1,0 +1,13 @@
+id: 06-sam-infra-four-eyes
+title: "Sam merges into infra: four eyes"
+description: A merge into the production infrastructure repo needs two different approvers; Sam himself never counts.
+user: sam
+turns:
+  - user: "Merge PR #100 in northwind/infra"
+    script:
+      - tool: { name: github.merge_pull_request, args: { repo: northwind/infra, number: 100 } }
+      - say: "PR #100 in northwind/infra is merged; Marco and Omar approved it."
+    expect:
+      - decision: { tool: github.merge_pull_request, effect: require_approval, rule: infra-merge-four-eyes }
+      - approval: { approver: marco, decide: approve, second_approver: omar }
+      - tool_result: { tool: github.merge_pull_request, contains: merged }

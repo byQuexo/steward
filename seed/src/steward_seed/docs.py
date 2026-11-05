@@ -100,11 +100,14 @@ def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
     return ImageFont.truetype(str(_FONTS / ("VeraBd.ttf" if bold else "Vera.ttf")), size)
 
 
-def render_image(doc: Doc, page_no: int, markdown: str, rng: random.Random | None) -> Image.Image:
+PAGE_LABEL = {"de": "Seite", "en": "Page"}
+
+
+def render_image(doc: Doc, page_no: int, markdown: str, rng: random.Random | None, label: str = "Page") -> Image.Image:
     img = Image.new("L" if doc.scanned else "RGB", (IMG_W, IMG_H), 245 if doc.scanned else (255, 255, 255))
     d = ImageDraw.Draw(img)
     y = 70
-    d.text((70, 30), f"{doc.title} · Seite {page_no}", fill=(110 if doc.scanned else (110, 110, 110)), font=_font(18))
+    d.text((70, 30), f"{doc.title} · {label} {page_no}", fill=(110 if doc.scanned else (110, 110, 110)), font=_font(18))
     for style, text in plain(markdown):
         size, width, gap = {"h1": (40, 40, 22), "h2": (28, 58, 16), "row": (22, 80, 8), "p": (22, 80, 12)}[style]
         for wrapped in textwrap.wrap(text, width=width) or [""]:
@@ -126,7 +129,7 @@ def png_bytes(img: Image.Image) -> bytes:
     return buf.getvalue()
 
 
-def render_pdf(doc: Doc, images: list[Image.Image]) -> bytes:
+def render_pdf(doc: Doc, images: list[Image.Image], label: str = "Page") -> bytes:
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=A4, invariant=1)
     c.setTitle(doc.title)
@@ -138,7 +141,7 @@ def render_pdf(doc: Doc, images: list[Image.Image]) -> bytes:
         else:
             y = h - 60
             c.setFont("Helvetica", 9)
-            c.drawString(50, h - 35, f"{doc.title} · Seite {i + 1}")
+            c.drawString(50, h - 35, f"{doc.title} · {label} {i + 1}")
             for style, text in plain(md):
                 font, size, width = {"h1": ("Helvetica-Bold", 20, 55), "h2": ("Helvetica-Bold", 14, 75), "row": ("Courier", 10, 95), "p": ("Helvetica", 11, 95)}[style]
                 c.setFont(font, size)
@@ -151,15 +154,16 @@ def render_pdf(doc: Doc, images: list[Image.Image]) -> bytes:
     return buf.getvalue()
 
 
-def build(docs_dir: Path, seed: int) -> tuple[list[dict[str, Any]], dict[str, bytes]]:
+def build(docs_dir: Path, seed: int, locale: str = "de_DE") -> tuple[list[dict[str, Any]], dict[str, bytes]]:
     """Returns the corpus and the files to write (relative path → bytes)."""
     corpus: list[dict[str, Any]] = []
     files: dict[str, bytes] = {}
     for path in sorted(docs_dir.glob("*.md")):
         doc = parse(path)
         rng = random.Random(f"{seed}:{doc.doc_id}")
-        images = [render_image(doc, i + 1, md, rng) for i, md in enumerate(doc.pages)]
-        files[f"docs/{doc.doc_id}.pdf"] = render_pdf(doc, images)
+        label = PAGE_LABEL.get(locale[:2], "Page")
+        images = [render_image(doc, i + 1, md, rng, label) for i, md in enumerate(doc.pages)]
+        files[f"docs/{doc.doc_id}.pdf"] = render_pdf(doc, images, label)
         for i, img in enumerate(images):
             files[f"pages/{doc.doc_id}/{i + 1}.png"] = png_bytes(img)
         corpus.append(

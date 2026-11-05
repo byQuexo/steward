@@ -1,0 +1,18 @@
+id: 08-lena-security-docs
+title: "Lena asks about the security policy"
+description: Security documents are for the security team only; asking for them is denied, and a search over everything Lena may read finds nothing.
+user: lena
+turns:
+  - user: "What does the security policy say about leaked secrets?"
+    script:
+      - tool: { name: docs.search, args: { question: "leaked secrets", doc_ids: [security-policy] } }
+      - say: "I'm not allowed to search the security policy for you; ask the security team."
+    expect:
+      - decision: { tool: docs.search, effect: deny, rule: docs-in-scope }
+  - user: "How fast must a leaked secret be rotated?"
+    script:
+      - tool: { name: docs.search, args: { question: "How fast must a leaked secret be rotated", doc_ids: [] } }
+      - say: "I can't find anything to support an answer in the documents you may read."
+    expect:
+      - decision: { tool: docs.search, effect: allow }
+      - abstained

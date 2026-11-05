@@ -29,7 +29,7 @@ def generate(profile: Path) -> dict[str, bytes]:
     roles = sorted((yaml.safe_load(policy_path.read_text(encoding="utf-8")) or {}).get("roles", {})) if policy_path.exists() else []
     seed, locale = int(cfg["seed"]), cfg.get("locale", "en_US")
 
-    corpus, files = docs.build(profile / "seed" / "docs", seed)
+    corpus, files = docs.build(profile / "seed" / "docs", seed, locale)
     doc_ids = [d["doc_id"] for d in corpus]
     users = records.users(cfg, acl, doc_ids)
     out: dict[str, bytes] = dict(files)

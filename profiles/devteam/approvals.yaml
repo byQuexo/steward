@@ -1,0 +1,9 @@
+# Who decides when Warden holds a call (rule → approvers). Self-approval is always refused.
+timeout_s: 120
+routes:
+  # Production infrastructure: two different people out of maintainers, SREs and security.
+  - { rule: infra-merge-four-eyes, approvers: ["role:maintainer", "role:sre", "role:security-engineer"], four_eyes: true }
+  - { rule: merges-need-maintainer, approvers: ["role:maintainer"] }
+  # Incidents are closed by whoever is on call.
+  - { rule: incident-close-needs-oncall, approvers: ["role:sre"] }
+  - { rule: "*", approvers: ["role:maintainer"] }

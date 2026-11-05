@@ -1,0 +1,213 @@
+{
+  "repos": [
+    "northwind/platform-api",
+    "northwind/platform-web",
+    "northwind/payments-service",
+    "northwind/infra"
+  ],
+  "issues": [
+    {
+      "repo": "northwind/platform-api",
+      "number": 1,
+      "title": "Add know here some although truth",
+      "state": "closed",
+      "labels": [
+        "bug",
+        "feature"
+      ]
+    },
+    {
+      "repo": "northwind/platform-api",
+      "number": 2,
+      "title": "Receive push house natural",
+      "state": "open",
+      "labels": []
+    },
+    {
+      "repo": "northwind/platform-api",
+      "number": 3,
+      "title": "Station development finish product seat",
+      "state": "open",
+      "labels": []
+    },
+    {
+      "repo": "northwind/platform-api",
+      "number": 4,
+      "title": "Fear board performance",
+      "state": "open",
+      "labels": []
+    },
+    {
+      "repo": "northwind/platform-web",
+      "number": 1,
+      "title": "Performance off but upon",
+      "state": "closed",
+      "labels": []
+    },
+    {
+      "repo": "northwind/platform-web",
+      "number": 2,
+      "title": "Town history second",
+      "state": "open",
+      "labels": []
+    },
+    {
+      "repo": "northwind/platform-web",
+      "number": 3,
+      "title": "She prevent politics result",
+      "state": "closed",
+      "labels": [
+        "security",
+        "bug"
+      ]
+    },
+    {
+      "repo": "northwind/platform-web",
+      "number": 4,
+      "title": "Simple road billion shake",
+      "state": "open",
+      "labels": [
+        "feature"
+      ]
+    },
+    {
+      "repo": "northwind/payments-service",
+      "number": 1,
+      "title": "Head director cause thought impact degree",
+      "state": "open",
+      "labels": [
+        "bug"
+      ]
+    },
+    {
+      "repo": "northwind/payments-service",
+      "number": 2,
+      "title": "Heart anyone trouble be send",
+      "state": "open",
+      "labels": [
+        "security",
+        "docs"
+      ]
+    },
+    {
+      "repo": "northwind/payments-service",
+      "number": 3,
+      "title": "Center stay take most especially chair",
+      "state": "open",
+      "labels": []
+    },
+    {
+      "repo": "northwind/payments-service",
+      "number": 4,
+      "title": "Increase none can heart begin face",
+      "state": "open",
+      "labels": [
+        "feature",
+        "security"
+      ]
+    },
+    {
+      "repo": "northwind/infra",
+      "number": 1,
+      "title": "Garden deal down character",
+      "state": "closed",
+      "labels": [
+        "feature",
+        "docs"
+      ]
+    },
+    {
+      "repo": "northwind/infra",
+      "number": 2,
+      "title": "Happen report consider none choose",
+      "state": "open",
+      "labels": [
+        "docs",
+        "security"
+      ]
+    },
+    {
+      "repo": "northwind/infra",
+      "number": 3,
+      "title": "Citizen season where policy box wish",
+      "state": "open",
+      "labels": []
+    },
+    {
+      "repo": "northwind/infra",
+      "number": 4,
+      "title": "Staff almost view provide sound shake",
+      "state": "closed",
+      "labels": [
+        "bug",
+        "feature"
+      ]
+    }
+  ],
+  "pulls": [
+    {
+      "repo": "northwind/platform-api",
+      "number": 100,
+      "title": "Option do hair parent teacher level",
+      "state": "open",
+      "base": "main",
+      "author": "marco"
+    },
+    {
+      "repo": "northwind/platform-api",
+      "number": 101,
+      "title": "Site national theory rate",
+      "state": "open",
+      "base": "main",
+      "author": "sam"
+    },
+    {
+      "repo": "northwind/platform-web",
+      "number": 100,
+      "title": "Third realize outside",
+      "state": "open",
+      "base": "main",
+      "author": "priya"
+    },
+    {
+      "repo": "northwind/platform-web",
+      "number": 101,
+      "title": "View give left",
+      "state": "open",
+      "base": "main",
+      "author": "dana"
+    },
+    {
+      "repo": "northwind/payments-service",
+      "number": 100,
+      "title": "Wind a cover hold commercial",
+      "state": "open",
+      "base": "main",
+      "author": "priya"
+    },
+    {
+      "repo": "northwind/payments-service",
+      "number": 101,
+      "title": "Information short spend",
+      "state": "open",
+      "base": "main",
+      "author": "priya"
+    },
+    {
+      "repo": "northwind/infra",
+      "number": 100,
+      "title": "Service occur summer stop",
+      "state": "open",
+      "base": "main",
+      "author": "sam"
+    },
+    {
+      "repo": "northwind/infra",
+      "number": 101,
+      "title": "Staff various Congress",
+      "state": "open",
+      "base": "main",
+      "author": "marco"
+    }
+  ]
+}

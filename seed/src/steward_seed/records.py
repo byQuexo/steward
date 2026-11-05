@@ -33,6 +33,9 @@ def users(cfg: dict[str, Any], acl: dict[str, list[str]], doc_ids: list[str]) ->
         attrs: dict[str, Any] = {"org_unit": u["unit"], "teams": list(u["teams"])}
         if u.get("tenants"):
             attrs["tenants"] = list(u["tenants"])
+        # Any further claims the profile's policy uses (repos, channels, cost centers, ...).
+        for k, v in (u.get("attrs") or {}).items():
+            attrs[k] = list(v) if isinstance(v, list) else v
         attrs["doc_scope"] = doc_scope(u["teams"], acl, doc_ids)
         out.append(
             {

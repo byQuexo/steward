@@ -1,0 +1,8 @@
+name: docs
+title: Engineering Docs
+description: Handbook, runbook, release process and security policy, with cited answers (docrag-bench).
+server: { builtin: docs }
+data: data/corpus.json
+tools:
+  search:         { scopes: [docs:read], description: "Ask the documents; the answer comes with verified citations." }
+  list_documents: { scopes: [docs:read], description: "Documents you may read." }

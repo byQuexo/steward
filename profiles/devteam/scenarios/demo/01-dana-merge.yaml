@@ -1,0 +1,14 @@
+id: 01-dana-merge
+title: "Dana merges a pull request, Marco approves"
+description: Every merge into main is held by Warden (rule merges-need-maintainer); a maintainer decides in the approval inbox.
+user: dana
+turns:
+  - user: "Merge PR #101 in northwind/platform-api"
+    script:
+      - tool: { name: github.merge_pull_request, args: { repo: northwind/platform-api, number: 101 } }
+      - say: "Done: PR #101 in northwind/platform-api is merged into main after Marco's approval as maintainer."
+    expect:
+      - decision: { tool: github.merge_pull_request, effect: require_approval, rule: merges-need-maintainer }
+      - approval: { approver: marco, decide: approve }
+      - tool_result: { tool: github.merge_pull_request, contains: merged }
+      - answer_contains: "merged"

@@ -1,0 +1,70 @@
+[
+  {
+    "doc_id": "eng-release-process",
+    "title": "Release Process",
+    "owner": "platform",
+    "version": "2026.4",
+    "scanned": false,
+    "pages": [
+      {
+        "page": 1,
+        "text": "Release Process\nNorthwind Labs ships platform-api and platform-web every Tuesday and Thursday. Releases are cut from main and tagged with the calendar version, for example 2026.11.2.\nRelease checklist\n1. All required checks on main are green.\n2. The changelog lists every merged pull request since the last tag.\n3. Database migrations are backward compatible with the previous release.\n4. The release owner announces the release in the platform channel."
+      },
+      {
+        "page": 2,
+        "text": "Release freeze\nA release freeze starts 48 hours before a product launch and ends after the launch review. During a freeze only fixes for incidents of severity 1 or 2 are merged, each with a maintainer approval.\nHotfixes\nA hotfix branch starts from the last release tag. It is merged back into main on the same day."
+      }
+    ]
+  },
+  {
+    "doc_id": "handbook-engineering",
+    "title": "Northwind Labs Engineering Handbook",
+    "owner": "platform",
+    "version": "2026.3",
+    "scanned": false,
+    "pages": [
+      {
+        "page": 1,
+        "text": "Engineering Handbook\nThis handbook applies to every engineer at Northwind Labs, remote or in the Lisbon and Toronto offices. It replaces version 2026.1 and takes effect on 1 October 2026.\nCode review\nEvery change reaches main through a pull request. A pull request needs one approving review from a code owner of the repository. Maintainers merge; authors never merge their own pull requests. Reviews are answered within one working day.\nBranches\nFeature branches are named after the issue, for example feat/142-retry-webhooks. Branches are deleted after the merge. Force pushes to main are blocked for everyone."
+      },
+      {
+        "page": 2,
+        "text": "Working hours\nCore hours are 11:00 to 15:00 in the engineer's local time zone. Meetings outside core hours are optional.\nLearning budget\nEach engineer has a learning budget of 1,500 USD per calendar year for books, courses and conferences. Requests go to the engineering lead in the people portal."
+      }
+    ]
+  },
+  {
+    "doc_id": "oncall-runbook",
+    "title": "On-call Runbook (scan)",
+    "owner": "oncall",
+    "version": "2026.2",
+    "scanned": true,
+    "pages": [
+      {
+        "page": 1,
+        "text": "On-call Runbook\nThe on-call SRE carries the pager for one week, Monday 10:00 to Monday 10:00 UTC. Acknowledge a page within 5 minutes and open an incident in the incident queue within 15 minutes.\n1. Check the status dashboard and the latest deploys.\n2. Name an incident lead for severity 1 and 2.\n3. Post updates in the oncall channel every 30 minutes."
+      },
+      {
+        "page": 2,
+        "text": "payments-service returns 503\nIf payments-service returns 503 errors after a deploy, roll back the deploy with nwctl rollback payments-service. When the error rate stays above 1 percent for 10 minutes after the rollback, page the payments team lead.\nBuild runners out of disk\nPrune the Docker image cache with nwctl runners prune. Runners above 95 percent are drained first."
+      }
+    ]
+  },
+  {
+    "doc_id": "security-policy",
+    "title": "Security Policy",
+    "owner": "security",
+    "version": "2026.2",
+    "scanned": false,
+    "pages": [
+      {
+        "page": 1,
+        "text": "Security Policy\nThis policy is owned by the security team of Northwind Labs. Engineers outside the security team see it only through their team lead.\nLeaked secrets\nA leaked secret is rotated within 1 hour of discovery, by the owning team, with the security engineer on call. The rotation is recorded in a private incident; the secret value is never pasted into chat or issues."
+      },
+      {
+        "page": 2,
+        "text": "Vulnerability handling\nCritical vulnerabilities in dependencies are patched within 72 hours, high ones within 14 days. Security fixes to payments-service are merged only after a second review by the security team.\nAccess reviews\nRepository access is reviewed every quarter by each team lead."
+      }
+    ]
+  }
+]

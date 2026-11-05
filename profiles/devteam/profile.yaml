@@ -1,0 +1,44 @@
+# Northwind Labs: a small software company (fictional). The second Steward profile, run by the
+# same binaries as Acme: swap this directory to swap the company.
+name: devteam
+display_name: Northwind Labs
+locale: en
+assistant_name: Northwind Assistant
+admin_roles: [maintainer]
+cost_roles: [product-manager]
+
+agents:
+  orchestrator:
+    client_id: nw-bot
+    prompt: orchestrator
+    description: Answers engineering questions, calls tools through Warden and delegates to specialists.
+  research:
+    client_id: nw-research
+    prompt: research
+    description: Read-only research across repositories, incidents and the engineering docs.
+    skills: [research.deep_search]
+  action:
+    client_id: nw-action
+    prompt: action
+    description: Carries out approved changes (issues, chat updates).
+    skills: [action.create_issue, action.post_update]
+
+messages:
+  denied: "I'm not allowed to do that for you."
+  abstained: "I can't find anything to support an answer in the documents you may read."
+  approval_pending: "This needs an approval. I've sent the request on and I'm waiting for the decision."
+  approval_denied: "The approval was declined; I didn't change anything."
+  budget_exceeded: "The budget for this request is used up, so I stopped here."
+  greeting: "Hi! I'm the Northwind Assistant. I only see what you're allowed to see."
+
+memory:
+  retention_days: 60
+  never_store: [credit_card, email, phone]
+  max_facts_per_user: 200
+
+suggestions:
+  developer:         ["List the issues in northwind/platform-api", "Merge PR #101 in northwind/platform-api"]
+  maintainer:        ["Which pull requests are open in northwind/platform-web?", "Close incident t-4101, the payments outage is resolved"]
+  sre:               ["The payments-service returns 503 errors after a deploy. What does the runbook say?", "Which incidents are open?"]
+  product-manager:   ["What is the release freeze before a launch?", "List the open pull requests in northwind/platform-web"]
+  security-engineer: ["How fast must a leaked secret be rotated?", "List the issues in northwind/payments-service"]

@@ -1,0 +1,175 @@
+[
+  {
+    "id": "dana",
+    "name": "Dana Brooks",
+    "email": "dana@northwind.example",
+    "title": "Software Engineer (Platform)",
+    "roles": [
+      "developer"
+    ],
+    "teams": [
+      "platform"
+    ],
+    "attrs": {
+      "org_unit": "platform",
+      "teams": [
+        "platform"
+      ],
+      "repos": [
+        "northwind/platform-api",
+        "northwind/platform-web"
+      ],
+      "doc_scope": [
+        "eng-release-process",
+        "handbook-engineering",
+        "oncall-runbook"
+      ]
+    },
+    "password": "dana"
+  },
+  {
+    "id": "marco",
+    "name": "Marco Ruiz",
+    "email": "marco@northwind.example",
+    "title": "Staff Engineer",
+    "roles": [
+      "maintainer"
+    ],
+    "teams": [
+      "platform"
+    ],
+    "attrs": {
+      "org_unit": "platform",
+      "teams": [
+        "platform"
+      ],
+      "repos": [
+        "northwind/platform-api",
+        "northwind/platform-web",
+        "northwind/infra"
+      ],
+      "doc_scope": [
+        "eng-release-process",
+        "handbook-engineering",
+        "oncall-runbook"
+      ]
+    },
+    "password": "marco"
+  },
+  {
+    "id": "priya",
+    "name": "Priya Nair",
+    "email": "priya@northwind.example",
+    "title": "Software Engineer (Payments)",
+    "roles": [
+      "developer"
+    ],
+    "teams": [
+      "payments"
+    ],
+    "attrs": {
+      "org_unit": "payments",
+      "teams": [
+        "payments"
+      ],
+      "repos": [
+        "northwind/payments-service"
+      ],
+      "doc_scope": [
+        "eng-release-process",
+        "handbook-engineering",
+        "oncall-runbook"
+      ]
+    },
+    "password": "priya"
+  },
+  {
+    "id": "sam",
+    "name": "Sam Okafor",
+    "email": "sam@northwind.example",
+    "title": "Site Reliability Engineer",
+    "roles": [
+      "sre"
+    ],
+    "teams": [
+      "oncall",
+      "platform"
+    ],
+    "attrs": {
+      "org_unit": "sre",
+      "teams": [
+        "oncall",
+        "platform"
+      ],
+      "repos": [
+        "northwind/infra",
+        "northwind/platform-api"
+      ],
+      "doc_scope": [
+        "eng-release-process",
+        "handbook-engineering",
+        "oncall-runbook"
+      ]
+    },
+    "password": "sam"
+  },
+  {
+    "id": "lena",
+    "name": "Lena Fischer",
+    "email": "lena@northwind.example",
+    "title": "Product Manager",
+    "roles": [
+      "product-manager"
+    ],
+    "teams": [
+      "product"
+    ],
+    "attrs": {
+      "org_unit": "product",
+      "teams": [
+        "product"
+      ],
+      "repos": [
+        "northwind/platform-api",
+        "northwind/platform-web",
+        "northwind/payments-service"
+      ],
+      "doc_scope": [
+        "eng-release-process",
+        "handbook-engineering"
+      ]
+    },
+    "password": "lena"
+  },
+  {
+    "id": "omar",
+    "name": "Omar Haddad",
+    "email": "omar@northwind.example",
+    "title": "Security Engineer",
+    "roles": [
+      "security-engineer"
+    ],
+    "teams": [
+      "security"
+    ],
+    "attrs": {
+      "org_unit": "security",
+      "teams": [
+        "security"
+      ],
+      "repos": [
+        "northwind/platform-api",
+        "northwind/platform-web",
+        "northwind/payments-service",
+        "northwind/infra"
+      ],
+      "doc_scope": [
+        "eng-release-process",
+        "handbook-engineering",
+        "oncall-runbook",
+        "security-policy"
+      ]
+    },
+    "password": "omar"
+  }
+]

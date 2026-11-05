@@ -1,0 +1,19 @@
+# Catalog entries that do not come from MCP connectors. Appended to the generated catalog.
+version: 1
+
+# Steward's memory: checked in-process by warden-core, so memory access shows up in evals.
+x-memory:
+  memory.read_own:  { scopes: [memory:own], tags: [owner-scoped] }
+  memory.write:     { scopes: [memory:own], sensitivity: write, tags: [owner-scoped] }
+  memory.forget:    { scopes: [memory:own], sensitivity: write, tags: [owner-scoped] }
+  memory.read_team: { scopes: [memory:team] }
+
+# Page images of documents, fetched through the assistant (re-checked on every fetch).
+x-docs-page:
+  docs.page: { scopes: [docs:read] }
+
+# Skills of the A2A sub-agents. Delegated writes are approved where they happen: at the gateway.
+a2a_skill:
+  research.deep_search: { scopes: [research] }
+  action.create_issue:  { scopes: [github:write], sensitivity: write }
+  action.post_update:   { scopes: [chat:write], sensitivity: write }

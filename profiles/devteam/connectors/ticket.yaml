@@ -1,0 +1,11 @@
+name: ticket
+title: Incident Queue
+description: On-call incidents and alerts. Read, comment, open and close.
+server: { builtin: ticket }
+data: data/tickets.json
+tools:
+  list:    { scopes: [ticket:read], description: "Incidents, filtered by status or assignee." }
+  get:     { scopes: [ticket:read], description: "One incident with its text and comments." }
+  create:  { scopes: [ticket:create], sensitivity: write, description: "Open a new incident." }
+  comment: { scopes: [ticket:write], sensitivity: write, description: "Comment on an incident." }
+  close:   { scopes: [ticket:write], sensitivity: write, description: "Close an incident." }

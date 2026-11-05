@@ -1,0 +1,28 @@
+id: 09-marco-a2a
+title: "Marco: research agent and action agent"
+description: >-
+  The orchestrator delegates over A2A: the research agent reads pull requests and the release
+  process, the action agent opens a tracking issue. Delegation tokens carry the act chain.
+user: marco
+turns:
+  - user: "Research the open pull requests in northwind/platform-web and open a release tracking issue there"
+    script:
+      - delegate:
+          agent: research
+          skill: research.deep_search
+          input: "Summarize the open pull requests in northwind/platform-web and the release checklist"
+          script:
+            - tool: { name: github.list_pulls, args: { repo: northwind/platform-web } }
+            - tool: { name: docs.search, args: { question: "release checklist changelog migrations", doc_ids: [] } }
+            - say: "northwind/platform-web has two open pull requests (#100 and #101). The release checklist asks for green checks, a complete changelog and backward compatible migrations."
+      - delegate:
+          agent: action
+          skill: action.create_issue
+          input: "Open an issue in northwind/platform-web: Release tracking for PRs #100 and #101"
+          script:
+            - tool: { name: github.create_issue, args: { repo: northwind/platform-web, title: "Release tracking for PRs #100 and #101" } }
+            - say: "Issue opened in northwind/platform-web."
+      - say: "northwind/platform-web has two open pull requests (#100, #101). I opened a release tracking issue; the checklist needs green checks, a complete changelog and backward compatible migrations."
+    expect:
+      - handoff: research
+      - handoff: action

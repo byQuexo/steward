@@ -1,0 +1,26 @@
+# Model routes per agent. Any rig provider works ("provider/model"); `scripted` replays the
+# demo scenarios and needs no key, so the demo and CI run offline.
+models:
+  default:
+    model: openrouter/anthropic/claude-haiku-5.5
+    api_key_env: OPENROUTER_API_KEY
+    temperature: 0.2
+  fast:
+    model: openrouter/deepseek/deepseek-v4.1-flash
+    api_key_env: OPENROUTER_API_KEY
+  local:
+    model: ollama/qwen3:8b
+  scripted:
+    model: scripted
+routes:
+  orchestrator: default
+  research: default
+  action: fast
+  judge: fast
+# Without the API key the assistant falls back to the scripted model.
+fallback: scripted
+
+voice:
+  # `browser`: speech recognition and synthesis in the browser (no server keys).
+  mode: browser
+  language: en-US

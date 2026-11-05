@@ -1,0 +1,10 @@
+name: github
+title: GitHub (Mock)
+description: Repositories, issues and pull requests of the northwind org. Mock from seed data; a real GitHub MCP server is plugged in by URL.
+server: { builtin: github }
+data: data/github.json
+tools:
+  list_issues:        { scopes: [github:read], tags: [repo-scoped], description: "Issues of a repository (owner/name)." }
+  create_issue:       { scopes: [github:write], sensitivity: write, tags: [repo-scoped], description: "Open an issue in a repository." }
+  list_pulls:         { scopes: [github:read], tags: [repo-scoped], description: "Open pull requests of a repository." }
+  merge_pull_request: { scopes: [github:write], sensitivity: write, tags: [repo-scoped, merge], description: "Merge a pull request into main." }

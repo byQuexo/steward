@@ -29,11 +29,14 @@ def _attr_mapper(name: str, multivalued: bool) -> dict[str, Any]:
 
 def realm(cfg: dict[str, Any], users: list[dict[str, Any]], roles: list[str]) -> dict[str, Any]:
     kc = cfg.get("keycloak", {})
+    known = {n for n, _ in ATTRS}
+    extra = sorted({k for u in users for k in u["attrs"] if k not in known})
+    attr_specs = ATTRS + [(k, any(isinstance(u["attrs"].get(k), list) for u in users)) for k in extra]
     audience = kc.get("gateway_audience", "http://localhost:8088/mcp")
     app_url = kc.get("app_url", "http://localhost:8000")
     bot = kc.get("bot_client", "acme-bot")
     profile_attrs = [
-        {"name": n, "displayName": n, "permissions": {"view": ["admin"], "edit": ["admin"]}, "multivalued": mv} for n, mv in ATTRS
+        {"name": n, "displayName": n, "permissions": {"view": ["admin"], "edit": ["admin"]}, "multivalued": mv} for n, mv in attr_specs
     ]
     base_attrs = [
         {"name": "username", "displayName": "${username}", "validations": {"length": {"min": 3, "max": 255}}, "permissions": {"view": ["admin", "user"], "edit": ["admin"]}, "multivalued": False},
@@ -45,7 +48,7 @@ def realm(cfg: dict[str, Any], users: list[dict[str, Any]], roles: list[str]) ->
     for u in users:
         first, _, last = u["name"].partition(" ")
         attrs = {}
-        for name, mv in ATTRS:
+        for name, mv in attr_specs:
             v = u["attrs"].get(name)
             if v is None:
                 continue
@@ -79,7 +82,7 @@ def realm(cfg: dict[str, Any], users: list[dict[str, Any]], roles: list[str]) ->
             "consentRequired": False,
             "config": {"included.custom.audience": audience, "access.token.claim": "true", "id.token.claim": "false", "introspection.token.claim": "true"},
         }
-    ] + [_attr_mapper(n, mv) for n, mv in ATTRS]
+    ] + [_attr_mapper(n, mv) for n, mv in attr_specs]
     return {
         "realm": cfg["realm"],
         "enabled": True,

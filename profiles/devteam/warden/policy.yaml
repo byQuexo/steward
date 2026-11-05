@@ -1,0 +1,80 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/byQuexo/warden/main/spec/schema/policy.schema.json
+# Northwind Labs policy. Roles grant scopes; every agent has a ceiling; rules only restrict.
+# The assistant's effective rights = user roles ∩ agent ceiling ∩ every agent in the chain.
+#
+# Attributes (token claims written by the seed): `repos` = the repositories a person works in
+# (Steward's generic multi-valued partition claim; for this company a partition is a repo),
+# `teams` = squads, which are also the chat channels they own, `doc_scope` = readable documents.
+version: 1
+defaults: { effect: deny }
+model_messages: generic
+service_subjects: deny
+
+roles:
+  developer:         [github:read, github:write, chat:read, chat:write, docs:read, ticket:read, ticket:create, memory:own]
+  maintainer:        [github:read, github:write, chat:read, chat:write, docs:read, ticket:read, ticket:write, ticket:create, research, memory:own, memory:team]
+  sre:               [github:read, github:write, chat:read, chat:write, docs:read, ticket:read, ticket:write, ticket:create, memory:own, memory:team]
+  product-manager:   [github:read, chat:read, chat:write, docs:read, ticket:read, ticket:create, research, memory:own]
+  security-engineer: [github:read, github:write, chat:read, chat:write, docs:read, ticket:read, ticket:create, research, memory:own]
+
+agents:
+  nw-bot:
+    description: The assistant engineers chat with (orchestrator).
+    max: [github:read, github:write, chat:read, chat:write, docs:read, ticket:read, ticket:write, ticket:create,
+          research, memory:own, memory:team]
+    delegation: { may_delegate_to: [nw-research, nw-action] }
+  nw-research:
+    description: Read-only research across repositories, incidents and documents.
+    max: [github:read, docs:read, ticket:read, chat:read, research]
+    delegation: { may_delegate_to: [nw-action], max_depth: 1 }
+  nw-action:
+    description: Executes changes; never more than the agents before it.
+    max: [github:write, ticket:write, chat:write]
+    delegation: { max_depth: 2 }
+
+rules:
+  - id: own-repos-only
+    description: Repository calls stay inside the repositories of the signed-in engineer.
+    match: { tag: repo-scoped }
+    require: { arg: repo, in: "{subject.attrs.repos}" }
+
+  # Listed before the general merge rule: the first approval rule names the approval route.
+  - id: infra-merge-four-eyes
+    description: Merges into the production infrastructure repo need two approvers.
+    match: { kind: tool, name: github.merge_pull_request }
+    approve_if: { arg: repo, equals: northwind/infra }
+
+  - id: merges-need-maintainer
+    description: Every merge into main is approved by a maintainer.
+    match: { tag: merge }
+    approve_if: always
+
+  - id: own-channels-only
+    description: Chat posts only go to channels of the poster's own teams.
+    match: { kind: tool, name: chat.post_message }
+    require: { arg: channel, in: "{subject.attrs.teams}" }
+
+  - id: incident-close-needs-oncall
+    description: Closing an incident is confirmed by the on-call SRE.
+    match: { kind: tool, name: ticket.close }
+    approve_if: always
+
+  - id: docs-in-scope
+    description: Document questions only over documents of the user's teams (security docs for security only).
+    match: { kind: tool, name: docs.search }
+    require: { arg: doc_ids, subset_of: "{subject.attrs.doc_scope}" }
+
+  - id: page-in-scope
+    description: Page images are re-checked when they are fetched.
+    match: { kind: x-docs-page }
+    require: { arg: doc_id, in: "{subject.attrs.doc_scope}" }
+
+  - id: memory-owner
+    description: Personal memory belongs to its owner.
+    match: { tag: owner-scoped }
+    require: { arg: owner, equals: "{subject.id}" }
+
+  - id: memory-team
+    description: Team memory only for the reader's own teams.
+    match: { kind: x-memory, name: memory.read_team }
+    require: { arg: team, in: "{subject.attrs.teams}" }

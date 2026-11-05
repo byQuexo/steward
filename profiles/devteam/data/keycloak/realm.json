@@ -1,0 +1,407 @@
+{
+  "realm": "northwind",
+  "enabled": true,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 3600,
+  "sslRequired": "none",
+  "roles": {
+    "realm": [
+      {
+        "name": "developer"
+      },
+      {
+        "name": "maintainer"
+      },
+      {
+        "name": "product-manager"
+      },
+      {
+        "name": "security-engineer"
+      },
+      {
+        "name": "sre"
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "dana",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "dana@northwind.example",
+      "firstName": "Dana",
+      "lastName": "Brooks",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "dana",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "developer"
+      ],
+      "attributes": {
+        "org_unit": [
+          "platform"
+        ],
+        "teams": [
+          "platform"
+        ],
+        "doc_scope": [
+          "eng-release-process",
+          "handbook-engineering",
+          "oncall-runbook"
+        ],
+        "repos": [
+          "northwind/platform-api",
+          "northwind/platform-web"
+        ]
+      }
+    },
+    {
+      "username": "marco",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "marco@northwind.example",
+      "firstName": "Marco",
+      "lastName": "Ruiz",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "marco",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "maintainer"
+      ],
+      "attributes": {
+        "org_unit": [
+          "platform"
+        ],
+        "teams": [
+          "platform"
+        ],
+        "doc_scope": [
+          "eng-release-process",
+          "handbook-engineering",
+          "oncall-runbook"
+        ],
+        "repos": [
+          "northwind/platform-api",
+          "northwind/platform-web",
+          "northwind/infra"
+        ]
+      }
+    },
+    {
+      "username": "priya",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "priya@northwind.example",
+      "firstName": "Priya",
+      "lastName": "Nair",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "priya",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "developer"
+      ],
+      "attributes": {
+        "org_unit": [
+          "payments"
+        ],
+        "teams": [
+          "payments"
+        ],
+        "doc_scope": [
+          "eng-release-process",
+          "handbook-engineering",
+          "oncall-runbook"
+        ],
+        "repos": [
+          "northwind/payments-service"
+        ]
+      }
+    },
+    {
+      "username": "sam",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "sam@northwind.example",
+      "firstName": "Sam",
+      "lastName": "Okafor",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "sam",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "sre"
+      ],
+      "attributes": {
+        "org_unit": [
+          "sre"
+        ],
+        "teams": [
+          "oncall",
+          "platform"
+        ],
+        "doc_scope": [
+          "eng-release-process",
+          "handbook-engineering",
+          "oncall-runbook"
+        ],
+        "repos": [
+          "northwind/infra",
+          "northwind/platform-api"
+        ]
+      }
+    },
+    {
+      "username": "lena",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "lena@northwind.example",
+      "firstName": "Lena",
+      "lastName": "Fischer",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "lena",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "product-manager"
+      ],
+      "attributes": {
+        "org_unit": [
+          "product"
+        ],
+        "teams": [
+          "product"
+        ],
+        "doc_scope": [
+          "eng-release-process",
+          "handbook-engineering"
+        ],
+        "repos": [
+          "northwind/platform-api",
+          "northwind/platform-web",
+          "northwind/payments-service"
+        ]
+      }
+    },
+    {
+      "username": "omar",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "omar@northwind.example",
+      "firstName": "Omar",
+      "lastName": "Haddad",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "omar",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "security-engineer"
+      ],
+      "attributes": {
+        "org_unit": [
+          "security"
+        ],
+        "teams": [
+          "security"
+        ],
+        "doc_scope": [
+          "eng-release-process",
+          "handbook-engineering",
+          "oncall-runbook",
+          "security-policy"
+        ],
+        "repos": [
+          "northwind/platform-api",
+          "northwind/platform-web",
+          "northwind/payments-service",
+          "northwind/infra"
+        ]
+      }
+    },
+    {
+      "username": "service-account-steward-console",
+      "enabled": true,
+      "serviceAccountClientId": "steward-console",
+      "clientRoles": {
+        "realm-management": [
+          "view-users",
+          "manage-users",
+          "query-users",
+          "view-realm"
+        ]
+      }
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "nw-bot",
+      "name": "Steward assistant",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "dev-bot-secret",
+      "clientAuthenticatorType": "client-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8000/auth/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:8000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:8000/*"
+      },
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "protocolMappers": [
+        {
+          "name": "gateway-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "http://localhost:8088/mcp",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "org_unit",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "org_unit",
+            "claim.name": "org_unit",
+            "jsonType.label": "String",
+            "multivalued": "false",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "tenants",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "tenants",
+            "claim.name": "tenants",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "teams",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "teams",
+            "claim.name": "teams",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "doc_scope",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "doc_scope",
+            "claim.name": "doc_scope",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "repos",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "repos",
+            "claim.name": "repos",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "steward-console",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "dev-console-secret",
+      "clientAuthenticatorType": "client-secret",
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "warden-gateway",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "dev-gateway-secret",
+      "clientAuthenticatorType": "client-secret",
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocol": "openid-connect"
+    }
+  ],
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\": [{\"name\": \"username\", \"displayName\": \"${username}\", \"validations\": {\"length\": {\"min\": 3, \"max\": 255}}, \"permissions\": {\"view\": [\"admin\", \"user\"], \"edit\": [\"admin\"]}, \"multivalued\": false}, {\"name\": \"email\", \"displayName\": \"${email}\", \"validations\": {\"email\": {}, \"length\": {\"max\": 255}}, \"permissions\": {\"view\": [\"admin\", \"user\"], \"edit\": [\"admin\"]}, \"multivalued\": false}, {\"name\": \"firstName\", \"displayName\": \"${firstName}\", \"validations\": {\"length\": {\"max\": 255}}, \"permissions\": {\"view\": [\"admin\", \"user\"], \"edit\": [\"admin\"]}, \"multivalued\": false}, {\"name\": \"lastName\", \"displayName\": \"${lastName}\", \"validations\": {\"length\": {\"max\": 255}}, \"permissions\": {\"view\": [\"admin\", \"user\"], \"edit\": [\"admin\"]}, \"multivalued\": false}, {\"name\": \"org_unit\", \"displayName\": \"org_unit\", \"permissions\": {\"view\": [\"admin\"], \"edit\": [\"admin\"]}, \"multivalued\": false}, {\"name\": \"tenants\", \"displayName\": \"tenants\", \"permissions\": {\"view\": [\"admin\"], \"edit\": [\"admin\"]}, \"multivalued\": true}, {\"name\": \"teams\", \"displayName\": \"teams\", \"permissions\": {\"view\": [\"admin\"], \"edit\": [\"admin\"]}, \"multivalued\": true}, {\"name\": \"doc_scope\", \"displayName\": \"doc_scope\", \"permissions\": {\"view\": [\"admin\"], \"edit\": [\"admin\"]}, \"multivalued\": true}, {\"name\": \"repos\", \"displayName\": \"repos\", \"permissions\": {\"view\": [\"admin\"], \"edit\": [\"admin\"]}, \"multivalued\": true}], \"groups\": [], \"unmanagedAttributePolicy\": \"ENABLED\"}"
+          ]
+        }
+      }
+    ]
+  }
+}

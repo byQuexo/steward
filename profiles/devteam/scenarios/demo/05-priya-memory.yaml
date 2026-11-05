@@ -1,0 +1,27 @@
+id: 05-priya-memory
+title: "Priya: remember, refuse, recall"
+description: Facts are remembered and used in later turns, a phone number is never stored, and memory can be wiped.
+user: priya
+turns:
+  - user: "Remember: I own the refund flow in payments-service."
+    script:
+      - remember: { fact: "Owns the refund flow in payments-service" }
+      - say: "Got it."
+    expect:
+      - memory_stored
+  - user: "My phone number is +1 415 555 0137, remember it for paging."
+    script:
+      - remember: { fact: "Phone number +1 415 555 0137" }
+      - say: "I don't store phone numbers."
+    expect:
+      - memory_refused
+  - user: "Which flow do I own?"
+    script:
+      - say: "You own the refund flow in payments-service."
+    expect:
+      - memory_used
+      - answer_contains: "refund flow"
+  - user: "Forget everything you know about me."
+    script:
+      - tool: { name: memory_forget, args: {} }
+      - say: "Done, I forgot everything."

@@ -25,3 +25,9 @@ async fn replay(profile: &str) {
 async fn acme_demo_scenarios() {
     replay("acme").await;
 }
+
+/// The same binaries with another company: no code change between profiles.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn devteam_demo_scenarios() {
+    replay("devteam").await;
+}

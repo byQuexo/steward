@@ -1,0 +1,12 @@
+id: 03-sam-runbook
+title: "Sam asks the scanned on-call runbook"
+description: Answer from a scanned PDF, with a verified citation and the page image.
+user: sam
+turns:
+  - user: "The payments-service returns 503 errors after a deploy. What does the runbook say?"
+    script:
+      - tool: { name: docs.search, args: { question: "payments-service returns 503 errors after a deploy", doc_ids: [] } }
+      - say: "According to the on-call runbook (page 2): roll back the deploy with nwctl rollback payments-service, and page the payments team lead if the error rate stays above 1 percent for 10 minutes."
+    expect:
+      - decision: { tool: docs.search, effect: allow }
+      - citation: { doc_id: oncall-runbook, page: 2 }

@@ -1,0 +1,19 @@
+id: 02-dana-repos
+title: "Dana: own repository yes, another team's no"
+description: Repository calls are pinned to the repositories in Dana's token (rule own-repos-only).
+user: dana
+turns:
+  - user: "List the issues in northwind/platform-api"
+    script:
+      - tool: { name: github.list_issues, args: { repo: northwind/platform-api } }
+      - say: "Here are the issues in northwind/platform-api."
+    expect:
+      - decision: { tool: github.list_issues, effect: allow }
+      - tool_result: { tool: github.list_issues, contains: "northwind/platform-api" }
+  - user: "And the issues in northwind/payments-service?"
+    script:
+      - tool: { name: github.list_issues, args: { repo: northwind/payments-service } }
+      - say: "I'm not allowed to show you northwind/payments-service; it belongs to the payments team."
+    expect:
+      - decision: { tool: github.list_issues, effect: deny, rule: own-repos-only }
+      - answer_contains: "not allowed"
