@@ -1,0 +1,76 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/steward",
+    "crates/steward-config",
+    "crates/steward-mcp-servers",
+    "crates/steward-identity",
+    "crates/steward-memory",
+    "crates/steward-cost",
+    "crates/steward-agents",
+    "crates/steward-a2a",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+# rig-agent 0.46 needs a recent toolchain.
+rust-version = "1.97"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/byQuexo/steward"
+authors = ["Tim Gühnemann"]
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+
+[workspace.dependencies]
+steward-config = { path = "crates/steward-config" }
+steward-mcp-servers = { path = "crates/steward-mcp-servers" }
+steward-identity = { path = "crates/steward-identity" }
+steward-memory = { path = "crates/steward-memory" }
+steward-cost = { path = "crates/steward-cost" }
+steward-agents = { path = "crates/steward-agents" }
+steward-a2a = { path = "crates/steward-a2a" }
+
+# Warden: authorization for every tool call. Pinned to an exact commit.
+warden-core = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
+warden-identity = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
+warden-audit = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
+warden-gateway = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
+warden-a2a = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
+warden-rig = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
+warden-eval = { git = "https://github.com/byQuexo/warden", rev = "914d05c103aea54ec1799ee35b293c2e259b434e" }
+
+# rig is pre-1.0: pinned exactly.
+rig-core = { version = "=0.46.0", default-features = false, features = ["reqwest", "rustls"] }
+rig-agent = { version = "=0.46.0", default-features = false }
+rig-rmcp = "=0.46.0"
+rmcp = { version = "3.8", features = ["client", "transport-streamable-http-client-reqwest", "reqwest"] }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_norway = "0.9"
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+futures = "0.3"
+axum = "0.8"
+tower-http = { version = "0.6", features = ["fs", "trace", "catch-panic"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream", "cookies"] }
+rusqlite = { version = "0.37", features = ["bundled"] }
+regex = "1"
+sha2 = "0.10"
+hex = "0.4"
+base64 = "0.22"
+rand = "0.8"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std", "serde"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4", features = ["derive"] }
+async-trait = "0.1"
+tempfile = "3"
+
+[profile.release]
+panic = "unwind"

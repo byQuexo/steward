@@ -1,0 +1,21 @@
+[package]
+name = "steward-config"
+description = "Steward profiles: load and validate a company profile, generate Warden catalog and gateway config from connectors."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+serde_norway.workspace = true
+thiserror.workspace = true
+warden-core.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true
