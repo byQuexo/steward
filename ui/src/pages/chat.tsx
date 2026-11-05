@@ -16,7 +16,7 @@ import { useMe } from '@/context/session';
 import type { MessageKey } from '@/i18n';
 import { useElapsed } from '@/lib/clock';
 import { effectTone } from '@/lib/look';
-import { useMediaQuery, useReducedMotion } from '@/lib/motion';
+import { useReducedMotion } from '@/lib/motion';
 import type { Line, Presence } from '@/lib/presence';
 import type { CitationItem, Turn } from '@/lib/timeline';
 import { usePoke } from '@/lib/use-poke';
@@ -24,9 +24,6 @@ import { usePresence } from '@/lib/use-presence';
 import { cn, formatEur, formatNumber } from '@/lib/utils';
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
-
-/** Wide screens get the stage column next to the conversation. */
-const WIDE = '(min-width: 1200px)';
 
 function useClockTime(ms: number | undefined): string | null {
   const { intl } = useI18n();
@@ -74,7 +71,7 @@ function WorkingLine({ turn, presence, line }: { turn: Turn; presence: Presence;
   );
 }
 
-function TurnView({ turn, isLast, presence, line, wide }: { turn: Turn; isLast: boolean; presence: Presence; line: Line; wide: boolean }) {
+function TurnView({ turn, isLast, presence, line }: { turn: Turn; isLast: boolean; presence: Presence; line: Line }) {
   const me = useMe();
   const { t } = useI18n();
   const streaming = turn.status === 'streaming';
@@ -93,7 +90,7 @@ function TurnView({ turn, isLast, presence, line, wide }: { turn: Turn; isLast: 
 
       <div className="group/turn min-w-0 space-y-2.5">
         <p className="flex items-center gap-2 text-[13px]">
-          <AgentAvatar role="orchestrator" size={wide ? 22 : 30} paused interactive={false} />
+          <AgentAvatar role="orchestrator" size={30} paused interactive={false} />
           <span className="font-semibold text-foreground">{me.assistant}</span>
           {turn.restored && <span className="font-mono text-[11px] text-muted-foreground">{t('chat.restored')}</span>}
           <VerdictTrail turn={turn} />
@@ -291,7 +288,6 @@ export function ChatPage() {
   const stick = useRef(true);
   const refocus = useRef(false);
   const reduced = useReducedMotion();
-  const wide = useMediaQuery(WIDE);
 
   const last = turns[turns.length - 1];
   const { presence, nonce } = usePresence(
@@ -370,7 +366,7 @@ export function ChatPage() {
   const readOnly = !!me.impersonated_by;
   const firstName = me.name.split(/\s+/)[0] ?? me.name;
   const greeting = t('hero.greeting', { greet: t(greetKey(new Date().getHours())), name: firstName, assistant: me.assistant });
-  const inlineAvatar = !empty && !wide;
+  const inlineAvatar = !empty;
 
   const totals = { allow: 0, approval: 0, deny: 0 };
   for (const turn of turns)
@@ -522,17 +518,7 @@ export function ChatPage() {
             </div>
           </div>
         ) : (
-          <div className={cn('mx-auto flex min-h-full w-full justify-center gap-12 px-4', wide && 'pr-[292px]')}>
-            {wide && (
-              // The stage: Steward is there with you, next to the conversation.
-              <aside aria-label={me.assistant} className="sticky top-0 flex self-start h-[calc(100dvh-2.75rem)] w-[240px] shrink-0 flex-col items-center justify-center pb-16">
-                <PresenceAvatar presence={presence} nonce={nonce} variant="stage" assistant={me.assistant} onPoke={poke} />
-                <PresenceCaption className="mt-4 w-full">
-                  <p className="text-[13px] font-semibold">{me.assistant}</p>
-                  <div className="mt-0.5 min-h-10 text-[13px] leading-5 text-muted-foreground">{caption}</div>
-                </PresenceCaption>
-              </aside>
-            )}
+          <div className="mx-auto flex min-h-full w-full justify-center px-4">
             <div className="flex w-full max-w-[720px] min-w-0 flex-col">
               <header className="sticky top-0 z-20 -mx-1 flex h-11 items-center gap-3 bg-background px-1">
                 <p className="min-w-0 flex-1 truncate text-[13px] font-medium" title={turns[0]?.question}>
@@ -569,7 +555,7 @@ export function ChatPage() {
               <section aria-label={t('chat.messages')} className="flex-1 pb-8 pt-4">
                 <ol className="space-y-10">
                   {turns.map((turn, i) => (
-                    <TurnView key={turn.id} turn={turn} isLast={i === turns.length - 1} presence={presence} line={line} wide={wide} />
+                    <TurnView key={turn.id} turn={turn} isLast={i === turns.length - 1} presence={presence} line={line} />
                   ))}
                 </ol>
               </section>

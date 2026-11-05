@@ -132,10 +132,10 @@ Numbers use `tabular-nums`. Never more than two weights on one screen.
 | Log line (tool call)          | 28px                                   |
 | Table row                     | ~36px (8px padding)                    |
 | Badges                        | 18px, radius 4 — only for roles/labels, never for verdicts |
-| Content column (chat)         | 720px (+ 240px stage at ≥ 1200px)      |
+| Content column (chat)         | 720px, centered; nothing beside it     |
 | Pages / console               | 720 / 1040 / 1200px                    |
 | Paddings                      | 12–16px; sections 20–32px apart        |
-| Steward                       | 156px (empty chat), 112px (stage), 30px (composer), 22–30px (turn header) |
+| Steward                       | 156px (empty chat), 40px (composer), 30px (turn header) |
 
 ---
 
@@ -191,13 +191,13 @@ A thin 44px bar with a hairline bottom border, nothing floating or centered.
 One calm column, inspired by the quietest chat products (grok.com, v0, Linear) — and every bit
 of identity is Steward's own.
 - **Canvas:** flat near-black `#131313`, no texture behind the conversation, a 720px column
-  centered. On screens ≥ 1200px Steward's **stage** (240px, §7) sits to its left.
+  centered, with nothing beside it: Steward lives in the conversation (turn headers) and in the composer.
 - **Conversation header:** a slim sticky 44px row at the top of the column: the first question
   as the title (13px, truncated), the verdict totals of the whole conversation (`● 1 ◆ 1 ▬ 2`,
   mono 11px) and a quiet icon button "Neue Unterhaltung".
 - **User message:** a small dark pill, right-aligned at the top of each turn — `#262626`
   (`--secondary`), radius 16px, 14px text, padding 8×14px. Its time appears on hover.
-- **Steward's turn** starts with his avatar (22px on the stage layout, 30px without) and his name
+- **Steward's turn** starts with his avatar (30px) and his name
   plus the verdict trail, so it is always clear that he is speaking. While he works, one quiet
   line follows: his orb (20px, ember while a gate waits), his current first-person line and the
   live seconds — "Warden hält das an. Ines muss zustimmen. · 3 s". Then the activity log (one
@@ -211,7 +211,7 @@ One refined unit, shared by the empty state and the conversation.
 - A large rounded panel: radius 24px, `--card` (`#1f1f1f`, a step lighter than the page), 1px
   `--border` hairline (`#2e2e2e`); focus lifts the hairline to `foreground/30`.
 - **Row 1:** the textarea (15px, grows to 200px) with the placeholder "Frag Steward, was du
-  willst". On narrow screens (no stage) Steward himself sits at its left at 40px: he is the one
+  willst". Steward himself sits at its left at 40px: he is the one
   you talk to.
 - **Row 2, a toolbar:** left a round **+** (opens a small menu with the role's suggested questions
   and "Neue Unterhaltung"), then — only while the composer is focused — tiny `kbd` hints
@@ -299,11 +299,10 @@ bouncing mascot.
 | Layout | Steward | His words |
 | --- | --- | --- |
 | Empty chat | **156px** on a 184px liquid disc, the centerpiece above the composer | A hairline caption box attached to him (a small notch points at him): "Guten Abend, Ivo. Ich bin Steward." typed out once, plus one short line |
-| Conversation, ≥ 1200px | The **stage**: a sticky 240px column left of the conversation, vertically centered; 112px on a 140px disc with his halo and verdict rim | Caption box under him: "Steward" + his current first-person line |
 | Conversation, narrower | Inside the composer, left of the textarea, 30px on a 40px disc | The working line in his turn |
 | Every turn | His avatar (22 / 30px, still) + "Steward" at the start of each of his turns | — |
 
-His research / action sub-agents bud off his disc (on the stage or in the composer) as small
+His research / action sub-agents bud off his disc (in the composer) as small
 companions — a `liquid-gooey` droplet — when a handoff happens, and merge back when they return.
 
 **How he reacts**
@@ -316,8 +315,8 @@ companions — a `liquid-gooey` droplet — when a handoff happens, and merge ba
   12–22s and jumps rarely. After 60s without input he **dozes** and wakes on any key, click or
   wheel. Clicking him (or Enter — he is a button) makes him hop and say one short line about what
   he can do for *this* user.
-- Head poses are per layout (`POSES` in `presence.tsx`): from the stage the composer is
-  down-right and the gate to the right; from the composer the gate is up-right.
+- Head poses are per layout (`POSES` in `presence.tsx`): from the hero the composer is below;
+  from the composer the gate is up-right.
 
 The behavior is a small state machine in `ui/src/lib/presence.ts` (pure, unit-tested), driven by
 the chat events of the latest turn plus composer and session state; timers (flashes, dozing,
@@ -360,7 +359,7 @@ the theme (`useResolvedTheme`) and reduced motion (`useReducedMotion`) are wired
 
 | Package | Version | Component | Where | Tuning | Reduced motion |
 | --- | --- | --- | --- | --- | --- |
-| `thinking-orbs` | 0.3.2 | `ThinkingOrb` | Halo behind Steward (hero, stage, composer); the 20px orb in his working line | grey ink; `color` = ember only while awaiting approval; preset 64 (hero, stage) / 32 (composer) drawn at 1.2× the disc | `paused` (static representative frame) |
+| `thinking-orbs` | 0.3.2 | `ThinkingOrb` | Halo behind Steward (hero, composer); the 20px orb in his working line | grey ink; `color` = ember only while awaiting approval; preset 64 (hero) / 32 (composer) drawn at 1.2× the disc | `paused` (static representative frame) |
 | `bot-avatars` | 0.2.2 | `BotAvatar` | Steward (droid), research (ghost), action (mech) | grey bodies (`saturation` 0), `smooth` shading, `interactive` on Steward (eyes follow the cursor, click = hop), `pose` for composer / gate / user gazes per layout, `glasses` for test-as | `paused` (still pose of the state); no `poke` hops |
 | `border-beam` | 1.4.1 | `BorderBeam` | Always `size="line"`: along the top edge of the first pending gate (`gold`), under the composer while a turn runs (`mono`, strength 0.45) | `staticColors` on the ember line so it stays amber | `active={false}`; the gate keeps its static ember rule |
 | `liquid-gooey` | 0.2.2 | `Liquid` + `Liquid.Item` | A2A handoff: the research/action companion buds off Steward's disc like a droplet and merges back when the sub-agent returns | `fill` = `--accent`, `blur` 4–6, `transition` `smooth` (≈350ms), companions scale 0.35 → 1 | `transition={{ duration: 0 }}`: companions appear/disappear without travel |
