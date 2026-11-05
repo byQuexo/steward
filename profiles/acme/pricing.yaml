@@ -1,0 +1,12 @@
+# EUR per million tokens. `scripted` has a price too, so the cost pages show realistic
+# numbers in the offline demo.
+currency: EUR
+models:
+  openrouter/anthropic/claude-haiku-5.5: { input_per_mtok: 0.92, output_per_mtok: 4.60, cached_input_per_mtok: 0.09 }
+  openrouter/deepseek/deepseek-v4.1-flash: { input_per_mtok: 0.12, output_per_mtok: 0.46 }
+  ollama/qwen3:8b: { input_per_mtok: 0.0, output_per_mtok: 0.0 }
+  scripted: { input_per_mtok: 0.92, output_per_mtok: 4.60 }
+budgets:
+  per_run: 0.05
+  per_user_daily: 1.50
+  team_monthly: { sales: 40.0, hr: 20.0, it: 30.0, finance: 10.0 }

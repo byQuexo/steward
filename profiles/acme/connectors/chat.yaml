@@ -1,0 +1,8 @@
+name: chat
+title: Team-Chat (Mock)
+description: Kanäle und Nachrichten. Mock aus Seed-Daten.
+server: { builtin: chat }
+data: data/chat.json
+tools:
+  list_channels: { scopes: [chat:read], description: Kanäle auflisten. }
+  post_message:  { scopes: [chat:write], sensitivity: write, description: Eine Nachricht in einen Kanal posten. }

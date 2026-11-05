@@ -1,0 +1,11 @@
+name: ticket
+title: IT-Helpdesk
+description: Tickets lesen, kommentieren, schließen und anlegen.
+server: { builtin: ticket }
+data: data/tickets.json
+tools:
+  list:    { scopes: [ticket:read], description: Tickets nach Status oder Bearbeitung filtern. }
+  get:     { scopes: [ticket:read], description: Ein Ticket mit Text und Kommentaren. }
+  create:  { scopes: [ticket:create], sensitivity: write, description: Ein neues Ticket anlegen. }
+  comment: { scopes: [ticket:write], sensitivity: write, description: Ein Ticket kommentieren. }
+  close:   { scopes: [ticket:write], sensitivity: write, description: Ein Ticket schließen. }

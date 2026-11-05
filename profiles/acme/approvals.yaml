@@ -1,0 +1,9 @@
+# Who decides when Warden holds a call (rule → approvers). Self-approval is always refused.
+timeout_s: 120
+routes:
+  - { rule: big-deals-need-approval, approvers: ["role:sales-lead"] }
+  - { rule: bulk-export-four-eyes, approvers: ["role:sales-lead", "role:it-admin"], four_eyes: true }
+  - { rule: ticket-close-approval, approvers: ["role:it-admin"] }
+  - { rule: jira-create-approval, approvers: ["role:it-admin", "role:sales-lead"] }
+  - { rule: delegated-writes-need-approval, approvers: ["role:sales-lead", "role:it-admin"] }
+  - { rule: "*", approvers: ["role:it-admin"] }

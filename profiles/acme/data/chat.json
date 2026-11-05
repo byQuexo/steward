@@ -1,0 +1,150 @@
+{
+  "channels": [
+    "allgemein",
+    "vertrieb",
+    "it-ops",
+    "hr-intern"
+  ],
+  "messages": [
+    {
+      "id": "m-001",
+      "channel": "vertrieb",
+      "author": "ines",
+      "text": "Oma vergessen Nacht Pferd las wieder ja baden Familie.",
+      "ts": "2026-10-28"
+    },
+    {
+      "id": "m-002",
+      "channel": "vertrieb",
+      "author": "ivo",
+      "text": "Sommer vom alle wir traurig drei.",
+      "ts": "2026-10-27"
+    },
+    {
+      "id": "m-003",
+      "channel": "vertrieb",
+      "author": "sara",
+      "text": "Kein einfach plötzlich Stein wirklich nein wenn fiel Jahr der dick vielleicht so.",
+      "ts": "2026-11-01"
+    },
+    {
+      "id": "m-004",
+      "channel": "it-ops",
+      "author": "sara",
+      "text": "Gestern versuchen vergessen stehen Freude verlieren weinen suchen Sache.",
+      "ts": "2026-10-30"
+    },
+    {
+      "id": "m-005",
+      "channel": "allgemein",
+      "author": "hanna",
+      "text": "Zu heißen lassen arbeiten hat Tisch lieb.",
+      "ts": "2026-10-31"
+    },
+    {
+      "id": "m-006",
+      "channel": "it-ops",
+      "author": "hanna",
+      "text": "Küche dem dem wollen führen schaffen Zeit zu ins.",
+      "ts": "2026-10-25"
+    },
+    {
+      "id": "m-007",
+      "channel": "allgemein",
+      "author": "sara",
+      "text": "Wollen Loch helfen Stück nass beißen.",
+      "ts": "2026-10-25"
+    },
+    {
+      "id": "m-008",
+      "channel": "vertrieb",
+      "author": "henrik",
+      "text": "Arbeit dunkel wie plötzlich essen stehen erklären rennen rufen zur da zehn.",
+      "ts": "2026-10-28"
+    },
+    {
+      "id": "m-009",
+      "channel": "hr-intern",
+      "author": "ines",
+      "text": "Erde schaffen aber Frage Meer Ferien tun führen Schule Gott.",
+      "ts": "2026-10-31"
+    },
+    {
+      "id": "m-010",
+      "channel": "hr-intern",
+      "author": "ines",
+      "text": "Weiter allein sieht packen lachen Affe schnell schön also verstecken Schüler fiel Ende.",
+      "ts": "2026-11-02"
+    },
+    {
+      "id": "m-011",
+      "channel": "hr-intern",
+      "author": "ines",
+      "text": "Fröhlich Weg gehen Küche Tag turnen leben.",
+      "ts": "2026-10-31"
+    },
+    {
+      "id": "m-012",
+      "channel": "hr-intern",
+      "author": "sara",
+      "text": "Blume ein jeder mehr langsam ins rennen hören bald Familie führen voll Onkel.",
+      "ts": "2026-10-30"
+    },
+    {
+      "id": "m-013",
+      "channel": "vertrieb",
+      "author": "fiona",
+      "text": "Baden vielleicht schauen lesen Geschichte springen.",
+      "ts": "2026-11-01"
+    },
+    {
+      "id": "m-014",
+      "channel": "it-ops",
+      "author": "sven",
+      "text": "Gut sechs aus tun glücklich immer besser gern gewinnen fünf wichtig Sonne.",
+      "ts": "2026-10-30"
+    },
+    {
+      "id": "m-015",
+      "channel": "vertrieb",
+      "author": "sven",
+      "text": "Weg erschrecken Fenster Kopf Junge Woche Ball sprechen Weg.",
+      "ts": "2026-10-29"
+    },
+    {
+      "id": "m-016",
+      "channel": "hr-intern",
+      "author": "fiona",
+      "text": "Zimmer zu können Opa Fenster Schwester lange wünschen oder da langsam vor.",
+      "ts": "2026-10-26"
+    },
+    {
+      "id": "m-017",
+      "channel": "allgemein",
+      "author": "hanna",
+      "text": "Spaß klettern hängen heiß schreiben halten als einige heraus gehen.",
+      "ts": "2026-10-29"
+    },
+    {
+      "id": "m-018",
+      "channel": "hr-intern",
+      "author": "hanna",
+      "text": "Endlich kein Haare bei Jahr langsam Tier wohnen Mädchen es Schule mich.",
+      "ts": "2026-11-02"
+    },
+    {
+      "id": "m-019",
+      "channel": "it-ops",
+      "author": "ivo",
+      "text": "Mensch nach lernen schaffen früher lachen den Minutenmir schlimm.",
+      "ts": "2026-10-30"
+    },
+    {
+      "id": "m-020",
+      "channel": "vertrieb",
+      "author": "sara",
+      "text": "Fliegen kommen Frage Sache halbe wahr.",
+      "ts": "2026-11-02"
+    }
+  ]
+}

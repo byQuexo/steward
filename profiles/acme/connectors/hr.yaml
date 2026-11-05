@@ -1,0 +1,10 @@
+name: hr
+title: HR-System
+description: Mitarbeitende, Abwesenheiten und Gehälter.
+server: { builtin: hr }
+data: data/hr.json
+tools:
+  search_employees: { scopes: [hr:read], description: Mitarbeitende nach Name, Einheit oder Titel suchen. }
+  get_employee:     { scopes: [hr:read], description: Stammdaten einer Person (ohne Gehalt). }
+  list_absences:    { scopes: [hr:read], description: Abwesenheiten einer Einheit. }
+  get_salary:       { scopes: [hr:salary], tags: [pii], description: Gehälter einer Einheit oder einer Person. }

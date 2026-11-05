@@ -1,0 +1,22 @@
+[project]
+name = "steward-seed"
+version = "0.1.0"
+description = "Deterministic synthetic data for Steward profiles: records, documents, page images and the Keycloak realm."
+requires-python = ">=3.12,<3.14"
+license = "MIT OR Apache-2.0"
+dependencies = [
+    "faker==40.44.0",
+    "pillow==13.0.0",
+    "pyyaml==6.0.3",
+    "reportlab==5.1.0",
+]
+
+[project.scripts]
+steward-seed = "steward_seed.cli:main"
+
+[dependency-groups]
+dev = ["pytest==9.2.0"]
+
+[build-system]
+requires = ["uv_build>=0.8,<0.14"]
+build-backend = "uv_build"

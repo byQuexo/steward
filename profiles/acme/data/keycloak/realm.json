@@ -1,0 +1,406 @@
+{
+  "realm": "acme",
+  "enabled": true,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 3600,
+  "sslRequired": "none",
+  "roles": {
+    "realm": [
+      {
+        "name": "finance"
+      },
+      {
+        "name": "hr-lead"
+      },
+      {
+        "name": "hr-member"
+      },
+      {
+        "name": "it-admin"
+      },
+      {
+        "name": "it-member"
+      },
+      {
+        "name": "sales-lead"
+      },
+      {
+        "name": "sales-rep"
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "hanna",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "hanna@acme.example",
+      "firstName": "Hanna",
+      "lastName": "Schmidt",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "hanna",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "hr-member"
+      ],
+      "attributes": {
+        "org_unit": [
+          "hr"
+        ],
+        "teams": [
+          "hr"
+        ],
+        "doc_scope": [
+          "handbook-employees",
+          "hr-onboarding",
+          "hr-salary-bands"
+        ]
+      }
+    },
+    {
+      "username": "henrik",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "henrik@acme.example",
+      "firstName": "Henrik",
+      "lastName": "Wagner",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "henrik",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "hr-lead"
+      ],
+      "attributes": {
+        "org_unit": [
+          "hr"
+        ],
+        "teams": [
+          "hr"
+        ],
+        "doc_scope": [
+          "handbook-employees",
+          "hr-onboarding",
+          "hr-salary-bands"
+        ]
+      }
+    },
+    {
+      "username": "sven",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "sven@acme.example",
+      "firstName": "Sven",
+      "lastName": "Berger",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "sven",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "sales-rep"
+      ],
+      "attributes": {
+        "org_unit": [
+          "sales"
+        ],
+        "tenants": [
+          "dach"
+        ],
+        "teams": [
+          "sales"
+        ],
+        "doc_scope": [
+          "handbook-employees",
+          "sales-playbook",
+          "sales-pricing-2026"
+        ]
+      }
+    },
+    {
+      "username": "sara",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "sara@acme.example",
+      "firstName": "Sara",
+      "lastName": "Yilmaz",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "sara",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "sales-lead"
+      ],
+      "attributes": {
+        "org_unit": [
+          "sales"
+        ],
+        "tenants": [
+          "dach",
+          "nordics"
+        ],
+        "teams": [
+          "sales"
+        ],
+        "doc_scope": [
+          "handbook-employees",
+          "sales-playbook",
+          "sales-pricing-2026"
+        ]
+      }
+    },
+    {
+      "username": "ivo",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "ivo@acme.example",
+      "firstName": "Ivo",
+      "lastName": "Peters",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ivo",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "it-member"
+      ],
+      "attributes": {
+        "org_unit": [
+          "it"
+        ],
+        "teams": [
+          "it"
+        ],
+        "doc_scope": [
+          "handbook-employees",
+          "it-security-policy",
+          "it-vpn-setup"
+        ]
+      }
+    },
+    {
+      "username": "ines",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "ines@acme.example",
+      "firstName": "Ines",
+      "lastName": "Hoffmann",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ines",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "it-admin"
+      ],
+      "attributes": {
+        "org_unit": [
+          "it"
+        ],
+        "teams": [
+          "it"
+        ],
+        "doc_scope": [
+          "handbook-employees",
+          "it-security-policy",
+          "it-vpn-setup"
+        ]
+      }
+    },
+    {
+      "username": "fiona",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "fiona@acme.example",
+      "firstName": "Fiona",
+      "lastName": "Lang",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "fiona",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "finance"
+      ],
+      "attributes": {
+        "org_unit": [
+          "finance"
+        ],
+        "teams": [
+          "finance"
+        ],
+        "doc_scope": [
+          "finance-travel-policy",
+          "handbook-employees"
+        ]
+      }
+    },
+    {
+      "username": "service-account-steward-console",
+      "enabled": true,
+      "serviceAccountClientId": "steward-console",
+      "clientRoles": {
+        "realm-management": [
+          "view-users",
+          "manage-users",
+          "query-users",
+          "view-realm"
+        ]
+      }
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "acme-bot",
+      "name": "Steward assistant",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "dev-bot-secret",
+      "clientAuthenticatorType": "client-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8000/auth/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:8000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:8000/*"
+      },
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "protocolMappers": [
+        {
+          "name": "gateway-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "http://localhost:8088/mcp",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "org_unit",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "org_unit",
+            "claim.name": "org_unit",
+            "jsonType.label": "String",
+            "multivalued": "false",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "tenants",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "tenants",
+            "claim.name": "tenants",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "teams",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "teams",
+            "claim.name": "teams",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "doc_scope",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "doc_scope",
+            "claim.name": "doc_scope",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "steward-console",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "dev-console-secret",
+      "clientAuthenticatorType": "client-secret",
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "warden-gateway",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "dev-gateway-secret",
+      "clientAuthenticatorType": "client-secret",
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocol": "openid-connect"
+    }
+  ],
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\": [{\"name\": \"username\", \"displayName\": \"${username}\", \"validations\": {\"length\": {\"min\": 3, \"max\": 255}}, \"permissions\": {\"view\": [\"admin\", \"user\"], \"edit\": [\"admin\"]}, \"multivalued\": false}, {\"name\": \"email\", \"displayName\": \"${email}\", \"validations\": {\"email\": {}, \"length\": {\"max\": 255}}, \"permissions\": {\"view\": [\"admin\", \"user\"], \"edit\": [\"admin\"]}, \"multivalued\": false}, {\"name\": \"firstName\", \"displayName\": \"${firstName}\", \"validations\": {\"length\": {\"max\": 255}}, \"permissions\": {\"view\": [\"admin\", \"user\"], \"edit\": [\"admin\"]}, \"multivalued\": false}, {\"name\": \"lastName\", \"displayName\": \"${lastName}\", \"validations\": {\"length\": {\"max\": 255}}, \"permissions\": {\"view\": [\"admin\", \"user\"], \"edit\": [\"admin\"]}, \"multivalued\": false}, {\"name\": \"org_unit\", \"displayName\": \"org_unit\", \"permissions\": {\"view\": [\"admin\"], \"edit\": [\"admin\"]}, \"multivalued\": false}, {\"name\": \"tenants\", \"displayName\": \"tenants\", \"permissions\": {\"view\": [\"admin\"], \"edit\": [\"admin\"]}, \"multivalued\": true}, {\"name\": \"teams\", \"displayName\": \"teams\", \"permissions\": {\"view\": [\"admin\"], \"edit\": [\"admin\"]}, \"multivalued\": true}, {\"name\": \"doc_scope\", \"displayName\": \"doc_scope\", \"permissions\": {\"view\": [\"admin\"], \"edit\": [\"admin\"]}, \"multivalued\": true}], \"groups\": [], \"unmanagedAttributePolicy\": \"ENABLED\"}"
+          ]
+        }
+      }
+    ]
+  }
+}

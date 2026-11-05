@@ -1,0 +1,176 @@
+[
+  {
+    "id": "hanna",
+    "name": "Hanna Schmidt",
+    "email": "hanna@acme.example",
+    "title": "HR-Referentin",
+    "roles": [
+      "hr-member"
+    ],
+    "teams": [
+      "hr"
+    ],
+    "attrs": {
+      "org_unit": "hr",
+      "teams": [
+        "hr"
+      ],
+      "doc_scope": [
+        "handbook-employees",
+        "hr-onboarding",
+        "hr-salary-bands"
+      ]
+    },
+    "password": "hanna"
+  },
+  {
+    "id": "henrik",
+    "name": "Henrik Wagner",
+    "email": "henrik@acme.example",
+    "title": "Leiter Personal",
+    "roles": [
+      "hr-lead"
+    ],
+    "teams": [
+      "hr"
+    ],
+    "attrs": {
+      "org_unit": "hr",
+      "teams": [
+        "hr"
+      ],
+      "doc_scope": [
+        "handbook-employees",
+        "hr-onboarding",
+        "hr-salary-bands"
+      ]
+    },
+    "password": "henrik"
+  },
+  {
+    "id": "sven",
+    "name": "Sven Berger",
+    "email": "sven@acme.example",
+    "title": "Account Executive",
+    "roles": [
+      "sales-rep"
+    ],
+    "teams": [
+      "sales"
+    ],
+    "attrs": {
+      "org_unit": "sales",
+      "teams": [
+        "sales"
+      ],
+      "tenants": [
+        "dach"
+      ],
+      "doc_scope": [
+        "handbook-employees",
+        "sales-playbook",
+        "sales-pricing-2026"
+      ]
+    },
+    "password": "sven"
+  },
+  {
+    "id": "sara",
+    "name": "Sara Yilmaz",
+    "email": "sara@acme.example",
+    "title": "Vertriebsleiterin",
+    "roles": [
+      "sales-lead"
+    ],
+    "teams": [
+      "sales"
+    ],
+    "attrs": {
+      "org_unit": "sales",
+      "teams": [
+        "sales"
+      ],
+      "tenants": [
+        "dach",
+        "nordics"
+      ],
+      "doc_scope": [
+        "handbook-employees",
+        "sales-playbook",
+        "sales-pricing-2026"
+      ]
+    },
+    "password": "sara"
+  },
+  {
+    "id": "ivo",
+    "name": "Ivo Peters",
+    "email": "ivo@acme.example",
+    "title": "IT-Support",
+    "roles": [
+      "it-member"
+    ],
+    "teams": [
+      "it"
+    ],
+    "attrs": {
+      "org_unit": "it",
+      "teams": [
+        "it"
+      ],
+      "doc_scope": [
+        "handbook-employees",
+        "it-security-policy",
+        "it-vpn-setup"
+      ]
+    },
+    "password": "ivo"
+  },
+  {
+    "id": "ines",
+    "name": "Ines Hoffmann",
+    "email": "ines@acme.example",
+    "title": "IT-Administratorin",
+    "roles": [
+      "it-admin"
+    ],
+    "teams": [
+      "it"
+    ],
+    "attrs": {
+      "org_unit": "it",
+      "teams": [
+        "it"
+      ],
+      "doc_scope": [
+        "handbook-employees",
+        "it-security-policy",
+        "it-vpn-setup"
+      ]
+    },
+    "password": "ines"
+  },
+  {
+    "id": "fiona",
+    "name": "Fiona Lang",
+    "email": "fiona@acme.example",
+    "title": "Controllerin",
+    "roles": [
+      "finance"
+    ],
+    "teams": [
+      "finance"
+    ],
+    "attrs": {
+      "org_unit": "finance",
+      "teams": [
+        "finance"
+      ],
+      "doc_scope": [
+        "finance-travel-policy",
+        "handbook-employees"
+      ]
+    },
+    "password": "fiona"
+  }
+]

@@ -1,0 +1,8 @@
+# Documents per team (doc id patterns). The seed writes each user's resulting list into the
+# `doc_scope` claim; Warden checks every docs.search with `subset_of: {subject.attrs.doc_scope}`
+# and the docs server cuts results to the same list.
+teams:
+  hr:      [handbook-*, hr-*]
+  sales:   [handbook-*, sales-*]
+  it:      [handbook-*, it-*]
+  finance: [handbook-*, finance-*]

@@ -1,0 +1,93 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/byQuexo/warden/main/spec/schema/policy.schema.json
+# Acme profile policy. Roles grant scopes; every agent has a ceiling; rules only restrict.
+# The assistant's effective rights = user roles ∩ agent ceiling ∩ every agent in the chain.
+version: 1
+defaults: { effect: deny }
+model_messages: generic
+service_subjects: deny
+
+roles:
+  hr-member:  [hr:read, docs:read, ticket:create, memory:own]
+  hr-lead:    [hr:read, hr:salary, docs:read, ticket:create, memory:own, memory:team]
+  sales-rep:  [crm:read, crm:write, docs:read, ticket:create, chat:read, chat:write, memory:own]
+  sales-lead: [crm:read, crm:write, crm:export, docs:read, ticket:create, chat:read, chat:write, jira:read, jira:write, research, memory:own, memory:team]
+  it-member:  [ticket:read, ticket:write, ticket:create, docs:read, jira:read, jira:write, memory:own]
+  it-admin:   [ticket:read, ticket:write, ticket:create, docs:read, jira:read, jira:write, chat:read, chat:write, admin, memory:own, memory:team]
+  finance:    [crm:read, crm:export, docs:read, ticket:create, memory:own]
+
+agents:
+  acme-bot:
+    description: The assistant users chat with (orchestrator).
+    max: [hr:read, hr:salary, crm:read, crm:write, crm:export, ticket:read, ticket:write, ticket:create, docs:read,
+          jira:read, jira:write, chat:read, chat:write, research, memory:own, memory:team]
+    delegation: { may_delegate_to: [acme-research, acme-action] }
+  acme-research:
+    description: Read-only research across documents, CRM and tickets.
+    max: [docs:read, crm:read, ticket:read, hr:read, jira:read, research]
+    delegation: { may_delegate_to: [acme-action], max_depth: 1 }
+  acme-action:
+    description: Executes changes; never more than the agents before it.
+    max: [crm:write, ticket:write, jira:write, chat:write]
+    delegation: { max_depth: 2 }
+
+rules:
+  - id: salary-only-own-unit
+    description: HR leads see salaries of their own unit only.
+    match: { kind: tool, name: hr.get_salary }
+    require: { arg: unit, equals: "{subject.attrs.org_unit}" }
+
+  - id: tenant-pinning
+    description: Sales staff only touch deals of their own tenants.
+    match: { tag: tenant-scoped }
+    require: { arg: tenant, in: "{subject.attrs.tenants}" }
+
+  - id: big-deals-need-approval
+    description: Changes to deals of 50,000 EUR or more are approved by sales leadership.
+    match: { kind: tool, name: crm.update_deal }
+    approve_if: { arg: amount, min: 50000 }
+
+  - id: deal-amount-is-sane
+    match: { kind: tool, name: crm.update_deal }
+    require: { arg: amount, min: 0, max: 10000000 }
+
+  - id: read-only-sql
+    match: { kind: tool, name: crm.query }
+    require: { arg: sql, sql: { dialect: postgres, tables_allow: [deals, accounts] } }
+
+  - id: bulk-export-four-eyes
+    description: Exports of a whole tenant need two approvers.
+    match: { tag: bulk }
+    approve_if: always
+
+  - id: ticket-close-approval
+    description: Closing a ticket is confirmed by IT administration.
+    match: { kind: tool, name: ticket.close }
+    approve_if: always
+
+  - id: jira-create-approval
+    match: { kind: tool, name: jira.create_issue }
+    approve_if: always
+
+  - id: docs-in-scope
+    description: Document questions only over documents of the user's teams.
+    match: { kind: tool, name: docs.search }
+    require: { arg: doc_ids, subset_of: "{subject.attrs.doc_scope}" }
+
+  - id: page-in-scope
+    description: Page images are re-checked when they are fetched.
+    match: { kind: x-docs-page }
+    require: { arg: doc_id, in: "{subject.attrs.doc_scope}" }
+
+  - id: memory-owner
+    description: Personal memory belongs to its owner.
+    match: { tag: owner-scoped }
+    require: { arg: owner, equals: "{subject.id}" }
+
+  - id: memory-team
+    match: { kind: x-memory, name: memory.read_team }
+    require: { arg: team, in: "{subject.attrs.teams}" }
+
+  - id: delegated-writes-need-approval
+    description: Writes requested through the A2A action agent are always confirmed by a human.
+    match: { kind: a2a_skill, tag: delegated-write }
+    approve_if: always

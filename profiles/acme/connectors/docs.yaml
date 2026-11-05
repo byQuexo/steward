@@ -1,0 +1,8 @@
+name: docs
+title: Dokumente
+description: Richtlinien und Handbücher mit belegten Antworten (docrag-bench).
+server: { builtin: docs }
+data: data/corpus.json
+tools:
+  search:         { scopes: [docs:read], description: Frage an die Dokumente; Antwort mit verifizierten Zitaten. }
+  list_documents: { scopes: [docs:read], description: Dokumente, die du lesen darfst. }

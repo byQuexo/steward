@@ -1,0 +1,44 @@
+# Acme GmbH: the main demo profile. Swap this directory to swap the company.
+name: acme
+display_name: Acme GmbH
+locale: de
+assistant_name: Acme Assistent
+admin_roles: [it-admin]
+
+agents:
+  orchestrator:
+    client_id: acme-bot
+    prompt: orchestrator
+    description: Beantwortet Fragen, ruft Werkzeuge über Warden auf und delegiert an Spezialisten.
+  research:
+    client_id: acme-research
+    prompt: research
+    description: Recherchiert lesend über Dokumente, CRM und Tickets.
+    skills: [research.deep_search]
+  action:
+    client_id: acme-action
+    prompt: action
+    description: Führt freigegebene Änderungen aus.
+    skills: [action.update_deal, action.create_jira_issue]
+
+messages:
+  denied: "Dafür habe ich keine Berechtigung."
+  abstained: "Dazu finde ich nichts Belegtes in den Dokumenten, die du lesen darfst."
+  approval_pending: "Das braucht eine Freigabe. Ich habe die Anfrage weitergeleitet und warte auf die Entscheidung."
+  approval_denied: "Die Freigabe wurde abgelehnt; ich habe nichts geändert."
+  budget_exceeded: "Das Budget für diese Anfrage ist aufgebraucht; ich habe hier gestoppt."
+  greeting: "Hallo! Ich bin der Acme Assistent. Ich sehe nur, was du sehen darfst."
+
+memory:
+  retention_days: 90
+  never_store: [iban, credit_card, phone]
+  max_facts_per_user: 200
+
+suggestions:
+  hr-member:  ["Wie viele Urlaubstage habe ich?", "Wer ist diese Woche im HR-Team abwesend?"]
+  hr-lead:    ["Zeig die Gehälter meiner Einheit", "Was regeln die Gehaltsbänder für Einstiegsgehälter?"]
+  sales-rep:  ["Welche Deals habe ich in DACH?", "Wie viel Rabatt darf ich geben?"]
+  sales-lead: ["Recherchiere den Deal mit Fjord Logistics und lege ein Jira-Issue an", "Exportiere die Nordics-Deals"]
+  it-member:  ["Was steht in Ticket t-2051?", "Wie richte ich das VPN ein?"]
+  it-admin:   ["Welche Tickets sind offen?", "Zeig mir, was Hanna sehen darf"]
+  finance:    ["Wie hoch ist das Hotel-Limit in München?", "Was haben die Assistenten diesen Monat gekostet?"]
