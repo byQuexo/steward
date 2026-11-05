@@ -1,9 +1,10 @@
-# EUR per million tokens. `scripted` has a price too, so the cost pages show realistic
+# EUR per million tokens (OpenRouter list prices, converted at 0.92 EUR/USD on 2026-11-06).
+# `scripted` has a price too, so the cost pages show realistic
 # numbers in the offline demo.
 currency: EUR
 models:
-  openrouter/anthropic/claude-haiku-5.5: { input_per_mtok: 0.92, output_per_mtok: 4.60, cached_input_per_mtok: 0.09 }
-  openrouter/deepseek/deepseek-v4.1-flash: { input_per_mtok: 0.12, output_per_mtok: 0.46 }
+  openrouter/anthropic/claude-haiku-5.5: { input_per_mtok: 0.092, output_per_mtok: 0.46, cached_input_per_mtok: 0.0092 }
+  openrouter/deepseek/deepseek-v4.1-flash: { input_per_mtok: 0.041, output_per_mtok: 0.46, cached_input_per_mtok: 0.017 }
   ollama/qwen3:8b: { input_per_mtok: 0.0, output_per_mtok: 0.0 }
   scripted: { input_per_mtok: 0.92, output_per_mtok: 4.60 }
 budgets:

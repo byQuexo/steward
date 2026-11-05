@@ -1,9 +1,9 @@
-# USD per million tokens. `scripted` has a price too, so the cost pages show realistic
+# USD per million tokens (OpenRouter list prices, 2026-11-06). `scripted` has a price too, so the cost pages show realistic
 # numbers in the offline demo.
 currency: USD
 models:
-  openrouter/anthropic/claude-haiku-5.5: { input_per_mtok: 1.00, output_per_mtok: 5.00, cached_input_per_mtok: 0.10 }
-  openrouter/deepseek/deepseek-v4.1-flash: { input_per_mtok: 0.13, output_per_mtok: 0.50 }
+  openrouter/anthropic/claude-haiku-5.5: { input_per_mtok: 0.10, output_per_mtok: 0.50, cached_input_per_mtok: 0.01 }
+  openrouter/deepseek/deepseek-v4.1-flash: { input_per_mtok: 0.045, output_per_mtok: 0.50, cached_input_per_mtok: 0.018 }
   ollama/qwen3:8b: { input_per_mtok: 0.0, output_per_mtok: 0.0 }
   scripted: { input_per_mtok: 1.00, output_per_mtok: 5.00 }
 budgets:
