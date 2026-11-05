@@ -25,7 +25,9 @@ impl Crm {
         self.deals.lock().map_err(|_| ToolError::Internal("state poisoned".into()))
     }
 
-    fn query(&self, sql: &str) -> Result<Value, ToolError> {
+    /// SQL over one tenant's rows only: the query database holds nothing else, so no SQL can
+    /// reach another tenant (Warden pins `tenant` to the caller's tenants).
+    fn query(&self, tenant: &str, sql: &str) -> Result<Value, ToolError> {
         let db = Connection::open_in_memory().map_err(|e| ToolError::Internal(e.to_string()))?;
         let internal = |e: rusqlite::Error| ToolError::Internal(e.to_string());
         db.execute_batch(
@@ -33,11 +35,11 @@ impl Crm {
              CREATE TABLE deals (id TEXT PRIMARY KEY, tenant TEXT, title TEXT, amount INTEGER, stage TEXT, owner TEXT, account_id TEXT, account TEXT);",
         )
         .map_err(internal)?;
-        for a in &self.accounts {
+        for a in self.accounts.iter().filter(|a| a["tenant"] == tenant) {
             db.execute("INSERT INTO accounts VALUES (?1, ?2, ?3, ?4)", [&a["id"], &a["tenant"], &a["name"], &a["city"]].map(text))
                 .map_err(internal)?;
         }
-        for d in self.deals()?.iter() {
+        for d in self.deals()?.iter().filter(|d| d["tenant"] == tenant) {
             db.execute(
                 "INSERT INTO deals VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
                 rusqlite::params![
@@ -124,8 +126,8 @@ impl McpServer for Crm {
             },
             ToolDef {
                 name: "query",
-                description: "Read-only SQL over the tables deals(id, tenant, title, amount, stage, owner, account_id, account) and accounts(id, tenant, name, city).",
-                input_schema: schema(json!({"sql": {"type": "string"}}), &["sql"]),
+                description: "Read-only SQL over one tenant: tables deals(id, tenant, title, amount, stage, owner, account_id, account) and accounts(id, tenant, name, city).",
+                input_schema: schema(json!({"tenant": {"type": "string"}, "sql": {"type": "string"}}), &["tenant", "sql"]),
             },
         ]
     }
@@ -177,7 +179,7 @@ impl McpServer for Crm {
                 self.effects.push(&self.name, tool, caller, args);
                 Ok(json!({"tenant": tenant, "csv": csv}))
             }
-            "query" => self.query(arg_str(args, "sql")?),
+            "query" => self.query(arg_str(args, "tenant")?, arg_str(args, "sql")?),
             _ => Err(ToolError::Invalid(format!("unknown tool `{tool}`"))),
         }
     }
@@ -198,9 +200,12 @@ mod tests {
     #[tokio::test]
     async fn sql_is_read_only_even_if_the_policy_failed() {
         let c = crm();
-        let r = c.call(&Caller::anonymous(), "query", &json!({"sql": "SELECT id, amount FROM deals"})).await.unwrap();
+        let r = c.call(&Caller::anonymous(), "query", &json!({"tenant": "dach", "sql": "SELECT id, amount FROM deals"})).await.unwrap();
         assert_eq!(r["rows"][0]["amount"], 1000);
-        assert!(c.call(&Caller::anonymous(), "query", &json!({"sql": "DELETE FROM deals"})).await.is_err());
+        assert!(c.call(&Caller::anonymous(), "query", &json!({"tenant": "dach", "sql": "DELETE FROM deals"})).await.is_err());
+        // Another tenant's query database is empty: no SQL reaches dach's rows.
+        let other = c.call(&Caller::anonymous(), "query", &json!({"tenant": "nordics", "sql": "SELECT id FROM deals WHERE tenant = 'dach'"})).await.unwrap();
+        assert_eq!(other["rows"].as_array().unwrap().len(), 0);
     }
 
     #[tokio::test]

@@ -10,7 +10,7 @@ CI checks this with `steward-seed --check`.
 |---|---:|---|
 | `chat.json` | 3945 | `5bb1cc28673726be` |
 | `corpus.json` | 8522 | `98023fe971e46ba3` |
-| `crm.json` | 10911 | `7bff9bd2e9974ed4` |
+| `crm.json` | 10837 | `1dd3cca892878514` |
 | `docs/finance-travel-policy.pdf` | 2549 | `e4d978985aabccda` |
 | `docs/handbook-employees.pdf` | 4112 | `25f95c595f2a7c79` |
 | `docs/hr-onboarding.pdf` | 2694 | `9b651d0e9a80525f` |
@@ -21,7 +21,7 @@ CI checks this with `steward-seed --check`.
 | `docs/sales-pricing-2026.pdf` | 2833 | `c39dd9ada231dc92` |
 | `hr.json` | 12944 | `31d9e96476b63035` |
 | `jira.json` | 1203 | `2f7de42f0a99ddb2` |
-| `keycloak/realm.json` | 10967 | `5d8fb9eca944715c` |
+| `keycloak/realm.json` | 11058 | `7279575c13a4d780` |
 | `pages/finance-travel-policy/1.png` | 37384 | `f64e2c0b2c6b902e` |
 | `pages/finance-travel-policy/2.png` | 25287 | `bace20ca713f8eb1` |
 | `pages/handbook-employees/1.png` | 74036 | `722b9f1f43f3648b` |
@@ -40,4 +40,4 @@ CI checks this with `steward-seed --check`.
 | `pages/sales-pricing-2026/1.png` | 44118 | `48476023b164f683` |
 | `pages/sales-pricing-2026/2.png` | 44760 | `9a6fbaa361512194` |
 | `tickets.json` | 9076 | `377dd4556423c650` |
-| `users.json` | 3017 | `304256339d7c6c6f` |
+| `users.json` | 3098 | `3f70db2f6bd16ae9` |

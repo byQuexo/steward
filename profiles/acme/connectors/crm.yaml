@@ -8,4 +8,4 @@ tools:
   get_deal:     { scopes: [crm:read], tags: [tenant-scoped], description: "Einen Deal lesen." }
   update_deal:  { scopes: [crm:write], sensitivity: write, tags: [tenant-scoped], description: "Betrag oder Stufe eines Deals ändern." }
   export_deals: { scopes: [crm:export], tags: [tenant-scoped, bulk], description: "Alle Deals eines Mandanten als CSV." }
-  query:        { scopes: [crm:read], description: "Lesende SQL-Abfrage auf deals und accounts." }
+  query:        { scopes: [crm:read], tags: [tenant-scoped], description: "Lesende SQL-Abfrage auf deals und accounts eines Mandanten." }

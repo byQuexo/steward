@@ -11,7 +11,7 @@ tool:
   crm.export_deals: { scopes: [crm:export], tags: [tenant-scoped, bulk] }
   crm.get_deal: { scopes: [crm:read], tags: [tenant-scoped] }
   crm.list_deals: { scopes: [crm:read], tags: [tenant-scoped] }
-  crm.query: { scopes: [crm:read] }
+  crm.query: { scopes: [crm:read], tags: [tenant-scoped] }
   crm.update_deal: { scopes: [crm:write], sensitivity: write, tags: [tenant-scoped] }
   # Dokumente (docs)
   docs.list_documents: { scopes: [docs:read] }

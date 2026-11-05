@@ -15,7 +15,7 @@ demo_users:
   - { id: sara,   name: Sara Yilmaz,    title: Vertriebsleiterin,      roles: [sales-lead], teams: [sales],   unit: sales, tenants: [dach, nordics] }
   - { id: ivo,    name: Ivo Peters,     title: IT-Support,             roles: [it-member],  teams: [it],      unit: it }
   - { id: ines,   name: Ines Hoffmann,  title: IT-Administratorin,     roles: [it-admin],   teams: [it],      unit: it }
-  - { id: fiona,  name: Fiona Lang,     title: Controllerin,           roles: [finance],    teams: [finance], unit: finance }
+  - { id: fiona,  name: Fiona Lang,     title: Controllerin,           roles: [finance],    teams: [finance], unit: finance, tenants: [dach, nordics, benelux] }
 
 hr:
   units: [hr, sales, it, finance, engineering]

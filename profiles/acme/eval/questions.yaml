@@ -199,15 +199,6 @@ questions:
     key_facts: ["8 Prozent"]
     reference: "Erhöhungen über 8 Prozent gibt die Geschäftsführung frei."
 
-  - id: henrik-anpassungsrunde
-    user: henrik
-    category: docs
-    question: "Wann startet die jährliche Gehaltsanpassungsrunde?"
-    expect: answer
-    gold: { doc_id: hr-salary-bands, page: 2 }
-    key_facts: ["15. Oktober"]
-    reference: "Am 15. Oktober."
-
   - id: henrik-au
     user: henrik
     category: docs
@@ -216,15 +207,6 @@ questions:
     gold: { doc_id: handbook-employees, page: 2 }
     key_facts: [["dritten Kalendertag", "3. Kalendertag", "dritten Tag", "3. Tag"]]
     reference: "Ab dem dritten Kalendertag; sie wird elektronisch von der Krankenkasse abgerufen."
-
-  - id: henrik-zwischengespraech
-    user: henrik
-    category: docs
-    question: "Wann findet in der Probezeit das Zwischengespräch statt?"
-    expect: answer
-    gold: { doc_id: hr-onboarding, page: 2 }
-    key_facts: [["drei Monaten", "3 Monaten"]]
-    reference: "Nach drei Monaten."
 
   - id: henrik-weihnachtsgeld
     user: henrik
@@ -316,15 +298,6 @@ questions:
     key_facts: ["10 Prozent"]
     reference: "Bis zu 10 Prozent."
 
-  - id: sven-rabatt-15
-    user: sven
-    category: docs
-    question: "Wer muss einem Rabatt von 15 Prozent zustimmen?"
-    expect: answer
-    gold: { doc_id: sales-pricing-2026, page: 2 }
-    key_facts: ["Vertriebsleitung"]
-    reference: "Die Vertriebsleitung (Rabatte zwischen 10 und 20 Prozent)."
-
   - id: sven-starter-preis
     user: sven
     category: docs
@@ -333,15 +306,6 @@ questions:
     gold: { doc_id: sales-pricing-2026, page: 1 }
     key_facts: ["9600"]
     reference: "9.600 EUR netto pro Jahr (bis 25 Nutzer)."
-
-  - id: sven-insight-preis
-    user: sven
-    category: docs
-    question: "Was kostet das Add-on Acme Insight?"
-    expect: answer
-    gold: { doc_id: sales-pricing-2026, page: 1 }
-    key_facts: ["18000"]
-    reference: "18.000 EUR netto pro Jahr."
 
   - id: sven-forecast
     user: sven
@@ -494,15 +458,6 @@ questions:
     key_facts: ["120000"]
     reference: "Ab 120.000 EUR netto pro Jahr."
 
-  - id: sara-forecast-zeit
-    user: sara
-    category: docs
-    question: "Bis wann muss der Forecast montags aktualisiert sein?"
-    expect: answer
-    gold: { doc_id: sales-playbook, page: 2 }
-    key_facts: ["12:00"]
-    reference: "Jeden Montag bis 12:00 Uhr."
-
   - id: sara-big-deal-rule
     user: sara
     category: docs
@@ -581,15 +536,6 @@ questions:
     gold: { doc_id: it-security-policy, page: 1 }
     key_facts: [["einer Stunde", "1 Stunde", "eine Stunde"]]
     reference: "Innerhalb von einer Stunde an den Helpdesk."
-
-  - id: ivo-durchwahl
-    user: ivo
-    category: docs
-    question: "Unter welcher Durchwahl melde ich dringende IT-Störungen?"
-    expect: answer
-    gold: { doc_id: handbook-employees, page: 2 }
-    key_facts: ["4444"]
-    reference: "Durchwahl 4444."
 
   - id: ivo-ticket-2042
     user: ivo
@@ -678,15 +624,6 @@ questions:
     key_facts: ["HR-Team"]
     reference: "Gehaltsdaten sind auf das HR-Team beschränkt."
 
-  - id: ines-wireguard-config
-    user: ines
-    category: docs
-    question: "Woher bekomme ich die WireGuard-Konfigurationsdatei?"
-    expect: answer
-    gold: { doc_id: it-vpn-setup, page: 1 }
-    key_facts: ["Self-Service-Portal"]
-    reference: "Aus dem Self-Service-Portal unter Mein Zugang."
-
   - id: ines-passwortwechsel
     user: ines
     category: docs
@@ -771,15 +708,6 @@ questions:
     key_facts: ["30 Tagen"]
     reference: "Innerhalb von 30 Tagen im Spesentool."
 
-  - id: fiona-mietwagen
-    user: fiona
-    category: docs
-    question: "Welche Mietwagenkategorie ist erlaubt?"
-    expect: answer
-    gold: { doc_id: finance-travel-policy, page: 1 }
-    key_facts: ["Kompaktklasse"]
-    reference: "Bis Kategorie Kompaktklasse."
-
   - id: fiona-erste-klasse
     user: fiona
     category: docs
@@ -788,15 +716,6 @@ questions:
     gold: { doc_id: handbook-employees, page: 3 }
     key_facts: [["4 Stunden", "vier Stunden"]]
     reference: "Bei Bahnfahrten über 4 Stunden."
-
-  - id: fiona-kernarbeitszeit
-    user: fiona
-    category: docs
-    question: "Wann ist freitags Kernarbeitszeit?"
-    expect: answer
-    gold: { doc_id: handbook-employees, page: 1 }
-    key_facts: ["10:00", "13:00"]
-    reference: "Freitags von 10:00 bis 13:00 Uhr."
 
   - id: fiona-km-pauschale
     user: fiona

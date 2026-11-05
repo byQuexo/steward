@@ -116,7 +116,7 @@
       "title": "Acme Insight Add-on",
       "amount": 73000,
       "stage": "Qualifizierung",
-      "owner": "sara",
+      "owner": "fiona",
       "account_id": "a-004",
       "account": "Scheuermann AG"
     },
@@ -124,21 +124,21 @@
       "id": "d-1002",
       "tenant": "dach",
       "title": "Acme Flow Starter",
-      "amount": 49500,
-      "stage": "Abschluss",
-      "owner": "sven",
-      "account_id": "a-001",
-      "account": "Müller Maschinenbau AG"
+      "amount": 16500,
+      "stage": "Demo",
+      "owner": "fiona",
+      "account_id": "a-004",
+      "account": "Scheuermann AG"
     },
     {
       "id": "d-1003",
       "tenant": "dach",
-      "title": "Acme Flow Business",
-      "amount": 77500,
-      "stage": "Verhandlung",
-      "owner": "sven",
-      "account_id": "a-004",
-      "account": "Scheuermann AG"
+      "title": "Acme Flow Enterprise",
+      "amount": 58000,
+      "stage": "Angebot",
+      "owner": "sara",
+      "account_id": "a-001",
+      "account": "Müller Maschinenbau AG"
     },
     {
       "id": "d-1004",
@@ -146,29 +146,29 @@
       "title": "Acme Insight Add-on",
       "amount": 64000,
       "stage": "Qualifizierung",
-      "owner": "sven",
-      "account_id": "a-007",
-      "account": "Bonbach Steckel GmbH & Co. KG"
+      "owner": "fiona",
+      "account_id": "a-003",
+      "account": "Klingelhöfer"
     },
     {
       "id": "d-1005",
       "tenant": "dach",
-      "title": "Acme Flow Business",
-      "amount": 134000,
-      "stage": "Qualifizierung",
-      "owner": "sara",
-      "account_id": "a-005",
-      "account": "Kruschwitz Geißler Stiftung & Co. KG"
+      "title": "Acme Insight Add-on",
+      "amount": 70500,
+      "stage": "Verhandlung",
+      "owner": "sven",
+      "account_id": "a-003",
+      "account": "Klingelhöfer"
     },
     {
       "id": "d-1006",
       "tenant": "dach",
-      "title": "Acme Flow Starter",
-      "amount": 15000,
-      "stage": "Demo",
+      "title": "Acme Insight Add-on",
+      "amount": 45500,
+      "stage": "Qualifizierung",
       "owner": "sven",
-      "account_id": "a-003",
-      "account": "Klingelhöfer"
+      "account_id": "a-007",
+      "account": "Bonbach Steckel GmbH & Co. KG"
     },
     {
       "id": "d-1007",
@@ -184,41 +184,41 @@
       "id": "d-1008",
       "tenant": "dach",
       "title": "Acme Flow Business",
-      "amount": 11500,
+      "amount": 74000,
       "stage": "Demo",
-      "owner": "sven",
-      "account_id": "a-004",
-      "account": "Scheuermann AG"
+      "owner": "fiona",
+      "account_id": "a-003",
+      "account": "Klingelhöfer"
     },
     {
       "id": "d-1009",
       "tenant": "dach",
-      "title": "Acme Flow Starter",
-      "amount": 134500,
-      "stage": "Demo",
-      "owner": "sven",
-      "account_id": "a-007",
-      "account": "Bonbach Steckel GmbH & Co. KG"
+      "title": "Acme Flow Business",
+      "amount": 29000,
+      "stage": "Qualifizierung",
+      "owner": "sara",
+      "account_id": "a-001",
+      "account": "Müller Maschinenbau AG"
     },
     {
       "id": "d-1010",
       "tenant": "dach",
-      "title": "Acme Flow Business",
-      "amount": 23000,
-      "stage": "Abschluss",
+      "title": "Acme Flow Starter",
+      "amount": 120000,
+      "stage": "Demo",
       "owner": "sven",
-      "account_id": "a-005",
-      "account": "Kruschwitz Geißler Stiftung & Co. KG"
+      "account_id": "a-003",
+      "account": "Klingelhöfer"
     },
     {
       "id": "d-1011",
       "tenant": "dach",
-      "title": "Acme Flow Enterprise",
-      "amount": 111000,
+      "title": "Acme Flow Starter",
+      "amount": 29000,
       "stage": "Angebot",
-      "owner": "sven",
-      "account_id": "a-001",
-      "account": "Müller Maschinenbau AG"
+      "owner": "sara",
+      "account_id": "a-006",
+      "account": "Schüler AG & Co. OHG"
     },
     {
       "id": "d-1012",
@@ -233,29 +233,29 @@
     {
       "id": "d-1013",
       "tenant": "dach",
-      "title": "Acme Flow Business",
-      "amount": 48500,
-      "stage": "Demo",
+      "title": "Acme Flow Enterprise",
+      "amount": 63500,
+      "stage": "Angebot",
       "owner": "sven",
-      "account_id": "a-004",
-      "account": "Scheuermann AG"
+      "account_id": "a-007",
+      "account": "Bonbach Steckel GmbH & Co. KG"
     },
     {
       "id": "d-1014",
       "tenant": "nordics",
-      "title": "Acme Flow Starter",
-      "amount": 102500,
-      "stage": "Abschluss",
-      "owner": "sara",
-      "account_id": "a-009",
-      "account": "Austermühle"
+      "title": "Acme Flow Business",
+      "amount": 154000,
+      "stage": "Qualifizierung",
+      "owner": "fiona",
+      "account_id": "a-008",
+      "account": "Girschner AG & Co. OHG"
     },
     {
       "id": "d-1015",
       "tenant": "nordics",
       "title": "Acme Flow Enterprise",
-      "amount": 91500,
-      "stage": "Abschluss",
+      "amount": 150500,
+      "stage": "Qualifizierung",
       "owner": "sara",
       "account_id": "a-002",
       "account": "Fjord Logistics AS"
@@ -264,54 +264,64 @@
       "id": "d-1016",
       "tenant": "nordics",
       "title": "Acme Flow Enterprise",
-      "amount": 94500,
+      "amount": 91500,
       "stage": "Abschluss",
-      "owner": "sara",
-      "account_id": "a-008",
-      "account": "Girschner AG & Co. OHG"
+      "owner": "fiona",
+      "account_id": "a-012",
+      "account": "Binner"
     },
     {
       "id": "d-1017",
       "tenant": "nordics",
-      "title": "Acme Flow Starter",
-      "amount": 100000,
-      "stage": "Verhandlung",
-      "owner": "sara",
+      "title": "Acme Flow Enterprise",
+      "amount": 94500,
+      "stage": "Abschluss",
+      "owner": "fiona",
       "account_id": "a-008",
       "account": "Girschner AG & Co. OHG"
     },
     {
       "id": "d-1018",
       "tenant": "nordics",
-      "title": "Acme Insight Add-on",
-      "amount": 123500,
+      "title": "Acme Flow Starter",
+      "amount": 100000,
       "stage": "Verhandlung",
-      "owner": "sara",
-      "account_id": "a-012",
-      "account": "Binner"
+      "owner": "fiona",
+      "account_id": "a-008",
+      "account": "Girschner AG & Co. OHG"
     },
     {
       "id": "d-1019",
       "tenant": "nordics",
-      "title": "Acme Flow Business",
-      "amount": 43000,
-      "stage": "Angebot",
-      "owner": "sara",
-      "account_id": "a-010",
-      "account": "Adler"
-    },
-    {
-      "id": "d-1020",
-      "tenant": "nordics",
-      "title": "Acme Flow Starter",
-      "amount": 126500,
+      "title": "Acme Insight Add-on",
+      "amount": 123500,
       "stage": "Verhandlung",
-      "owner": "sara",
+      "owner": "fiona",
       "account_id": "a-012",
       "account": "Binner"
     },
     {
+      "id": "d-1020",
+      "tenant": "nordics",
+      "title": "Acme Flow Business",
+      "amount": 43000,
+      "stage": "Angebot",
+      "owner": "fiona",
+      "account_id": "a-010",
+      "account": "Adler"
+    },
+    {
       "id": "d-1021",
+      "tenant": "nordics",
+      "title": "Acme Flow Starter",
+      "amount": 126500,
+      "stage": "Verhandlung",
+      "owner": "fiona",
+      "account_id": "a-012",
+      "account": "Binner"
+    },
+    {
+      "id": "d-1022",
       "tenant": "nordics",
       "title": "Acme Flow Business",
       "amount": 154500,
@@ -321,92 +331,82 @@
       "account": "Austermühle"
     },
     {
-      "id": "d-1022",
+      "id": "d-1023",
       "tenant": "nordics",
       "title": "Acme Flow Business",
       "amount": 145500,
       "stage": "Qualifizierung",
-      "owner": "sara",
-      "account_id": "a-012",
-      "account": "Binner"
-    },
-    {
-      "id": "d-1023",
-      "tenant": "nordics",
-      "title": "Acme Insight Add-on",
-      "amount": 109500,
-      "stage": "Angebot",
-      "owner": "sara",
+      "owner": "fiona",
       "account_id": "a-012",
       "account": "Binner"
     },
     {
       "id": "d-1024",
       "tenant": "nordics",
-      "title": "Acme Flow Enterprise",
-      "amount": 155000,
-      "stage": "Qualifizierung",
-      "owner": "sara",
-      "account_id": "a-009",
-      "account": "Austermühle"
+      "title": "Acme Insight Add-on",
+      "amount": 109500,
+      "stage": "Angebot",
+      "owner": "fiona",
+      "account_id": "a-012",
+      "account": "Binner"
     },
     {
       "id": "d-1025",
       "tenant": "benelux",
-      "title": "Acme Flow Business",
-      "amount": 130500,
-      "stage": "Abschluss",
-      "owner": "unassigned",
-      "account_id": "a-013",
-      "account": "Steinberg Koch II OHG mbH"
+      "title": "Acme Flow Enterprise",
+      "amount": 155000,
+      "stage": "Qualifizierung",
+      "owner": "fiona",
+      "account_id": "a-015",
+      "account": "van der Dussen GmbH"
     },
     {
       "id": "d-1026",
       "tenant": "benelux",
       "title": "Acme Flow Business",
-      "amount": 58000,
-      "stage": "Demo",
-      "owner": "unassigned",
-      "account_id": "a-016",
-      "account": "Killer"
-    },
-    {
-      "id": "d-1027",
-      "tenant": "benelux",
-      "title": "Acme Flow Enterprise",
-      "amount": 78500,
-      "stage": "Qualifizierung",
-      "owner": "unassigned",
+      "amount": 130500,
+      "stage": "Abschluss",
+      "owner": "fiona",
       "account_id": "a-013",
       "account": "Steinberg Koch II OHG mbH"
     },
     {
+      "id": "d-1027",
+      "tenant": "benelux",
+      "title": "Acme Flow Business",
+      "amount": 58000,
+      "stage": "Demo",
+      "owner": "fiona",
+      "account_id": "a-016",
+      "account": "Killer"
+    },
+    {
       "id": "d-1028",
       "tenant": "benelux",
-      "title": "Acme Insight Add-on",
-      "amount": 157000,
-      "stage": "Abschluss",
-      "owner": "unassigned",
-      "account_id": "a-017",
-      "account": "Haering Heß GmbH"
+      "title": "Acme Flow Enterprise",
+      "amount": 78500,
+      "stage": "Qualifizierung",
+      "owner": "fiona",
+      "account_id": "a-013",
+      "account": "Steinberg Koch II OHG mbH"
     },
     {
       "id": "d-1029",
       "tenant": "benelux",
-      "title": "Acme Flow Starter",
-      "amount": 131000,
-      "stage": "Angebot",
-      "owner": "unassigned",
-      "account_id": "a-016",
-      "account": "Killer"
+      "title": "Acme Insight Add-on",
+      "amount": 157000,
+      "stage": "Abschluss",
+      "owner": "fiona",
+      "account_id": "a-017",
+      "account": "Haering Heß GmbH"
     },
     {
       "id": "d-1030",
       "tenant": "benelux",
       "title": "Acme Flow Starter",
-      "amount": 124500,
-      "stage": "Demo",
-      "owner": "unassigned",
+      "amount": 131000,
+      "stage": "Angebot",
+      "owner": "fiona",
       "account_id": "a-016",
       "account": "Killer"
     },
@@ -414,61 +414,61 @@
       "id": "d-1031",
       "tenant": "benelux",
       "title": "Acme Flow Starter",
-      "amount": 127500,
-      "stage": "Abschluss",
-      "owner": "unassigned",
-      "account_id": "a-017",
-      "account": "Haering Heß GmbH"
+      "amount": 124500,
+      "stage": "Demo",
+      "owner": "fiona",
+      "account_id": "a-016",
+      "account": "Killer"
     },
     {
       "id": "d-1032",
       "tenant": "benelux",
-      "title": "Acme Insight Add-on",
-      "amount": 133500,
-      "stage": "Demo",
-      "owner": "unassigned",
-      "account_id": "a-018",
-      "account": "Staude OHG mbH"
+      "title": "Acme Flow Starter",
+      "amount": 127500,
+      "stage": "Abschluss",
+      "owner": "fiona",
+      "account_id": "a-017",
+      "account": "Haering Heß GmbH"
     },
     {
       "id": "d-1033",
       "tenant": "benelux",
       "title": "Acme Insight Add-on",
-      "amount": 18000,
-      "stage": "Abschluss",
-      "owner": "unassigned",
-      "account_id": "a-013",
-      "account": "Steinberg Koch II OHG mbH"
+      "amount": 133500,
+      "stage": "Demo",
+      "owner": "fiona",
+      "account_id": "a-018",
+      "account": "Staude OHG mbH"
     },
     {
       "id": "d-1034",
       "tenant": "benelux",
-      "title": "Acme Flow Starter",
-      "amount": 26000,
-      "stage": "Demo",
-      "owner": "unassigned",
-      "account_id": "a-016",
-      "account": "Killer"
+      "title": "Acme Insight Add-on",
+      "amount": 18000,
+      "stage": "Abschluss",
+      "owner": "fiona",
+      "account_id": "a-013",
+      "account": "Steinberg Koch II OHG mbH"
     },
     {
       "id": "d-1035",
       "tenant": "benelux",
       "title": "Acme Flow Starter",
-      "amount": 88500,
-      "stage": "Qualifizierung",
-      "owner": "unassigned",
-      "account_id": "a-015",
-      "account": "van der Dussen GmbH"
+      "amount": 26000,
+      "stage": "Demo",
+      "owner": "fiona",
+      "account_id": "a-016",
+      "account": "Killer"
     },
     {
       "id": "d-1036",
       "tenant": "benelux",
       "title": "Acme Flow Starter",
-      "amount": 98000,
+      "amount": 88500,
       "stage": "Qualifizierung",
-      "owner": "unassigned",
-      "account_id": "a-014",
-      "account": "Freudenberger AG & Co. OHG"
+      "owner": "fiona",
+      "account_id": "a-015",
+      "account": "van der Dussen GmbH"
     }
   ]
 }

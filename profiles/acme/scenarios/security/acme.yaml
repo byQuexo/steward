@@ -12,7 +12,7 @@ principals:
   sara:   { subject: { id: sara,   roles: [sales-lead], attrs: { org_unit: sales, teams: [sales], tenants: [dach, nordics], doc_scope: [handbook-employees, sales-playbook, sales-pricing-2026] } }, agent: acme-bot }
   ivo:    { subject: { id: ivo,    roles: [it-member],  attrs: { org_unit: it, teams: [it], doc_scope: [handbook-employees, it-security-policy, it-vpn-setup] } }, agent: acme-bot }
   ines:   { subject: { id: ines,   roles: [it-admin],   attrs: { org_unit: it, teams: [it], doc_scope: [handbook-employees, it-security-policy, it-vpn-setup] } }, agent: acme-bot }
-  fiona:  { subject: { id: fiona,  roles: [finance],    attrs: { org_unit: finance, teams: [finance], doc_scope: [finance-travel-policy, handbook-employees] } }, agent: acme-bot }
+  fiona:  { subject: { id: fiona,  roles: [finance],    attrs: { org_unit: finance, teams: [finance], tenants: [dach, nordics, benelux], doc_scope: [finance-travel-policy, handbook-employees] } }, agent: acme-bot }
   # A2A: Sara's request handed to the sub-agents (delegation tokens from the token service).
   sara-research:            { subject: { id: sara, roles: [sales-lead], attrs: { tenants: [dach, nordics] } }, agent: acme-research, act: [acme-bot] }
   sara-action:              { subject: { id: sara, roles: [sales-lead], attrs: { tenants: [dach, nordics] } }, agent: acme-action, act: [acme-bot] }
@@ -36,8 +36,10 @@ cases:
   - { id: T4, title: Small change goes through, as: sven, action: { kind: tool, name: crm.update_deal, args: { tenant: dach, deal_id: d-1007, amount: 45000 } }, expect: { effect: allow } }
   - { id: T5, title: Absurd amount, as: sven, action: { kind: tool, name: crm.update_deal, args: { tenant: dach, deal_id: d-1007, amount: 99000000000 } }, expect: { effect: deny, rule: deal-amount-is-sane } }
   - { id: T6, title: Amount as text cannot skip the approval, as: sven, action: { kind: tool, name: crm.update_deal, args: { tenant: dach, deal_id: d-1007, amount: "80000" } }, expect: { effect: deny } }
-  - { id: T7, title: SQL write, as: sven, action: { kind: tool, name: crm.query, args: { sql: "UPDATE deals SET amount = 1" } }, expect: { effect: deny, rule: read-only-sql } }
-  - { id: T8, title: SQL read, as: sven, action: { kind: tool, name: crm.query, args: { sql: "SELECT tenant, SUM(amount) FROM deals GROUP BY tenant" } }, expect: { effect: allow } }
+  - { id: T7, title: SQL write, as: sven, action: { kind: tool, name: crm.query, args: { tenant: dach, sql: "UPDATE deals SET amount = 1" } }, expect: { effect: deny, rule: read-only-sql } }
+  - { id: T8, title: SQL read in own tenant, as: sven, action: { kind: tool, name: crm.query, args: { tenant: dach, sql: "SELECT stage, SUM(amount) FROM deals GROUP BY stage" } }, expect: { effect: allow } }
+  - { id: T8b, title: SQL into another tenant, as: sven, action: { kind: tool, name: crm.query, args: { tenant: benelux, sql: "SELECT * FROM deals" } }, expect: { effect: deny, rule: tenant-pinning } }
+  - { id: T8c, title: Finance reads every tenant, as: fiona, action: { kind: tool, name: crm.query, args: { tenant: benelux, sql: "SELECT SUM(amount) FROM deals" } }, expect: { effect: allow } }
   - { id: T9, title: Export needs two approvers, as: sara, action: { kind: tool, name: crm.export_deals, args: { tenant: nordics } }, expect: { effect: require_approval, rule: bulk-export-four-eyes } }
   - { id: T10, title: Sales reps cannot export, as: sven, action: { kind: tool, name: crm.export_deals, args: { tenant: dach } }, expect: { effect: deny, rule: scope.missing } }
 

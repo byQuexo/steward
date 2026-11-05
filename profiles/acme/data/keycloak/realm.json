@@ -244,6 +244,11 @@
         "org_unit": [
           "finance"
         ],
+        "tenants": [
+          "dach",
+          "nordics",
+          "benelux"
+        ],
         "teams": [
           "finance"
         ],
