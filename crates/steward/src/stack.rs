@@ -92,6 +92,7 @@ async fn bind() -> Result<(TcpListener, String), String> {
 /// Identity config of the gateway: user and delegation tokens from the token service, checked
 /// against it by introspection so revocation applies to the next call.
 pub fn gateway_identity(issuer: &str, audience: &str, introspection_cache_s: u64) -> Result<IdentityConfig, String> {
+    let mapping = steward_config::TOKEN_MAPPING;
     IdentityConfig::from_yaml_str(&format!(
         r#"version: 1
 issuers:
@@ -99,7 +100,7 @@ issuers:
     audience: {audience}
     jwks_uri: {issuer}/jwks
     algorithms: [ES256]
-    mapping: {{ preset: keycloak, attrs: {{ org_unit: /org_unit, tenants: /tenants, teams: /teams, doc_scope: /doc_scope }} }}
+    mapping: {mapping}
     introspection: {{ endpoint: {issuer}/introspect, client_id: gateway, secret_env: {GATEWAY_SECRET_ENV}, cache_s: {introspection_cache_s} }}
 delegation_issuers: [{issuer}]
 scope_claim: ignore
@@ -109,8 +110,9 @@ scope_claim: ignore
 
 /// Identity config the built-in MCP servers use for exchanged tokens.
 pub fn upstream_identity(issuer: &str) -> Result<IdentityConfig, String> {
+    let mapping = steward_config::TOKEN_MAPPING;
     IdentityConfig::from_yaml_str(&format!(
-        "version: 1\nissuers:\n  - {{ issuer: {issuer}, audience: {UPSTREAM_AUDIENCE}, jwks_uri: {issuer}/jwks, algorithms: [ES256], mapping: {{ preset: keycloak, attrs: {{ doc_scope: /doc_scope, teams: /teams, org_unit: /org_unit, tenants: /tenants }} }} }}\ndelegation_issuers: [{issuer}]\nscope_claim: ignore\n"
+        "version: 1\nissuers:\n  - {{ issuer: {issuer}, audience: {UPSTREAM_AUDIENCE}, jwks_uri: {issuer}/jwks, algorithms: [ES256], mapping: {mapping} }}\ndelegation_issuers: [{issuer}]\nscope_claim: ignore\n"
     ))
 }
 

@@ -64,6 +64,18 @@ enum Cmd {
         #[arg(long)]
         public_url: String,
     },
+    /// Warden's A2A proxy in front of a sub-agent (skill checks, task ownership, token exchange).
+    A2aProxy {
+        #[arg(long)]
+        config: PathBuf,
+        /// The agent's A2A endpoint.
+        #[arg(long)]
+        upstream: String,
+        #[arg(long, default_value = "0.0.0.0:9500")]
+        listen: String,
+        #[arg(long)]
+        public_url: String,
+    },
     /// Profile tooling.
     Profile {
         #[command(subcommand)]
@@ -82,6 +94,13 @@ enum ProfileCmd {
     Check {
         #[arg(long)]
         profile: PathBuf,
+    },
+    /// Write the compose configuration for a profile (deploy/<profile>/).
+    Deploy {
+        #[arg(long)]
+        profile: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
     },
 }
 
@@ -161,8 +180,13 @@ async fn main() {
                 Err(e) => Err(e),
             }
         }
+        Cmd::A2aProxy { config, upstream, listen, public_url } => match steward::serve::load(&config) {
+            Ok(cfg) => steward::serve::a2a_proxy(cfg, &upstream, &listen, &public_url).await.map(|_| 0),
+            Err(e) => Err(e),
+        },
         Cmd::Profile { cmd: ProfileCmd::Generate { profile } } => steward::profile_cmd::run(&profile, false),
         Cmd::Profile { cmd: ProfileCmd::Check { profile } } => steward::profile_cmd::run(&profile, true),
+        Cmd::Profile { cmd: ProfileCmd::Deploy { profile, out } } => steward::profile_cmd::deploy(&profile, &out),
     };
     match code {
         Ok(c) => std::process::exit(c),

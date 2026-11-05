@@ -15,6 +15,7 @@ use axum::{Json, Router};
 use rig_core::message::Message;
 use serde::Deserialize;
 use serde_json::{json, Value};
+use sha2::Digest as _;
 use steward_agents::Runtime;
 use steward_config::Profile;
 use steward_cost::Ledger;
@@ -102,8 +103,9 @@ pub fn session_identity(
     algorithms: &str,
     delegation_issuer: &str,
 ) -> Result<IdentityConfig, String> {
+    let mapping = steward_config::TOKEN_MAPPING;
     IdentityConfig::from_yaml_str(&format!(
-        "version: 1\nissuers:\n  - {{ issuer: {issuer}, audience: {audience}, jwks_uri: {jwks_uri}, algorithms: [{algorithms}], mapping: {{ preset: keycloak, attrs: {{ org_unit: /org_unit, tenants: /tenants, teams: /teams, doc_scope: /doc_scope }} }} }}\ndelegation_issuers: [{delegation_issuer}]\nscope_claim: ignore\n"
+        "version: 1\nissuers:\n  - {{ issuer: {issuer}, audience: {audience}, jwks_uri: {jwks_uri}, algorithms: [{algorithms}], mapping: {mapping} }}\ndelegation_issuers: [{delegation_issuer}]\nscope_claim: ignore\n"
     ))
 }
 
@@ -181,6 +183,24 @@ impl FromRequestParts<Shared> for Authed {
 
     async fn from_request_parts(parts: &mut Parts, st: &Shared) -> Result<Self, Self::Rejection> {
         let unauthorized = || err(StatusCode::UNAUTHORIZED, "not logged in");
+        // API clients (scripts, the compose smoke test) may send the IdP's access token
+        // instead of a cookie; no cookie means no CSRF exposure.
+        if let Some(token) = parts.headers.get(header::AUTHORIZATION).and_then(|v| v.to_str().ok()).and_then(|v| v.strip_prefix("Bearer "))
+        {
+            let principal = st.verifier.verify(token, now_unix()).await.map_err(|_| unauthorized())?;
+            let session = Session {
+                id: format!("bearer:{}", &hex::encode(sha2::Sha256::digest(token.as_bytes()))[..16]),
+                user: principal.subject.id.clone(),
+                name: principal.subject.id.clone(),
+                access_token: token.to_string(),
+                refresh_token: None,
+                expires_at: None,
+                impersonated_by: principal.impersonated_by.clone(),
+                parent: None,
+                created: std::time::Instant::now(),
+            };
+            return Ok(Authed { session, principal });
+        }
         let id = cookie_value(&parts.headers).ok_or_else(unauthorized)?;
         let session = st.sessions.get(&id).ok_or_else(unauthorized)?;
         // State-changing requests carry a header a cross-site form cannot set (CSRF).

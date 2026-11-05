@@ -46,8 +46,11 @@ pub struct KeycloakCfg {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct GatewayCfg {
-    /// MCP endpoint (also the audience of user tokens).
+    /// MCP endpoint as reachable from this process.
     pub url: String,
+    /// Audience of user tokens (the gateway's public URL); defaults to `url`.
+    #[serde(default)]
+    pub audience: Option<String>,
     pub admin_url: String,
     pub admin_token_env: String,
     /// The gateway's audit directory, mounted read-only, for verification in the console.
@@ -64,6 +67,15 @@ pub struct StsCfg {
     pub issuer: Option<String>,
     pub bot_secret_env: String,
     pub console_secret_env: String,
+    /// Secret of the `a2a-proxy` client (only `steward a2a-proxy` needs it).
+    #[serde(default)]
+    pub a2a_proxy_secret_env: Option<String>,
+}
+
+impl GatewayCfg {
+    pub fn audience(&self) -> String {
+        self.audience.clone().unwrap_or_else(|| self.url.clone())
+    }
 }
 
 #[derive(Deserialize)]
@@ -124,6 +136,7 @@ pub fn load(path: &Path) -> Result<ServeConfig, String> {
 
 /// Users' tokens come from the IdP; impersonation and delegation tokens from the token service.
 pub fn token_identity(cfg: &ServeConfig, audience: &str) -> Result<IdentityConfig, String> {
+    let mapping = steward_config::TOKEN_MAPPING;
     let idp_jwks = match &cfg.oidc.backchannel {
         Some(b) => {
             let path = cfg.oidc.issuer.splitn(4, '/').nth(3).unwrap_or("");
@@ -132,9 +145,8 @@ pub fn token_identity(cfg: &ServeConfig, audience: &str) -> Result<IdentityConfi
         None => format!("{}/protocol/openid-connect/certs", cfg.oidc.issuer),
     };
     let sts_iss = cfg.sts.issuer.clone().unwrap_or_else(|| cfg.sts.url.clone());
-    let attrs = "{ org_unit: /org_unit, tenants: /tenants, teams: /teams, doc_scope: /doc_scope }";
     IdentityConfig::from_yaml_str(&format!(
-        "version: 1\nissuers:\n  - {{ issuer: {iss}, audience: {audience}, jwks_uri: {idp_jwks}, algorithms: [RS256], mapping: {{ preset: keycloak, attrs: {attrs} }} }}\n  - {{ issuer: {sts_iss}, audience: {audience}, jwks_uri: {sts}/jwks, algorithms: [ES256], mapping: {{ preset: keycloak, attrs: {attrs} }} }}\ndelegation_issuers: [{sts_iss}]\nscope_claim: ignore\n",
+        "version: 1\nissuers:\n  - {{ issuer: {iss}, audience: {audience}, jwks_uri: {idp_jwks}, algorithms: [RS256], mapping: {mapping} }}\n  - {{ issuer: {sts_iss}, audience: {audience}, jwks_uri: {sts}/jwks, algorithms: [ES256], mapping: {mapping} }}\ndelegation_issuers: [{sts_iss}]\nscope_claim: ignore\n",
         iss = cfg.oidc.issuer,
         sts = cfg.sts.url.trim_end_matches('/'),
     ))
@@ -225,7 +237,7 @@ pub async fn serve(cfg: ServeConfig) -> Result<(), String> {
         sessions: SessionStore::new(Duration::from_secs(8 * 3600)),
         directory: directory.clone(),
         tokens,
-        verifier: Verifier::new(token_identity(&cfg, &cfg.gateway.url)?),
+        verifier: Verifier::new(token_identity(&cfg, &cfg.gateway.audience())?),
         inbox: Inbox::new(profile.approvals.clone(), directory, bus.clone(), secret),
         bus,
         gateway: GatewayAdmin {
@@ -252,6 +264,7 @@ pub async fn serve(cfg: ServeConfig) -> Result<(), String> {
 
 /// `steward agent --role research|action`: a sub-agent as an A2A server.
 pub async fn agent(cfg: ServeConfig, role: AgentRole, listen: &str, public_url: &str) -> Result<(), String> {
+    let mapping = steward_config::TOKEN_MAPPING;
     let profile = Arc::new(Profile::load(&cfg.profile).map_err(|e| e.to_string())?);
     let engine = Arc::new(profile.engine().map_err(|e| e.to_string())?);
     let (ledger, _) = stores(&profile, &cfg.data_dir)?;
@@ -273,7 +286,7 @@ pub async fn agent(cfg: ServeConfig, role: AgentRole, listen: &str, public_url: 
     let client = profile.agent(role).map(|a| a.client_id.clone()).ok_or("agent not in profile")?;
     let sts_iss = cfg.sts.issuer.clone().unwrap_or_else(|| cfg.sts.url.clone());
     let identity = IdentityConfig::from_yaml_str(&format!(
-        "version: 1\nissuers:\n  - {{ issuer: {sts_iss}, audience: {aud}, jwks_uri: {sts}/jwks, algorithms: [ES256], mapping: {{ preset: keycloak, attrs: {{ org_unit: /org_unit, tenants: /tenants, teams: /teams, doc_scope: /doc_scope }} }} }}\ndelegation_issuers: [{sts_iss}]\nscope_claim: ignore\n",
+        "version: 1\nissuers:\n  - {{ issuer: {sts_iss}, audience: {aud}, jwks_uri: {sts}/jwks, algorithms: [ES256], mapping: {mapping} }}\ndelegation_issuers: [{sts_iss}]\nscope_claim: ignore\n",
         aud = crate::stack::AGENTS_AUDIENCE,
         sts = cfg.sts.url.trim_end_matches('/'),
     ))?;
@@ -285,11 +298,55 @@ pub async fn agent(cfg: ServeConfig, role: AgentRole, listen: &str, public_url: 
             token_url: format!("{}/token", cfg.sts.url.trim_end_matches('/')),
             client_id: client,
             client_secret: env(&cfg.sts.bot_secret_env)?,
-            gateway_audience: cfg.gateway.url.clone(),
+            gateway_audience: cfg.gateway.audience(),
         },
         public_url.into(),
     );
     let listener = tokio::net::TcpListener::bind(listen).await.map_err(|e| format!("{listen}: {e}"))?;
     tracing::info!(role = role.as_str(), %listen, "steward agent ready");
     axum::serve(listener, server.router()).await.map_err(|e| e.to_string())
+}
+
+/// `steward a2a-proxy`: Warden's A2A proxy in front of one sub-agent. Callers present a
+/// delegation token for `steward-a2a`; the proxy checks the skill against the profile's policy,
+/// binds tasks to their creator and exchanges the token for the agent's audience.
+pub async fn a2a_proxy(cfg: ServeConfig, upstream: &str, listen: &str, public_url: &str) -> Result<(), String> {
+    let mapping = steward_config::TOKEN_MAPPING;
+    use warden_a2a::{A2aProxy, A2aProxyConfig, UpstreamExchange};
+    let profile = Profile::load(&cfg.profile).map_err(|e| e.to_string())?;
+    let engine = Arc::new(profile.engine().map_err(|e| e.to_string())?);
+    let sts_iss = cfg.sts.issuer.clone().unwrap_or_else(|| cfg.sts.url.clone());
+    let identity = IdentityConfig::from_yaml_str(&format!(
+        "version: 1
+issuers:
+  - {{ issuer: {sts_iss}, audience: {aud}, jwks_uri: {sts}/jwks, algorithms: [ES256], mapping: {mapping} }}
+delegation_issuers: [{sts_iss}]
+scope_claim: ignore
+",
+        aud = crate::stack::A2A_PROXY_AUDIENCE,
+        sts = cfg.sts.url.trim_end_matches('/'),
+    ))?;
+    let secret = env(cfg.sts.a2a_proxy_secret_env.as_deref().ok_or("sts.a2a_proxy_secret_env is not set")?)?;
+    let proxy = A2aProxy::new(
+        A2aProxyConfig {
+            upstream_url: upstream.into(),
+            upstream_card_url: None,
+            public_url: public_url.into(),
+            skill_prefix: String::new(),
+            upstream_token: None,
+            upstream_exchange: Some(UpstreamExchange {
+                token_url: format!("{}/token", cfg.sts.url.trim_end_matches('/')),
+                client_id: "a2a-proxy".into(),
+                client_secret: secret,
+                audience: crate::stack::AGENTS_AUDIENCE.into(),
+            }),
+        },
+        engine,
+        Arc::new(Verifier::new(identity)),
+        Arc::new(warden_audit::StdoutSink) as Arc<dyn warden_audit::AuditSink>,
+        std::env::var("AUDIT_HMAC_KEY").unwrap_or_default().into_bytes(),
+    );
+    let listener = tokio::net::TcpListener::bind(listen).await.map_err(|e| format!("{listen}: {e}"))?;
+    tracing::info!(%listen, %upstream, "warden A2A proxy ready");
+    axum::serve(listener, proxy.router()).await.map_err(|e| e.to_string())
 }

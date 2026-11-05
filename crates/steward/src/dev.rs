@@ -51,8 +51,9 @@ impl Drop for DevApp {
 pub const SCRIPTED_FALLBACK: &str = "(Offline-Demo) Für diese Frage gibt es kein Drehbuch. Probiere einen der Vorschläge, oder setze einen API-Schlüssel (models.yaml), damit ein echtes Modell antwortet.";
 
 fn identity(issuer: &str, audience: &str) -> Result<IdentityConfig, String> {
+    let mapping = steward_config::TOKEN_MAPPING;
     IdentityConfig::from_yaml_str(&format!(
-        "version: 1\nissuers:\n  - {{ issuer: {issuer}, audience: {audience}, jwks_uri: {issuer}/jwks, algorithms: [ES256], mapping: {{ preset: keycloak, attrs: {{ org_unit: /org_unit, tenants: /tenants, teams: /teams, doc_scope: /doc_scope }} }} }}\ndelegation_issuers: [{issuer}]\nscope_claim: ignore\n"
+        "version: 1\nissuers:\n  - {{ issuer: {issuer}, audience: {audience}, jwks_uri: {issuer}/jwks, algorithms: [ES256], mapping: {mapping} }}\ndelegation_issuers: [{issuer}]\nscope_claim: ignore\n"
     ))
 }
 

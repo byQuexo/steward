@@ -1,0 +1,132 @@
+# The full Steward stack with Keycloak as identity provider.
+#
+#   make demo                    # PROFILE=acme (default) or PROFILE=devteam
+#   docker compose -f deploy/compose.yaml --env-file deploy/dev.env up --build
+#
+# Assistant http://localhost:8000 · Keycloak http://localhost:8080 (admin/admin) ·
+# Warden gateway http://localhost:8088/mcp · Phoenix http://localhost:6006
+#
+# Networks: the assistant reaches tools only through the Warden gateway. `tools` is internal
+# and the assistant is not on it, so it cannot even resolve an MCP server (checked by smoke.sh).
+name: steward
+
+x-steward: &steward
+  image: steward:local
+  build: { context: .., dockerfile: Dockerfile }
+  env_file: dev.env
+  volumes:
+    - ../profiles/${PROFILE:-acme}:/profile:ro
+    - ./${PROFILE:-acme}:/etc/steward:ro
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4
+    command: ["start-dev", "--import-realm", "--http-port=8080"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      # Tokens carry this issuer whether requested from the browser or from a container.
+      KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ../profiles/${PROFILE:-acme}/data/keycloak/realm.json:/opt/keycloak/data/import/realm.json:ro
+    ports: ["8080:8080"]
+    networks: [edge, agents]
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  sts:
+    <<: *steward
+    entrypoint: ["warden"]
+    command: ["sts", "--config", "/etc/steward/sts.yaml", "--dev"]
+    volumes:
+      - ../profiles/${PROFILE:-acme}:/profile:ro
+      - ./${PROFILE:-acme}:/etc/steward:ro
+      - sts:/var/lib/sts
+    networks: [agents, tools]
+    depends_on: { keycloak: { condition: service_healthy } }
+    healthcheck: { test: ["CMD", "curl", "-sf", "http://127.0.0.1:9400/jwks"], interval: 3s, retries: 40 }
+
+  mcp:
+    <<: *steward
+    entrypoint: ["steward-mcp"]
+    command: ["--profile", "/profile", "--listen", "0.0.0.0:8100", "--issuer", "http://sts:9400"]
+    networks: [tools]
+    depends_on: { sts: { condition: service_healthy } }
+    healthcheck: { test: ["CMD", "curl", "-sf", "http://127.0.0.1:8100/health"], interval: 3s, retries: 40 }
+
+  gateway:
+    <<: *steward
+    entrypoint: ["warden-gateway"]
+    command: ["--config", "/etc/steward/gateway.yaml", "--dev"]
+    volumes:
+      - ../profiles/${PROFILE:-acme}:/profile:ro
+      - ./${PROFILE:-acme}:/etc/steward:ro
+      - audit:/var/lib/warden
+    ports: ["8088:8088"]
+    networks: [agents, tools]
+    depends_on:
+      sts: { condition: service_healthy }
+      mcp: { condition: service_healthy }
+
+  agent-research:
+    <<: *steward
+    command: ["agent", "--config", "/etc/steward/steward.yaml", "--role", "research", "--listen", "0.0.0.0:9600", "--public-url", "http://agent-research:9600"]
+    volumes: [../profiles/${PROFILE:-acme}:/profile:ro, ./${PROFILE:-acme}:/etc/steward:ro, data:/data]
+    networks: [agents]
+    depends_on: [gateway]
+
+  agent-action:
+    <<: *steward
+    command: ["agent", "--config", "/etc/steward/steward.yaml", "--role", "action", "--listen", "0.0.0.0:9600", "--public-url", "http://agent-action:9600"]
+    volumes: [../profiles/${PROFILE:-acme}:/profile:ro, ./${PROFILE:-acme}:/etc/steward:ro, data:/data]
+    networks: [agents]
+    depends_on: [gateway]
+
+  a2a-research:
+    <<: *steward
+    command: ["a2a-proxy", "--config", "/etc/steward/steward.yaml", "--upstream", "http://agent-research:9600", "--listen", "0.0.0.0:9500", "--public-url", "http://a2a-research:9500"]
+    networks: [agents]
+    depends_on: [agent-research]
+
+  a2a-action:
+    <<: *steward
+    command: ["a2a-proxy", "--config", "/etc/steward/steward.yaml", "--upstream", "http://agent-action:9600", "--listen", "0.0.0.0:9500", "--public-url", "http://a2a-action:9500"]
+    networks: [agents]
+    depends_on: [agent-action]
+
+  steward:
+    <<: *steward
+    volumes:
+      - ../profiles/${PROFILE:-acme}:/profile:ro
+      - ./${PROFILE:-acme}:/etc/steward:ro
+      - data:/data
+      - audit:/audit:ro
+    ports: ["8000:8000"]
+    networks: [edge, agents]
+    depends_on:
+      keycloak: { condition: service_healthy }
+      gateway: { condition: service_started }
+      a2a-research: { condition: service_started }
+      a2a-action: { condition: service_started }
+    healthcheck: { test: ["CMD", "curl", "-sf", "http://127.0.0.1:8000/health"], interval: 3s, retries: 60 }
+
+  phoenix:
+    image: arizephoenix/phoenix:version-20.23.0
+    ports: ["6006:6006"]
+    networks: [edge, agents]
+
+networks:
+  edge: {}
+  agents: {}
+  # Only the gateway (and the token service, for JWKS) can reach the MCP servers.
+  tools: { internal: true }
+
+volumes:
+  audit: {}
+  data: {}
+  sts: {}

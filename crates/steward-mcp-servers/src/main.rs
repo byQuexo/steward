@@ -67,7 +67,8 @@ async fn run(a: Args) -> Result<(), String> {
 /// Tokens forwarded by the gateway are exchanged by the token service: same subject and
 /// claims, audience `steward-mcp`, possibly an `act` chain.
 pub fn identity(issuer: &str, jwks: &str, audience: &str) -> Result<IdentityConfig, String> {
+    let mapping = steward_config::TOKEN_MAPPING;
     IdentityConfig::from_yaml_str(&format!(
-        "version: 1\nissuers:\n  - issuer: {issuer}\n    audience: {audience}\n    jwks_uri: {jwks}\n    algorithms: [ES256, RS256]\n    mapping: {{ preset: keycloak, attrs: {{ doc_scope: /doc_scope, teams: /teams, org_unit: /org_unit, tenants: /tenants }} }}\ndelegation_issuers: [{issuer}]\nscope_claim: ignore\n"
+        "version: 1\nissuers:\n  - issuer: {issuer}\n    audience: {audience}\n    jwks_uri: {jwks}\n    algorithms: [ES256, RS256]\n    mapping: {mapping}\ndelegation_issuers: [{issuer}]\nscope_claim: ignore\n"
     ))
 }
