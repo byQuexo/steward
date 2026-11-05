@@ -36,8 +36,8 @@ const STOP: &[&str] = &[
     "der", "die", "das", "und", "oder", "ist", "sind", "wie", "was", "wer", "wann", "wo", "ein", "eine", "einen", "einem", "einer", "den",
     "dem", "des", "mit", "von", "für", "auf", "im", "in", "zu", "zum", "zur", "bei", "nach", "aus", "über", "ich", "du", "wir", "sie",
     "es", "man", "mein", "meine", "darf", "kann", "muss", "soll", "werden", "wird", "hat", "haben", "gibt", "nicht", "auch", "noch", "nur",
-    "bis", "ab", "hoch", "viel", "viele", "welche", "welcher", "welches", "gilt", "bitte", "the", "and", "for", "what", "how", "is", "are",
-    "of", "to", "my", "can", "i",
+    "bis", "ab", "hoch", "viel", "viele", "welche", "welcher", "welches", "welchem", "welchen", "nötig", "gilt", "bitte", "the", "and",
+    "for", "what", "how", "is", "are", "of", "to", "my", "can", "i",
 ];
 
 fn stem(w: &str) -> String {

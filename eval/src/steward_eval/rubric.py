@@ -42,6 +42,7 @@ ABSTAIN_PATTERNS = [
     r"kann ich (leider )?nicht (belegen|beantworten)",
     r"nicht beantworten",
     r"ist nicht (geregelt|dokumentiert|beschrieben)",
+    r"finde ich keine (eigene |spezielle |gesonderte )?(regel|regelung|angabe)",
 ]
 
 REFUSAL_PATTERNS = [
@@ -63,6 +64,9 @@ REFUSAL_PATTERNS = [
     r"kann ich (dir |ihnen )?(leider )?nicht",
     r"ich kann (dir |ihnen )?(dazu |hier )?(leider )?(keine|nicht)",
     r"keine angaben machen",
+    r"(leider )?nicht nennen",
+    r"speichere (ich )?(deine|dein|die|keine) \w+ nicht",
+    r"finde (den deal|unter der id) [^.]{0,40}(keinen|weder|nicht)",
     r"speichere (ich )?keine",
     r"stehen (mir )?keine \w+ zur verfügung",
     r"nur zugriff auf (den |die )?mandant",

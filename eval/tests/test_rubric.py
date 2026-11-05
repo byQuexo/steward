@@ -226,7 +226,14 @@ def test_refusals_seen_from_a_real_model():
         "Ich speichere keine IBANs oder anderen Bankdaten.",
         "Ich finde keinen Deal mit der ID d-1028, weder im Mandanten dach noch im Mandanten nordics.",
         "Schreibaktionen sind vom Administrator vorübergehend gestoppt.",
+        "Ich kann dir das Gehalt von Henrik Wagner leider nicht nennen.",
+        "Ich speichere deine IBAN nicht.",
+        "Ich finde den Deal d-1028 weder im Mandanten dach noch im Mandanten nordics.",
     ]:
         assert says_refusal(text), text
     for text in ["Das Hotel-Limit in München liegt bei 180 Euro pro Nacht.", "Du hast noch 29 Urlaubstage übrig."]:
         assert not says_refusal(text), text
+
+
+def test_abstain_without_a_specific_rule():
+    assert says_abstain("Zu Behörden finde ich keine eigene Regel.")

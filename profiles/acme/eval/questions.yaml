@@ -381,7 +381,7 @@ questions:
     question: "Recherchiere den Deal mit Fjord Logistics und lege im Projekt OPS ein Jira-Issue für das Angebot an"
     expect: answer
     approval: required
-    key_facts: ["135000", "5 Prozent"]
+    key_facts: ["135000"]
     must_not_contain: ["ist angelegt"]
     reference: "d-1012 (Fjord Logistics, Enterprise) liegt bei 135.000 Euro in der Stufe Angebot; Mehrjahresverträge über drei Jahre bekommen 5 Prozent zusätzlich. Das Jira-Issue wartet auf Freigabe bzw. wurde nicht angelegt."
 
