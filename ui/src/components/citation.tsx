@@ -31,11 +31,11 @@ export function CitationCard({ c }: { c: CitationItem }) {
   const alt = t('cite.imageAlt', { page: c.page, title: c.title });
   return (
     <Dialog>
-      <div className="group flex w-full max-w-md items-stretch gap-3.5 rounded-lg border bg-card p-2.5 transition-colors duration-micro hover:border-foreground/25" data-testid="citation-card">
+      <div className="group flex w-full max-w-md items-stretch gap-3 rounded-md border bg-card p-2 transition-colors duration-micro hover:border-foreground/25" data-testid="citation-card">
         <DialogTrigger asChild>
           <button
             type="button"
-            className="relative h-24 w-[4.5rem] shrink-0 overflow-hidden rounded-[8px] border bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="relative h-[72px] w-[54px] shrink-0 overflow-hidden rounded-[4px] border bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             aria-label={t('cite.open', { page: c.page, title: c.title })}
           >
             <PageImage src={src} alt="" className="h-full w-full object-cover object-top" />
@@ -45,15 +45,15 @@ export function CitationCard({ c }: { c: CitationItem }) {
           </button>
         </DialogTrigger>
         <div className="min-w-0 flex-1 py-0.5">
-          <p className="flex items-center gap-1.5 font-mono text-[11.5px] text-muted-foreground">
+          <p className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
             <span className="truncate">{c.title}</span>
             <span aria-hidden>·</span>
             <span className="whitespace-nowrap tabular-nums">{t('cite.page', { page: c.page })}</span>
           </p>
-          <blockquote className="mt-2 line-clamp-3 border-l-2 border-foreground/50 pl-2.5 text-[13.5px] leading-snug">{c.quote}</blockquote>
+          <blockquote className="mt-1 line-clamp-2 border-l border-foreground/50 pl-2 text-[12.5px] leading-snug">{c.quote}</blockquote>
           {/* Verification is not a Warden verdict: grey, with a glyph. */}
-          <p className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] text-muted-foreground">
-            <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+          <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+            <BadgeCheck className="h-3 w-3" aria-hidden />
             {t('cite.verified')}
           </p>
         </div>

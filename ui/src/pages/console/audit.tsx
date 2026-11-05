@@ -71,13 +71,13 @@ export function AuditPage() {
 
   return (
     <section aria-labelledby="audit-title">
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 id="audit-title" className="text-[20px] font-medium tracking-[-0.02em]">
+          <h2 id="audit-title" className="text-[15px] font-semibold tracking-[-0.01em]">
             {t('audit.title')}
           </h2>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t('audit.subtitle')}</p>
-          <p className="mt-2 flex items-center gap-2 text-sm">
+          <p className="mt-0.5 max-w-2xl text-[12.5px] text-muted-foreground">{t('audit.subtitle')}</p>
+          <p className="mt-2 flex items-center gap-2 text-[12.5px]">
             <span className="text-muted-foreground">{t('audit.verify')}:</span> {verify}
           </p>
         </div>
@@ -103,7 +103,7 @@ export function AuditPage() {
               {t('audit.count', { count: events.length })}
             </p>
             {events.length === 0 ? (
-              <p className="p-6 text-center text-sm text-muted-foreground">{t('audit.empty')}</p>
+              <p className="p-6 text-center text-[12.5px] text-muted-foreground">{t('audit.empty')}</p>
             ) : (
               <Table label={t('audit.title')}>
                 <TableHeader>

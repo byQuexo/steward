@@ -34,13 +34,13 @@ function Meter({ value, max, label }: { value: number; max: number; label: strin
 
 function Stat({ icon: Icon, label, value, sub }: { icon: typeof Coins; label: string; value: string; sub?: string }) {
   return (
-    <div className="bg-card p-5">
+    <div className="bg-card px-4 py-3">
       <p className="eyebrow flex items-center gap-1.5">
         <Icon className="h-3.5 w-3.5" aria-hidden />
         {label}
       </p>
-      <p className="mt-3 text-[32px] font-medium leading-none tabular-nums tracking-[-0.03em]">{value}</p>
-      {sub && <p className="mt-2 font-mono text-[11.5px] tabular-nums text-muted-foreground">{sub}</p>}
+      <p className="mt-1.5 text-[22px] font-semibold leading-none tabular-nums tracking-[-0.02em]">{value}</p>
+      {sub && <p className="mt-1.5 font-mono text-[11px] tabular-nums text-muted-foreground">{sub}</p>}
     </div>
   );
 }
@@ -56,12 +56,12 @@ function Breakdown({ title, rows, currency }: { title: string; rows: Totals[]; c
       </CardHeader>
       <CardContent>
         {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t('costs.empty')}</p>
+          <p className="text-[12.5px] text-muted-foreground">{t('costs.empty')}</p>
         ) : (
-          <ul className="space-y-2.5">
+          <ul className="space-y-2">
             {rows.slice(0, 8).map((r) => (
               <li key={r.key} title={`${formatNumber(r.calls, intl)} ${t('costs.calls')} · ${formatNumber(r.input_tokens + r.output_tokens, intl)} ${t('costs.tokens')}`}>
-                <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
+                <div className="mb-1 flex items-baseline justify-between gap-3 text-[12.5px]">
                   <span className="truncate font-mono text-[12.5px]">{r.key}</span>
                   <span className="shrink-0 font-mono text-[12.5px] tabular-nums text-muted-foreground">{formatEur(r.eur, intl, currency)}</span>
                 </div>
@@ -88,10 +88,10 @@ function ByDay({ data }: { data: AllCosts }) {
       </CardHeader>
       <CardContent>
         {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t('costs.empty')}</p>
+          <p className="text-[12.5px] text-muted-foreground">{t('costs.empty')}</p>
         ) : (
           <figure>
-            <div className="h-56 w-full" role="img" aria-label={t('costs.chartLabel', { title: t('costs.byDay') })}>
+            <div className="h-44 w-full" role="img" aria-label={t('costs.chartLabel', { title: t('costs.byDay') })}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barCategoryGap={6}>
                   <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="2 4" />
@@ -153,7 +153,7 @@ function Budgets({ data }: { data: AllCosts }) {
             const label = t('costs.teamMonthly', { team });
             return (
               <li key={team}>
-                <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
+                <div className="mb-1 flex items-baseline justify-between gap-3 text-[12.5px]">
                   <span className="font-medium">{label}</span>
                   <span className="tabular-nums text-muted-foreground">
                     {t('costs.ofBudget', { used: formatEur(spent, intl, data.currency), budget: formatEur(budget, intl, data.currency) })}
@@ -175,8 +175,8 @@ function AllView({ data, days }: { data: AllCosts; days: number }) {
   const inTok = data.by_day.reduce((s, r) => s + r.input_tokens, 0);
   const outTok = data.by_day.reduce((s, r) => s + r.output_tokens, 0);
   return (
-    <div className="space-y-6">
-      <section aria-label={t('costs.total')} className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-3">
+    <div className="space-y-4">
+      <section aria-label={t('costs.total')} className="grid gap-px overflow-hidden rounded-md border bg-border sm:grid-cols-3">
         <Stat icon={Coins} label={t('costs.total')} value={formatEur(data.total_eur, intl, data.currency)} sub={t('costs.days', { days })} />
         <Stat icon={Hash} label={t('costs.calls')} value={formatNumber(calls, intl)} />
         <Stat
@@ -200,7 +200,7 @@ function AllView({ data, days }: { data: AllCosts; days: number }) {
         </CardHeader>
         <CardContent className="px-2 pb-2">
           {data.recent.length === 0 ? (
-            <p className="px-3 pb-3 text-sm text-muted-foreground">{t('costs.empty')}</p>
+            <p className="px-3 pb-3 text-[12.5px] text-muted-foreground">{t('costs.empty')}</p>
           ) : (
             <Table label={t('costs.recent')}>
               <TableHeader>
@@ -279,13 +279,13 @@ export function CostsPage() {
   }, [days, me.user]);
 
   return (
-    <div className="mx-auto w-full max-w-[1040px] px-4 py-12 sm:px-6">
+    <div className="mx-auto w-full max-w-[1040px] px-4 py-6 sm:px-6">
       <PageHeader
         title={t('costs.title')}
         description={t('costs.subtitle')}
         actions={
           data?.scope === 'all' ? (
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-2 text-[12.5px]">
               <span className="text-muted-foreground">{t('costs.period')}</span>
               <Select value={days} onChange={(e) => setDays(Number(e.target.value))} className="w-32">
                 {[7, 30, 90, 365].map((d) => (
@@ -311,16 +311,16 @@ export function CostsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-[40px] font-medium leading-none tabular-nums tracking-[-0.03em]">{formatEur(data.today_eur, intl)}</p>
+            <p className="text-[24px] font-semibold leading-none tabular-nums tracking-[-0.02em]">{formatEur(data.today_eur, intl)}</p>
             {data.budget_daily_eur != null ? (
               <>
                 <Meter value={data.today_eur} max={data.budget_daily_eur} label={t('costs.dailyBudget')} />
-                <p className="text-sm text-muted-foreground">
+                <p className="text-[12.5px] text-muted-foreground">
                   {t('costs.dailyBudget')}: {t('costs.ofBudget', { used: formatEur(data.today_eur, intl), budget: formatEur(data.budget_daily_eur, intl) })}
                 </p>
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">{t('costs.noBudget')}</p>
+              <p className="text-[12.5px] text-muted-foreground">{t('costs.noBudget')}</p>
             )}
           </CardContent>
         </Card>

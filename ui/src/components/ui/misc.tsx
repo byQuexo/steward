@@ -31,8 +31,8 @@ export function Alert({
 }: React.HTMLAttributes<HTMLDivElement> & { variant?: keyof typeof alertStyles }) {
   const Icon = alertIcons[variant];
   return (
-    <div className={cn('flex items-start gap-2.5 rounded-md border px-3.5 py-2.5 text-sm', alertStyles[variant], className)} {...props}>
-      <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+    <div className={cn('flex items-start gap-2 rounded-[6px] border px-3 py-2 text-[12.5px]', alertStyles[variant], className)} {...props}>
+      <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
       <div className="min-w-0 flex-1">{children}</div>
     </div>
   );
@@ -41,11 +41,11 @@ export function Alert({
 /** Page header: mono eyebrow, title, description, optional actions. Left-aligned, hairline below. */
 export function PageHeader({ title, description, actions, eyebrow }: { title: string; description?: string; actions?: React.ReactNode; eyebrow?: string }) {
   return (
-    <div className="mb-8 flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mb-5 flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        {eyebrow && <p className="eyebrow mb-3">{eyebrow}</p>}
-        <h1 className="text-[28px] font-medium leading-tight tracking-[-0.03em] sm:text-[32px]">{title}</h1>
-        {description && <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">{description}</p>}
+        {eyebrow && <p className="eyebrow mb-1.5">{eyebrow}</p>}
+        <h1 className="text-[20px] font-semibold leading-tight tracking-[-0.02em]">{title}</h1>
+        {description && <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
     </div>
@@ -55,12 +55,12 @@ export function PageHeader({ title, description, actions, eyebrow }: { title: st
 /** Section heading inside a page: mono eyebrow style with an optional count. */
 export function SectionTitle({ id, children, count, tone }: { id?: string; children: React.ReactNode; count?: number; tone?: 'approval' }) {
   return (
-    <h2 id={id} className="mb-4 flex items-center gap-2.5 font-mono text-eyebrow font-medium uppercase text-muted-foreground">
+    <h2 id={id} className="mb-2 flex items-center gap-2 font-mono text-eyebrow font-medium uppercase text-muted-foreground">
       {children}
       {count != null && count > 0 && (
         <span
           className={cn(
-            'inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] tabular-nums tracking-normal',
+            'inline-flex h-4 min-w-4 items-center justify-center rounded-[4px] px-1 text-[10px] tabular-nums tracking-normal',
             tone === 'approval' ? 'bg-approval text-approval-ink' : 'bg-muted text-foreground',
           )}
         >
@@ -77,7 +77,7 @@ export function ArgsTable({ args, label }: { args: unknown; label?: string }) {
     const entries = Object.entries(args as Record<string, unknown>);
     if (entries.length === 0) return <code className="font-mono text-xs text-muted-foreground">{'{}'}</code>;
     return (
-      <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 font-mono text-[12.5px]" aria-label={label}>
+      <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-0.5 font-mono text-[12px] leading-5" aria-label={label}>
         {entries.map(([k, v]) => (
           <React.Fragment key={k}>
             <dt className="text-muted-foreground">{k}</dt>
@@ -93,7 +93,7 @@ export function ArgsTable({ args, label }: { args: unknown; label?: string }) {
 /** Empty state with purpose: what appears here and how to make it appear. */
 export function EmptyNote({ icon: Icon, children, className }: { icon?: React.ComponentType<{ className?: string }>; children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn('flex items-start gap-3 rounded-lg border border-dashed px-5 py-6 text-sm text-muted-foreground', className)}>
+    <div className={cn('flex items-start gap-2.5 rounded-md border border-dashed px-4 py-3 text-[12.5px] text-muted-foreground', className)}>
       {Icon && (
         <span aria-hidden className="mt-0.5 shrink-0">
           <Icon className="h-4 w-4" />

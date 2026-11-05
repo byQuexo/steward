@@ -5,7 +5,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 export const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium transition-colors duration-micro ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[6px] text-[13px] font-medium transition-colors duration-micro ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-3.5 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -20,11 +20,11 @@ export const buttonVariants = cva(
         allow: 'bg-allow text-allow-ink hover:bg-allow/90',
       },
       size: {
-        default: 'h-9 px-4',
-        sm: 'h-8 px-3 text-[13px]',
-        lg: 'h-11 px-6 text-[15px]',
-        icon: 'h-9 w-9',
-        'icon-sm': 'h-8 w-8',
+        default: 'h-8 px-3',
+        sm: 'h-7 gap-1.5 px-2.5 text-[12px]',
+        lg: 'h-9 px-4 text-[13.5px]',
+        icon: 'h-8 w-8',
+        'icon-sm': 'h-7 w-7',
       },
     },
     defaultVariants: { variant: 'default', size: 'default' },

@@ -54,7 +54,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 key={x.id}
                 // Monochrome: a toast reports an outcome, not a Warden verdict (DESIGN.md §6).
                 className={cn(
-                  'pointer-events-auto flex animate-fade-in items-start gap-3 rounded-lg border bg-popover p-3.5 text-sm text-popover-foreground shadow-[0_16px_48px_-20px_rgb(0_0_0/0.55)]',
+                  'pointer-events-auto flex animate-fade-in items-start gap-2.5 rounded-md border bg-popover px-3 py-2.5 text-[13px] text-popover-foreground shadow-[0_16px_48px_-20px_rgb(0_0_0/0.55)]',
                   x.variant === 'error' && 'border-dashed border-foreground/35',
                 )}
               >

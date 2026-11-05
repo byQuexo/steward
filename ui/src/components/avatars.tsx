@@ -82,25 +82,38 @@ export const AgentAvatar = forwardRef<HTMLCanvasElement, AgentAvatarProps>(funct
 });
 
 /**
- * Border beam. `held`: the ember beam on the first pending approval (something waits on a
- * human). `working`: a faint mono line under the composer while a turn runs. Off under reduced
- * motion; the static border of the child stays.
+ * Border beam, always as a thin `line`. `held`: an ember line along the TOP edge of a pending
+ * gate (something waits on a human). `working`: a faint mono line under the composer while a
+ * turn runs. Off under reduced motion; the static border of the child stays.
  */
 export function Beam({ variant, active = true, children, className }: { variant: 'held' | 'working'; active?: boolean; children: ReactNode; className?: string }) {
   const theme = useResolvedTheme();
   const reduced = useReducedMotion();
-  const held = variant === 'held';
+  if (variant === 'held') {
+    // border-beam's line runs along the bottom edge of what it wraps: wrap a 2px strip pinned to
+    // the top of the gate, so the light travels along the gate's top edge.
+    return (
+      <div className={cn('relative', className)}>
+        {children}
+        <BorderBeam
+          size="line"
+          colorVariant="gold"
+          staticColors
+          theme={theme}
+          strength={theme === 'dark' ? 0.9 : 0.8}
+          duration={2.8}
+          active={active && !reduced}
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0"
+          style={{ position: 'absolute' }}
+        >
+          <div className="h-[2px] rounded-t-[5px]" />
+        </BorderBeam>
+      </div>
+    );
+  }
   return (
-    <BorderBeam
-      size={held ? 'md' : 'line'}
-      colorVariant={held ? 'gold' : 'mono'}
-      staticColors={held}
-      theme={theme}
-      strength={held ? (theme === 'dark' ? 0.9 : 0.75) : 0.45}
-      duration={held ? 3.2 : 2.6}
-      active={active && !reduced}
-      className={cn('block', className)}
-    >
+    <BorderBeam size="line" colorVariant="mono" theme={theme} strength={0.45} duration={2.6} active={active && !reduced} className={cn('block', className)}>
       {children}
     </BorderBeam>
   );

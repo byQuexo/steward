@@ -16,7 +16,7 @@ export default {
         mono: ['"Geist Mono Variable"', 'ui-monospace', 'SFMono-Regular', 'Cascadia Code', 'Consolas', 'Menlo', 'monospace'],
       },
       fontSize: {
-        eyebrow: ['0.6875rem', { lineHeight: '1rem', letterSpacing: '0.08em' }],
+        eyebrow: ['0.65625rem', { lineHeight: '1rem', letterSpacing: '0.08em' }],
       },
       colors: {
         border: color('border'),

@@ -20,7 +20,7 @@ import { cn, errorMessage } from '@/lib/utils';
 
 function Chips({ items, mono = true }: { items: string[]; mono?: boolean }) {
   const { t } = useI18n();
-  if (items.length === 0) return <span className="text-sm text-muted-foreground">{t('eff.none')}</span>;
+  if (items.length === 0) return <span className="text-[12.5px] text-muted-foreground">{t('eff.none')}</span>;
   return (
     <ul className="flex flex-wrap gap-1.5">
       {items.map((s) => (
@@ -198,9 +198,9 @@ function WhatIf({ eff, policy }: { eff: Effective; policy: PolicyInfo | null }) 
         {error && <Alert variant="error">{error}</Alert>}
 
         {result && (
-          <section aria-label={t('whatif.result')} className="space-y-3 rounded-lg border bg-muted/30 p-4" data-testid="whatif-result">
+          <section aria-label={t('whatif.result')} className="space-y-2.5 rounded-md border bg-muted/30 p-3" data-testid="whatif-result">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium">{t('whatif.result')}:</span>
+              <span className="text-[12.5px] font-medium">{t('whatif.result')}:</span>
               <DecisionBadge effect={result.effect} rule={result.rule} />
             </div>
             <p className="text-xs text-muted-foreground" data-testid="whatif-source">
@@ -208,7 +208,7 @@ function WhatIf({ eff, policy }: { eff: Effective; policy: PolicyInfo | null }) 
               {agrees === true && <> · <span className="text-allow-foreground">{t('whatif.serverAgrees')}</span></>}
               {agrees === false && <> · <span className="text-deny-foreground">{t('whatif.serverDiffers')}</span></>}
             </p>
-            <dl className="grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[max-content_1fr]">
+            <dl className="grid gap-x-4 gap-y-1 text-[12.5px] sm:grid-cols-[max-content_1fr]">
               <dt className="text-muted-foreground">{t('whatif.reason')}</dt>
               <dd>{result.reason}</dd>
               <dt className="text-muted-foreground">{t('whatif.modelMessage')}</dt>
@@ -276,7 +276,7 @@ export function EffectivePage() {
   if (error) return <Alert variant="error">{t('common.error', { error })}</Alert>;
 
   return (
-    <div className="grid items-start gap-6 xl:grid-cols-[372px_minmax(0,1fr)]">
+    <div className="grid items-start gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
       <Card className="xl:sticky xl:top-6">
         <CardHeader className="pb-2">
           <CardTitle>{t('eff.users')}</CardTitle>
@@ -326,7 +326,7 @@ export function EffectivePage() {
 
       <div className="space-y-6">
         {!selected ? (
-          <p className="rounded-lg border border-dashed p-8 text-sm text-muted-foreground">{t('eff.pick')}</p>
+          <p className="rounded-lg border border-dashed p-8 text-[12.5px] text-muted-foreground">{t('eff.pick')}</p>
         ) : !eff ? (
           <Skeleton className="h-64" />
         ) : (

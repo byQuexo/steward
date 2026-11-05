@@ -1,6 +1,3 @@
-import { Ban, CheckCircle2, Clock, ShieldCheck } from 'lucide-react';
-
-import { Badge } from '@/components/ui/badge';
 import { useI18n } from '@/context/i18n';
 import type { MessageKey } from '@/i18n';
 import { effectTone, type VerdictTone } from '@/lib/look';
@@ -8,21 +5,30 @@ import type { Turn } from '@/lib/timeline';
 import type { ApprovalStatus } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-/** Warden's decision for one call: teal allow, ember approval, red deny — plus the rule id. */
+const TEXT: Record<VerdictTone, string> = {
+  allow: 'text-allow-foreground',
+  approval: 'text-approval-foreground',
+  deny: 'text-deny-foreground',
+  muted: 'text-muted-foreground',
+};
+
+/**
+ * Warden's decision for one call, as a log line fragment: verdict dot · verdict word · rule id.
+ * No pill: the color of the dot and the word is the whole signal (DESIGN.md §6).
+ */
 export function DecisionBadge({ effect, rule, showRule = true }: { effect: string; rule?: string; showRule?: boolean }) {
   const { t } = useI18n();
-  const variant = effectTone(effect);
-  const Icon = variant === 'allow' ? ShieldCheck : variant === 'approval' ? Clock : Ban;
+  const tone = effectTone(effect);
   const key = `act.decision.${effect}` as MessageKey;
   const label = ['allow', 'deny', 'require_approval'].includes(effect) ? t(key) : effect;
   return (
-    <span className="inline-flex flex-wrap items-center gap-1.5">
-      <Badge variant={variant} title={rule ? t('act.decision.hint', { effect: label, rule }) : undefined}>
-        <Icon aria-hidden />
+    <span className="inline-flex min-w-0 items-center gap-2" title={rule ? t('act.decision.hint', { effect: label, rule }) : undefined}>
+      <span className={cn('inline-flex items-center gap-1.5 whitespace-nowrap text-[12.5px] font-medium', TEXT[tone])}>
+        <VerdictDot tone={tone} />
         {label}
-      </Badge>
+      </span>
       {showRule && rule && (
-        <code className="font-mono text-[11.5px] text-muted-foreground">
+        <code className="truncate font-mono text-[11.5px] text-muted-foreground">
           <span className="sr-only">{t('act.rule')}: </span>
           {rule}
         </code>
@@ -33,13 +39,12 @@ export function DecisionBadge({ effect, rule, showRule = true }: { effect: strin
 
 export function ApprovalStatusBadge({ status }: { status: ApprovalStatus }) {
   const { t } = useI18n();
-  const variant = status === 'approved' ? 'allow' : status === 'pending' ? 'approval' : status === 'denied' ? 'deny' : 'muted';
-  const Icon = status === 'approved' ? CheckCircle2 : status === 'pending' ? Clock : Ban;
+  const tone: VerdictTone = status === 'approved' ? 'allow' : status === 'pending' ? 'approval' : status === 'denied' ? 'deny' : 'muted';
   return (
-    <Badge variant={variant}>
-      <Icon aria-hidden />
+    <span className={cn('inline-flex items-center gap-1.5 whitespace-nowrap text-[12px] font-medium', TEXT[tone])}>
+      <VerdictDot tone={tone} />
       {t(`approval.${status}`)}
-    </Badge>
+    </span>
   );
 }
 
@@ -50,14 +55,14 @@ const DOT: Record<VerdictTone, string> = {
   muted: 'bg-subtle',
 };
 
-/** A small verdict dot (rail node, trail tick). Shape doubles the color: ● allow, ◆ held, ✕-ish bar deny. */
+/** A small verdict mark (rail node, trail tick). Shape doubles the color: ● allow, ◆ held, ▬ deny. */
 export function VerdictDot({ tone, className }: { tone: VerdictTone; className?: string }) {
   return (
     <span
       aria-hidden
       className={cn(
         'inline-block shrink-0',
-        tone === 'approval' ? 'h-[7px] w-[7px] rotate-45 rounded-[1.5px]' : tone === 'deny' ? 'h-[3px] w-[9px] rounded-full' : 'h-[7px] w-[7px] rounded-full',
+        tone === 'approval' ? 'h-[6px] w-[6px] rotate-45 rounded-[1px]' : tone === 'deny' ? 'h-[2.5px] w-[8px] rounded-full' : 'h-[6px] w-[6px] rounded-full',
         DOT[tone],
         className,
       )}

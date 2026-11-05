@@ -60,16 +60,16 @@ export function KillPage() {
 
   return (
     <section aria-labelledby="kill-title" className="max-w-3xl">
-      <h2 id="kill-title" className="text-[20px] font-medium tracking-[-0.02em]">
+      <h2 id="kill-title" className="text-[15px] font-semibold tracking-[-0.01em]">
         {t('kill.title')}
       </h2>
-      <p className="mb-5 mt-1 text-sm text-muted-foreground">{t('kill.subtitle')}</p>
+      <p className="mb-3 mt-0.5 text-[12.5px] text-muted-foreground">{t('kill.subtitle')}</p>
       {error && <Alert variant="error">{t('common.error', { error })}</Alert>}
       {!mode ? (
         !error && <Skeleton className="h-48" />
       ) : (
         <>
-          <p className="mb-3 flex items-center gap-2 text-sm">
+          <p className="mb-3 flex items-center gap-2 text-[12.5px]">
             <span className="text-muted-foreground">{t('kill.current')}:</span>
             <Badge variant={mode === 'off' ? 'allow' : mode === 'writes' ? 'approval' : 'deny'} data-testid="kill-mode">
               {label(mode)}
@@ -81,7 +81,7 @@ export function KillPage() {
                 key={m}
                 htmlFor={`kill-${m}`}
                 className={cn(
-                  'flex cursor-pointer items-start gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-muted/40',
+                  'flex cursor-pointer items-start gap-3 rounded-md border bg-card px-3 py-2.5 transition-colors hover:bg-muted/40',
                   mode === m && (m === 'off' ? 'border-allow bg-allow-soft' : m === 'writes' ? 'border-approval bg-approval-soft' : 'border-deny bg-deny-soft'),
                 )}
               >
@@ -89,7 +89,7 @@ export function KillPage() {
                 <Icon className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
                 <span>
                   <span className="block font-medium">{label(m)}</span>
-                  <span className="block text-sm text-muted-foreground">{t(`kill.${m}Hint` as const)}</span>
+                  <span className="block text-[12.5px] text-muted-foreground">{t(`kill.${m}Hint` as const)}</span>
                 </span>
               </label>
             ))}

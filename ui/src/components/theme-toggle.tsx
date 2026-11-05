@@ -45,7 +45,7 @@ export function ThemeToggle() {
   const Icon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor;
   const label = t(`theme.${theme}`);
   return (
-    <Button variant="ghost" size="icon" onClick={() => setTheme(next[theme])} aria-label={`${t('theme.toggle')} (${label})`} title={`${t('theme.toggle')} (${label})`}>
+    <Button variant="ghost" size="icon-sm" onClick={() => setTheme(next[theme])} aria-label={`${t('theme.toggle')} (${label})`} title={`${t('theme.toggle')} (${label})`}>
       <Icon aria-hidden />
     </Button>
   );

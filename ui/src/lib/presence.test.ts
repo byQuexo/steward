@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { companionOf, derivePresence, detectFlash } from './presence';
+import { companionOf, derivePresence, detectFlash, thingOf } from './presence';
 import { applyEvents, newTurn, type Turn } from './timeline';
 import type { ChatEvent } from './types';
 
@@ -102,5 +102,27 @@ describe('presence state machine', () => {
     expect(companionOf(back)).toBeNull();
     const done = applyEvents(sub, [{ type: 'done', answer: 'x', run_id: '', eur: 0 }]);
     expect(companionOf(done)).toBeNull();
+  });
+
+  it('narrates in first person, with the tool target and the approver from the events', () => {
+    const asking = run([{ type: 'tool_call', id: 'a', tool: 'ticket.get', args: { ticket_id: 't-2051' }, agent: 'acme-bot' }]);
+    expect(derivePresence({ turn: asking }).say).toEqual({ key: 'presence.say.asking', vars: { thing: 'Ticket t-2051' } });
+    const reading = applyEvents(asking, [{ type: 'decision', tool: 'ticket.get', effect: 'allow', rule: 'scope.granted', agent: 'acme-bot' }]);
+    expect(derivePresence({ turn: reading }).say).toEqual({ key: 'presence.say.reading', vars: { thing: 'Ticket t-2051' } });
+    const writing = run([dealCall[0]!, { type: 'decision', tool: 'crm.update_deal', effect: 'allow', rule: 'r', agent: 'acme-bot' }]);
+    expect(derivePresence({ turn: writing }).say).toEqual({ key: 'presence.say.calling', vars: { thing: 'Deal d-1007' } });
+    expect(derivePresence({ turn: run(held) }).say).toEqual({ key: 'presence.say.awaiting', vars: { who: 'Sara' } });
+    expect(derivePresence({ turn: run([]), flash: 'denied' }).say.key).toBe('presence.say.denied');
+    expect(derivePresence({ kill: 'writes' }).say.key).toBe('presence.say.pausedWrites');
+    const handoff = run([{ type: 'agent_handoff', from: 'acme-bot', to: 'acme-bot-research', skill: 'research', task_id: 't' }]);
+    expect(derivePresence({ turn: handoff }).say.key).toBe('presence.say.handoff.research');
+  });
+
+  it('dozes after a while and glances at the composer when idle', () => {
+    expect(derivePresence({ dozing: true })).toMatchObject({ state: 'dozing', avatar: 'sleeping', say: { key: 'presence.say.dozing' } });
+    expect(derivePresence({ dozing: true, typing: true }).state).toBe('typing');
+    expect(derivePresence({ glance: true }).pose?.pitch).toBeLessThan(0);
+    expect(thingOf('crm.update_deal', { deal_id: 'd-1007' })).toBe('Deal d-1007');
+    expect(thingOf('docs.search', { question: 'x' })).toBe('docs.search');
   });
 });

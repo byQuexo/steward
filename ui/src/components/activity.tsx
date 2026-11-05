@@ -1,10 +1,10 @@
-import { AlertTriangle, ArrowRight, Brain, BrainCircuit, Check, CircleDashed, Clock, CornerDownRight, SearchX, Wallet, X } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Brain, BrainCircuit, ChevronRight, SearchX, Wallet } from 'lucide-react';
+import type { ReactNode } from 'react';
 
-import { ApprovalCard } from '@/components/approval-card';
+import { Gate } from '@/components/approval-card';
 import { AgentAvatar } from '@/components/avatars';
-import { DecisionBadge, VerdictDot } from '@/components/decision';
-import { Badge } from '@/components/ui/badge';
-import { Alert, ArgsTable } from '@/components/ui/misc';
+import { VerdictDot } from '@/components/decision';
+import { ArgsTable } from '@/components/ui/misc';
 import { useI18n } from '@/context/i18n';
 import type { MessageKey } from '@/i18n';
 import { effectTone, type AgentRole, type VerdictTone } from '@/lib/look';
@@ -31,78 +31,92 @@ function toolStatus(item: ToolItem, turn: Turn): Status {
   return item.result ? (item.result.ok ? 'ok' : 'failed') : waiting ? 'waiting' : denied ? 'failed' : turn.status === 'streaming' ? 'running' : 'unknown';
 }
 
-/** The rail node of one step: the verdict's color (and shape) once Warden decided. */
-function nodeTone(item: ActivityItem): VerdictTone {
-  switch (item.kind) {
-    case 'tool':
-    case 'handoff':
-      return effectTone(item.decision?.effect);
-    case 'approval':
-      return item.status === 'approved' ? 'allow' : item.status === 'pending' ? 'approval' : item.status === 'denied' ? 'deny' : 'muted';
-    case 'memory':
-      return item.variant === 'refused' ? 'deny' : 'muted';
-    default:
-      return 'muted';
-  }
-}
+const VERDICT_TEXT: Record<VerdictTone, string> = {
+  allow: 'text-allow-foreground',
+  approval: 'text-approval-foreground',
+  deny: 'text-deny-foreground',
+  muted: 'text-muted-foreground',
+};
 
+/** One call = one log line: dot · tool · verdict · rule · ran/not run. The result expands on click. */
 function ToolRow({ item, turn }: { item: ToolItem; turn: Turn }) {
   const { t } = useI18n();
   const agentLabel = useAgentLabel();
   const status = toolStatus(item, turn);
-  const denied = item.decision?.effect === 'deny';
-  const StatusIcon = status === 'ok' ? Check : status === 'failed' ? X : status === 'waiting' ? Clock : CircleDashed;
+  const effect = item.decision?.effect;
+  const tone = effectTone(effect);
+  const verdict = effect && ['allow', 'deny', 'require_approval'].includes(effect) ? t(`act.decision.${effect}` as MessageKey) : effect;
   const sub = item.agent && agentRole(item.agent) !== 'orchestrator';
+  const hasDetail = item.args !== undefined || !!item.result;
+  const statusText =
+    status === 'ok' ? t('act.ok') : status === 'failed' ? t('act.failed') : status === 'waiting' ? t('act.waiting') : status === 'running' ? t('act.running') : '';
 
-  return (
-    <div className={cn('min-w-0', sub && 'pl-5')} data-testid="tool-item" data-tool={item.tool} data-status={status}>
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-        {sub && <CornerDownRight className="-ml-5 h-3.5 w-3.5 text-subtle" aria-hidden />}
-        <span className="inline-flex items-center">
-          <span className="sr-only">{t('act.tool')}: </span>
-          <code className="font-mono text-[13px] font-medium text-foreground">{item.tool}</code>
+  const line = (
+    <>
+      {item.decision ? <VerdictDot tone={tone} /> : <span aria-hidden className="h-[6px] w-[6px] shrink-0 rounded-full border border-subtle" />}
+      <span className="sr-only">{t('act.tool')}: </span>
+      <code className="shrink-0 font-mono text-[12.5px] font-medium text-foreground">{item.tool}</code>
+      {item.decision ? (
+        <>
+          <span className={cn('shrink-0 text-[12.5px] font-medium', VERDICT_TEXT[tone])} title={t('act.decision.hint', { effect: verdict ?? '', rule: item.decision.rule })}>
+            {verdict}
+          </span>
+          <code className="min-w-0 truncate font-mono text-[11.5px] text-muted-foreground">
+            <span className="sr-only">{t('act.rule')}: </span>
+            {item.decision.rule}
+          </code>
+        </>
+      ) : isLocal(item.tool) ? (
+        <span className="text-[12px] text-muted-foreground" title={t('act.localHint')}>
+          {t('act.local')}
         </span>
-        {item.decision ? (
-          <DecisionBadge effect={item.decision.effect} rule={item.decision.rule} />
-        ) : isLocal(item.tool) ? (
-          <Badge variant="muted" title={t('act.localHint')}>
-            {t('act.local')}
-          </Badge>
-        ) : null}
+      ) : null}
+      {statusText && (
         <span
           className={cn(
-            'inline-flex items-center gap-1 font-mono text-[11.5px]',
-            status === 'failed' && denied ? 'text-deny-foreground' : status === 'waiting' ? 'text-approval-foreground' : status === 'failed' ? 'text-foreground' : 'text-muted-foreground',
+            'shrink-0 font-mono text-[11.5px]',
+            status === 'failed' && effect === 'deny' ? 'text-deny-foreground' : status === 'waiting' ? 'text-approval-foreground' : 'text-muted-foreground',
+            status === 'running' && 'motion-safe:animate-pulse',
           )}
         >
-          <StatusIcon className={cn('h-3 w-3', status === 'running' && 'motion-safe:animate-spin')} aria-hidden />
-          {status === 'ok' ? t('act.ok') : status === 'failed' ? t('act.failed') : status === 'waiting' ? t('act.waiting') : status === 'running' ? t('act.running') : null}
+          · {statusText}
         </span>
-        {sub && <span className="font-mono text-[11.5px] text-muted-foreground">{agentLabel(item.agent)}</span>}
-      </div>
-      {(item.args !== undefined || item.result) && (
-        <details className="group mt-1.5">
-          <summary className="w-fit cursor-pointer select-none rounded font-mono text-[11.5px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <span className="group-open:hidden">{t('act.showResult')}</span>
-            <span className="hidden group-open:inline">{t('act.hideResult')}</span>
+      )}
+      {sub && <span className="shrink-0 font-mono text-[11.5px] text-muted-foreground">· {agentLabel(item.agent)}</span>}
+    </>
+  );
+
+  return (
+    <div className={cn('min-w-0', sub && 'pl-4')} data-testid="tool-item" data-tool={item.tool} data-status={status}>
+      {hasDetail ? (
+        <details className="group">
+          <summary className="-mx-1.5 flex min-h-7 cursor-pointer list-none items-center gap-2 rounded px-1.5 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+            {line}
+            <span className="ml-auto inline-flex shrink-0 items-center pl-2 text-muted-foreground" title={t('act.showResult')}>
+              <span className="sr-only group-open:hidden">{t('act.showResult')}</span>
+              <span className="sr-only hidden group-open:inline">{t('act.hideResult')}</span>
+              <ChevronRight className="h-3.5 w-3.5 transition-transform duration-micro group-open:rotate-90" aria-hidden />
+            </span>
           </summary>
-          <div className="mt-2 space-y-3 rounded-md border bg-muted/50 p-3">
+          <div className="mb-1.5 ml-3.5 mt-1 space-y-2.5 rounded-[5px] border bg-muted/40 px-3 py-2">
             {item.args !== undefined && (
               <div>
-                <p className="eyebrow mb-1.5">{t('act.args')}</p>
+                <p className="eyebrow mb-1">{t('act.args')}</p>
                 <ArgsTable args={item.args} label={t('act.args')} />
               </div>
             )}
             {item.result && (
               <div>
-                <p className="eyebrow mb-1.5">{t('act.result')}</p>
-                <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono text-[12px] leading-relaxed" tabIndex={0}>
+                <p className="eyebrow mb-1">{t('act.result')}</p>
+                <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words font-mono text-[11.5px] leading-relaxed" tabIndex={0}>
                   {prettyPreview(item.result.preview)}
                 </pre>
               </div>
             )}
           </div>
         </details>
+      ) : (
+        <div className="flex min-h-7 items-center gap-2">{line}</div>
       )}
     </div>
   );
@@ -112,17 +126,35 @@ function HandoffRow({ item }: { item: HandoffItem }) {
   const { t } = useI18n();
   const agentLabel = useAgentLabel();
   const role = agentRole(item.to) as AgentRole;
+  const tone = effectTone(item.decision?.effect);
   return (
-    <div className="flex items-center gap-2.5 rounded-md border border-dashed px-3 py-2" title={t('act.handoffHint', { from: item.from, to: item.to })}>
-      <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
-      {role !== 'orchestrator' && <AgentAvatar role={role} size={18} paused />}
-      <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px]">
-        <span className="font-medium">{t('act.handoff', { to: agentLabel(item.to) })}</span>
-        <code className="font-mono text-[11.5px] text-muted-foreground">{t('act.handoffSkill', { skill: item.skill })}</code>
-        {item.decision && <DecisionBadge effect={item.decision.effect} rule={item.decision.rule} />}
-        <span className="sr-only">{t('act.handoffHint', { from: item.from, to: item.to })}</span>
-      </div>
+    <div className="flex min-h-7 min-w-0 items-center gap-2 text-[12.5px]" title={t('act.handoffHint', { from: item.from, to: item.to })}>
+      {item.decision ? <VerdictDot tone={tone} /> : <span aria-hidden className="h-[6px] w-[6px] shrink-0 rounded-full border border-subtle" />}
+      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
+      {role !== 'orchestrator' && <AgentAvatar role={role} size={16} paused />}
+      <span className="shrink-0 font-medium">{t('act.handoff', { to: agentLabel(item.to) })}</span>
+      <code className="min-w-0 truncate font-mono text-[11.5px] text-muted-foreground">{t('act.handoffSkill', { skill: item.skill })}</code>
+      {item.decision && (
+        <span className={cn('shrink-0 font-medium', VERDICT_TEXT[tone])}>
+          {t(`act.decision.${item.decision.effect}` as MessageKey)}
+        </span>
+      )}
+      <span className="sr-only">{t('act.handoffHint', { from: item.from, to: item.to })}</span>
     </div>
+  );
+}
+
+function Note({ icon: Icon, children, tone }: { icon: typeof Brain; children: ReactNode; tone?: 'deny' | 'fault' }) {
+  return (
+    <p
+      className={cn(
+        'flex min-h-7 items-center gap-2 text-[12.5px]',
+        tone === 'deny' ? 'text-deny-foreground' : tone === 'fault' ? 'text-foreground' : 'text-muted-foreground',
+      )}
+    >
+      <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+      <span className="min-w-0">{children}</span>
+    </p>
   );
 }
 
@@ -135,7 +167,7 @@ function ItemView({ item, turn, activeApproval }: { item: ActivityItem; turn: Tu
       return <HandoffRow item={item} />;
     case 'approval':
       return (
-        <ApprovalCard
+        <Gate
           approval={{
             id: item.approvalId,
             tool: item.tool,
@@ -145,53 +177,34 @@ function ItemView({ item, turn, activeApproval }: { item: ActivityItem; turn: Tu
             status: item.status,
             votes: item.votes,
           }}
-          isRequester
           active={activeApproval === item.approvalId}
+          className="my-1.5"
         />
       );
     case 'abstained':
-      return (
-        <Alert variant="info">
-          <span className="inline-flex items-center gap-1.5">
-            <SearchX className="h-3.5 w-3.5" aria-hidden />
-            {t('act.abstained')}
-          </span>
-        </Alert>
-      );
+      return <Note icon={SearchX}>{t('act.abstained')}</Note>;
     case 'budget':
       return (
-        <Alert variant="warning">
-          <span className="inline-flex items-center gap-1.5">
-            <Wallet className="h-3.5 w-3.5" aria-hidden />
-            {t('act.budget', { reason: item.text })}
-          </span>
-        </Alert>
+        <Note icon={Wallet} tone="fault">
+          {t('act.budget', { reason: item.text })}
+        </Note>
       );
     case 'error':
       return (
-        <Alert variant="error">
-          <span className="inline-flex items-center gap-1.5">
-            <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
-            {t('act.error', { message: item.text })}
-          </span>
-        </Alert>
+        <Note icon={AlertTriangle} tone="fault">
+          {t('act.error', { message: item.text })}
+        </Note>
       );
     case 'memory':
       return (
-        <span
-          className={cn(
-            'inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[12px]',
-            // A refused memory is a policy decision (deny); used/stored are plain facts.
-            item.variant === 'refused' ? 'border-deny/40 bg-deny-soft text-deny-foreground' : 'bg-transparent text-muted-foreground',
-          )}
-        >
-          {item.variant === 'used' ? <BrainCircuit className="h-3.5 w-3.5" aria-hidden /> : <Brain className="h-3.5 w-3.5" aria-hidden />}
+        // A refused memory is a policy decision (deny); used/stored are plain facts.
+        <Note icon={item.variant === 'used' ? BrainCircuit : Brain} tone={item.variant === 'refused' ? 'deny' : undefined}>
           {item.variant === 'used'
             ? t('act.memoryUsed', { count: item.count ?? 0 })
             : item.variant === 'stored'
               ? t('act.memoryStored', { fact: item.text ?? '' })
               : t('act.memoryRefused', { reason: item.text ?? '' })}
-        </span>
+        </Note>
       );
     case 'citation':
       return null; // shown under the answer as sources
@@ -201,8 +214,8 @@ function ItemView({ item, turn, activeApproval }: { item: ActivityItem; turn: Tu
 }
 
 /**
- * The per-turn activity, shown like an instrument log: a hairline rail whose nodes light up in
- * the verdict color where Warden decided (DESIGN.md §6).
+ * The per-turn activity, shown like an instrument log: one line per step, the verdict color on
+ * the dot and the word where Warden decided (DESIGN.md §6).
  */
 export function ActivityTimeline({ turn }: { turn: Turn }) {
   const items = turn.items.filter((x) => x.kind !== 'citation');
@@ -210,20 +223,12 @@ export function ActivityTimeline({ turn }: { turn: Turn }) {
   const firstPending = items.find((x) => x.kind === 'approval' && x.status === 'pending');
   const activeApproval = firstPending?.kind === 'approval' ? firstPending.approvalId : undefined;
   return (
-    <ol className="relative space-y-3.5 border-l pl-5" data-testid="activity">
-      {items.map((item) => {
-        const tone = nodeTone(item);
-        return (
-          <li key={item.key} className="relative animate-fade-in">
-            <span aria-hidden className="absolute -left-5 top-[7px] flex w-0 justify-center">
-              <span className="flex h-[11px] w-[11px] items-center justify-center rounded-full bg-background">
-                {tone === 'muted' ? <span className="h-[7px] w-[7px] rounded-full border border-subtle" /> : <VerdictDot tone={tone} />}
-              </span>
-            </span>
-            <ItemView item={item} turn={turn} activeApproval={activeApproval} />
-          </li>
-        );
-      })}
+    <ol className="border-l pl-3" data-testid="activity">
+      {items.map((item) => (
+        <li key={item.key} className="animate-fade-in">
+          <ItemView item={item} turn={turn} activeApproval={activeApproval} />
+        </li>
+      ))}
     </ol>
   );
 }

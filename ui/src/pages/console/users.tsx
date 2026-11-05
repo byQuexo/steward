@@ -50,7 +50,7 @@ function RolesDialog({ user, roles, onClose, onSaved }: { user: DirUser; roles: 
           <DialogDescription>{user.email}</DialogDescription>
         </DialogHeader>
         <fieldset className="space-y-2">
-          <legend className="mb-2 text-sm font-medium">{t('eff.roles')}</legend>
+          <legend className="mb-2 text-[12.5px] font-medium">{t('eff.roles')}</legend>
           <div className="grid gap-2 sm:grid-cols-2">
             {roles.map((r) => (
               <div key={r} className="flex items-center gap-2 rounded-md border p-2.5">
@@ -95,10 +95,10 @@ export function UsersPage() {
 
   return (
     <section aria-labelledby="users-title">
-      <h2 id="users-title" className="text-[20px] font-medium tracking-[-0.02em]">
+      <h2 id="users-title" className="text-[15px] font-semibold tracking-[-0.01em]">
         {t('users.title')}
       </h2>
-      <p className="mb-5 mt-1 max-w-2xl text-sm text-muted-foreground">{t('users.subtitle')}</p>
+      <p className="mb-3 mt-0.5 max-w-2xl text-[12.5px] text-muted-foreground">{t('users.subtitle')}</p>
       {error && <Alert variant="error">{t('common.error', { error })}</Alert>}
       {!data ? (
         <Skeleton className="h-64" />

@@ -42,10 +42,10 @@ export function TestAsPage() {
 
   return (
     <section aria-labelledby="test-as-title">
-      <h2 id="test-as-title" className="text-[20px] font-medium tracking-[-0.02em]">
+      <h2 id="test-as-title" className="text-[15px] font-semibold tracking-[-0.01em]">
         {t('testAs.title')}
       </h2>
-      <p className="mb-5 mt-1 max-w-2xl text-sm text-muted-foreground">{t('testAs.subtitle')}</p>
+      <p className="mb-3 mt-0.5 max-w-2xl text-[12.5px] text-muted-foreground">{t('testAs.subtitle')}</p>
       {error && <Alert variant="error">{t('common.error', { error })}</Alert>}
       {!users ? (
         <Skeleton className="h-40" />
@@ -54,7 +54,7 @@ export function TestAsPage() {
           {users.users.map(({ user, title }) => {
             const self = user.id === me.user;
             return (
-              <li key={user.id} className="flex items-center gap-3 rounded-lg border bg-card p-4">
+              <li key={user.id} className="flex items-center gap-3 rounded-md border bg-card px-3 py-2.5">
                 <UserAvatar name={user.name} size={36} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{user.name}</p>

@@ -7,7 +7,7 @@ import type { OrbState } from 'thinking-orbs';
 
 import type { MessageKey } from '@/i18n';
 
-import { agentRole, type Turn } from './timeline';
+import { agentRole, type ToolItem, type Turn } from './timeline';
 import type { KillMode } from './types';
 
 export type PresenceState =
@@ -22,7 +22,8 @@ export type PresenceState =
   | 'approved'
   | 'done'
   | 'error'
-  | 'paused';
+  | 'paused'
+  | 'dozing';
 
 /** Short-lived reactions to a single event. */
 export type Flash = 'denied' | 'approved' | 'done';
@@ -44,6 +45,16 @@ export interface PresenceInput {
   kill?: KillMode;
   /** A flash detected by `detectFlash` that has not expired yet. */
   flash?: Flash | null;
+  /** No input for a while: Steward dozes off (wakes on any input). */
+  dozing?: boolean;
+  /** Idle micro-life: a short glance at the composer. */
+  glance?: boolean;
+}
+
+/** What Steward says right now, in first person (an i18n key plus its values). */
+export interface Line {
+  key: MessageKey;
+  vars?: Record<string, string | number>;
 }
 
 export interface Companion {
@@ -71,6 +82,7 @@ export interface Presence {
   /** Sub-agent budded off by an A2A handoff in the running turn. */
   companion: Companion | null;
   label: MessageKey;
+  say: Line;
 }
 
 const running = (turn?: Turn) => turn?.status === 'streaming';
@@ -123,9 +135,78 @@ export function detectFlash(prev: Turn | undefined, next: Turn | undefined): Fla
 const LOOK_AT_COMPOSER = { yaw: 0.1, pitch: -0.38 };
 const LOOK_AT_APPROVAL = { yaw: -0.32, pitch: 0.3 };
 
-/** The presence for one snapshot. Priority: flash › listening › running › done › kill › typing › error › idle. */
+const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
+/** "Ticket t-2051", "Deal d-1007" from well-known argument names, else the tool name. */
+export function thingOf(tool: string, args: unknown): string {
+  if (args && typeof args === 'object') {
+    const a = args as Record<string, unknown>;
+    const pick = (k: string) => (typeof a[k] === 'string' || typeof a[k] === 'number' ? String(a[k]) : null);
+    const ticket = pick('ticket_id');
+    if (ticket) return `Ticket ${ticket}`;
+    const deal = pick('deal_id');
+    if (deal) return `Deal ${deal}`;
+    const issue = pick('issue_id');
+    if (issue) return issue;
+  }
+  return tool;
+}
+
+const READISH = /^(get|list|search|query|read|find|fetch|lookup)/;
+
+/** The tool call Steward is busy with (no result yet, not denied). */
+function inFlight(turn: Turn): ToolItem | undefined {
+  return [...turn.items].reverse().find((x): x is ToolItem => x.kind === 'tool' && !x.result && x.decision?.effect !== 'deny');
+}
+
+function sayFor(state: PresenceState, turn: Turn | undefined, input: PresenceInput, companion: Companion | null): Line {
+  switch (state) {
+    case 'denied':
+      return { key: 'presence.say.denied' };
+    case 'approved': {
+      const ap = turn ? [...turn.items].reverse().find((x) => x.kind === 'approval' && x.status === 'approved') : undefined;
+      const voter = ap?.kind === 'approval' ? (ap.votes.find((v) => v.approve)?.user ?? ap.approvers[0]) : undefined;
+      return { key: 'presence.say.approved', vars: { who: cap(voter ?? 'Warden') } };
+    }
+    case 'listening':
+      return { key: 'presence.say.listening' };
+    case 'awaiting_approval': {
+      const ap = turn?.items.find((x) => x.kind === 'approval' && x.status === 'pending');
+      const who = ap?.kind === 'approval' && ap.approvers.length ? ap.approvers.map(cap).join(' / ') : '?';
+      return { key: 'presence.say.awaiting', vars: { who } };
+    }
+    case 'calling_tools': {
+      const call = turn ? inFlight(turn) : undefined;
+      if (!call) return { key: 'presence.say.thinking' };
+      const thing = thingOf(call.tool, call.args);
+      if (!call.decision) return { key: 'presence.say.asking', vars: { thing } };
+      const verb = READISH.test(call.tool.split('.').pop() ?? '') ? 'presence.say.reading' : 'presence.say.calling';
+      return { key: verb, vars: { thing } };
+    }
+    case 'thinking':
+      if (companion) return { key: `presence.say.handoff.${companion.role}` as MessageKey };
+      return { key: 'presence.say.thinking' };
+    case 'composing':
+      return { key: 'presence.say.composing' };
+    case 'done':
+      return { key: 'presence.say.done' };
+    case 'paused':
+      return { key: input.kill === 'all' ? 'presence.say.pausedAll' : 'presence.say.pausedWrites' };
+    case 'typing':
+      return { key: 'presence.say.typing' };
+    case 'error':
+      return { key: turn?.items.some((x) => x.kind === 'budget') ? 'presence.say.budget' : 'presence.say.error' };
+    case 'dozing':
+      return { key: 'presence.say.dozing' };
+    default:
+      return { key: input.testAs ? 'presence.say.testAs' : 'presence.say.idle' };
+  }
+}
+
+/** The presence for one snapshot. Priority: flash › listening › running › done › kill › typing › error › dozing › idle. */
 export function derivePresence(input: PresenceInput): Presence {
-  const { turn, typing = false, listening = false, testAs = false, kill = 'off', flash = null } = input;
+  const { turn, typing = false, listening = false, testAs = false, kill = 'off', flash = null, dozing = false, glance = false } = input;
+  const companion = companionOf(turn);
   const base: Presence = {
     state: 'idle',
     avatar: 'default',
@@ -136,10 +217,17 @@ export function derivePresence(input: PresenceInput): Presence {
     headphones: false,
     dimmed: kill !== 'off',
     frozen: false,
-    companion: companionOf(turn),
+    companion,
     label: 'presence.idle',
+    say: { key: 'presence.say.idle' },
   };
-  const is = (state: PresenceState, extra: Partial<Presence>): Presence => ({ ...base, state, label: `presence.${state}` as MessageKey, ...extra });
+  const is = (state: PresenceState, extra: Partial<Presence>): Presence => ({
+    ...base,
+    state,
+    label: `presence.${state}` as MessageKey,
+    say: sayFor(state, turn, input, companion),
+    ...extra,
+  });
 
   if (flash === 'denied') return is('denied', { rim: 'deny', gesture: 'shake' });
   if (flash === 'approved') return is('approved', { rim: 'allow', gesture: 'hop' });
@@ -154,5 +242,6 @@ export function derivePresence(input: PresenceInput): Presence {
   if (kill !== 'off') return is('paused', { avatar: 'sleeping', frozen: true });
   if (typing) return is('typing', { pose: LOOK_AT_COMPOSER });
   if (turn && failed(turn)) return is('error', { avatar: 'sleeping' });
-  return base;
+  if (dozing) return is('dozing', { avatar: 'sleeping' });
+  return is('idle', glance ? { pose: LOOK_AT_COMPOSER } : {});
 }

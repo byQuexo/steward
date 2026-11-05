@@ -52,12 +52,12 @@ export function ConnectorsPage() {
 
   return (
     <section aria-labelledby="conn-title">
-      <div className="mb-5 flex items-end justify-between gap-3">
+      <div className="mb-3 flex items-end justify-between gap-3">
         <div>
-          <h2 id="conn-title" className="text-[20px] font-medium tracking-[-0.02em]">
+          <h2 id="conn-title" className="text-[15px] font-semibold tracking-[-0.01em]">
             {t('conn.title')}
           </h2>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t('conn.subtitle')}</p>
+          <p className="mt-0.5 max-w-2xl text-[12.5px] text-muted-foreground">{t('conn.subtitle')}</p>
         </div>
         <Button variant="outline" size="icon" onClick={load} aria-label={t('approvals.refresh')} title={t('approvals.refresh')}>
           <RefreshCw aria-hidden />
@@ -67,7 +67,7 @@ export function ConnectorsPage() {
       {!data ? (
         !error && <Skeleton className="h-64" />
       ) : data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('conn.empty')}</p>
+        <p className="text-[12.5px] text-muted-foreground">{t('conn.empty')}</p>
       ) : (
         <ul className="grid gap-4 lg:grid-cols-2">
           {data.map((c) => (

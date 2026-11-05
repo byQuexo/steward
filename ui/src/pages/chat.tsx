@@ -15,9 +15,10 @@ import { Switch } from '@/components/ui/switch';
 import { useChat } from '@/context/chat';
 import { useI18n } from '@/context/i18n';
 import { useMe } from '@/context/session';
+import type { MessageKey } from '@/i18n';
 import { useReducedMotion, useResolvedTheme } from '@/lib/motion';
-import { usePresence } from '@/lib/use-presence';
 import type { CitationItem, Turn } from '@/lib/timeline';
+import { usePresence } from '@/lib/use-presence';
 import { cn, formatEur, formatNumber } from '@/lib/utils';
 import { useVoice } from '@/lib/voice';
 
@@ -30,8 +31,8 @@ function CostChip({ turn }: { turn: Turn }) {
   const tokens = turn.cost.inputTokens + turn.cost.outputTokens;
   const detail = `${t('act.costTokens', { input: formatNumber(turn.cost.inputTokens, intl), output: formatNumber(turn.cost.outputTokens, intl) })} · ${t('act.costCalls', { count: turn.cost.calls })}${turn.cost.models.length ? ` · ${turn.cost.models.join(', ')}` : ''}`;
   return (
-    <span className="inline-flex items-center gap-1.5 font-mono text-[11.5px] text-muted-foreground" title={detail} data-testid="cost-chip">
-      <Coins className="h-3.5 w-3.5" aria-hidden />
+    <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground" title={detail} data-testid="cost-chip">
+      <Coins className="h-3 w-3" aria-hidden />
       <span className="sr-only">{t('act.cost')}: </span>
       <span className="tabular-nums text-foreground">{formatEur(eur, intl)}</span>
       <span aria-hidden>·</span>
@@ -50,34 +51,34 @@ function TurnView({ turn, isLast }: { turn: Turn; isLast: boolean }) {
   const citations = turn.items.filter((x): x is CitationItem => x.kind === 'citation');
   const empty = !streaming && !turn.answer;
   return (
-    <li className="space-y-5" data-testid="turn" data-status={turn.status}>
+    <li className="space-y-3" data-testid="turn" data-status={turn.status}>
       <div className="flex justify-end">
-        <div className="max-w-[85%] rounded-[20px] rounded-tr-md bg-secondary px-4 py-2.5 text-[15px] leading-relaxed text-secondary-foreground">
+        <div className="max-w-[85%] rounded-[10px] rounded-tr-[3px] bg-secondary px-3 py-1.5 text-[14px] leading-relaxed text-secondary-foreground">
           <span className="sr-only">{t('chat.you')}: </span>
           <p className="whitespace-pre-wrap break-words">{turn.question}</p>
         </div>
       </div>
 
-      <div className="min-w-0 space-y-4">
-        <p className="flex items-center gap-3 text-[13px]">
-          <span className="font-medium text-foreground">{me.assistant}</span>
-          {turn.restored && <span className="font-mono text-[11.5px] text-muted-foreground">{t('chat.restored')}</span>}
+      <div className="min-w-0 space-y-2.5">
+        <p className="flex items-center gap-2.5 text-[12px]">
+          <span className="font-semibold text-foreground">{me.assistant}</span>
+          {turn.restored && <span className="font-mono text-[11px] text-muted-foreground">{t('chat.restored')}</span>}
           <VerdictTrail turn={turn} />
         </p>
         <ActivityTimeline turn={turn} />
-        <div aria-live={isLast ? 'polite' : undefined} aria-busy={streaming} aria-atomic="false" className="text-[15px]" data-testid="answer">
+        <div aria-live={isLast ? 'polite' : undefined} aria-busy={streaming} aria-atomic="false" className="text-[14px]" data-testid="answer">
           {turn.answer ? (
             <div className={cn(streaming && 'streaming-caret')}>
               <Markdown text={turn.answer} />
             </div>
           ) : streaming ? (
-            <p className="text-sm text-muted-foreground">{t('chat.thinking', { assistant: me.assistant })}</p>
+            <p className="text-[13px] text-muted-foreground">{t('chat.thinking', { assistant: me.assistant })}</p>
           ) : empty && turn.status !== 'error' ? (
-            <p className="text-sm text-muted-foreground">{t('chat.emptyAnswer')}</p>
+            <p className="text-[13px] text-muted-foreground">{t('chat.emptyAnswer')}</p>
           ) : null}
         </div>
         {citations.length > 0 && (
-          <section aria-label={t('cite.sources')} className="space-y-2.5">
+          <section aria-label={t('cite.sources')} className="space-y-1.5">
             <h2 className="eyebrow">{t('cite.sources')}</h2>
             <ul className="flex flex-wrap gap-2">
               {citations.map((c) => (
@@ -98,7 +99,7 @@ function TurnView({ turn, isLast }: { turn: Turn; isLast: boolean }) {
 function Legend({ className }: { className?: string }) {
   const { t } = useI18n();
   return (
-    <p className={cn('flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-mono text-[11px] text-muted-foreground', className)}>
+    <p className={cn('flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-mono text-[10.5px] text-muted-foreground', className)}>
       <span>{t('legend.title')}:</span>
       <span className="inline-flex items-center gap-1.5">
         <VerdictDot tone="allow" />
@@ -118,6 +119,51 @@ function Legend({ className }: { className?: string }) {
 
 function Kbd({ children }: { children: ReactNode }) {
   return <kbd>{children}</kbd>;
+}
+
+function greetKey(hour: number): MessageKey {
+  if (hour >= 5 && hour < 11) return 'hero.morning';
+  if (hour >= 11 && hour < 17) return 'hero.day';
+  if (hour >= 17 && hour < 23) return 'hero.evening';
+  return 'hero.night';
+}
+
+// Typed once per page load; later visits to the empty chat show the line at once.
+let greetedOnce = false;
+
+/** Steward's greeting, typed out quickly once (no typing under reduced motion). */
+function Greeting({ text, sub }: { text: string; sub: string }) {
+  const reduced = useReducedMotion();
+  const [n, setN] = useState(() => (reduced || greetedOnce ? text.length : 0));
+  useEffect(() => {
+    if (reduced || greetedOnce) {
+      setN(text.length);
+      return;
+    }
+    let i = 0;
+    const id = window.setInterval(() => {
+      i += 1;
+      setN(i);
+      if (i >= text.length) {
+        greetedOnce = true;
+        window.clearInterval(id);
+      }
+    }, 28);
+    return () => window.clearInterval(id);
+  }, [text, reduced]);
+  const typing = n < text.length;
+  return (
+    <div className="text-center">
+      <h2 className="text-balance text-[24px] font-semibold leading-tight tracking-[-0.025em] sm:text-[28px]">
+        <span className="sr-only">{text}</span>
+        <span aria-hidden>
+          {text.slice(0, n)}
+          <span className={cn('ml-0.5 inline-block h-[0.9em] w-[2px] translate-y-[0.1em] bg-foreground/70', !typing && 'opacity-0')} />
+        </span>
+      </h2>
+      <p className={cn('mt-1.5 text-[13.5px] text-muted-foreground transition-opacity duration-layout', typing ? 'opacity-0' : 'opacity-100')}>{sub}</p>
+    </div>
+  );
 }
 
 export function ChatPage() {
@@ -144,13 +190,16 @@ export function ChatPage() {
   });
 
   const last = turns[turns.length - 1];
-  const { presence, nonce } = usePresence({
-    turn: last,
-    typing: focused && text.trim().length > 0,
-    listening: voice.state === 'listening',
-    testAs: !!me.impersonated_by,
-    kill: me.kill_switch,
-  });
+  const { presence, nonce } = usePresence(
+    {
+      turn: last,
+      typing: focused && text.trim().length > 0,
+      listening: voice.state === 'listening',
+      testAs: !!me.impersonated_by,
+      kill: me.kill_switch,
+    },
+    reduced,
+  );
 
   // Keep the newest content in view unless the user scrolled up.
   useEffect(() => {
@@ -218,7 +267,7 @@ export function ChatPage() {
     if (heard) void submit(heard, true);
   };
 
-  // Auto-grow the textarea.
+  // Auto-grow the textarea (one line, up to 200px).
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
@@ -230,9 +279,11 @@ export function ChatPage() {
 
   const readOnly = !!me.impersonated_by;
   const listening = voice.state === 'listening';
+  const firstName = me.name.split(/\s+/)[0] ?? me.name;
+  const greeting = t('hero.greeting', { greet: t(greetKey(new Date().getHours())), name: firstName, assistant: me.assistant });
 
   const composer = (
-    <div className="space-y-2.5">
+    <div className="space-y-1.5">
       {readOnly && <Alert variant="info">{t('chat.readOnly')}</Alert>}
       {voice.error && <Alert variant="error">{voice.error}</Alert>}
       <form
@@ -248,23 +299,18 @@ export function ChatPage() {
           colorVariant="mono"
           theme={theme}
           idle={0}
-          borderRadius={26}
+          borderRadius={10}
           className="block"
         >
           <Beam variant="working" active={busy}>
-            <div
-              className={cn(
-                'rounded-[26px] border border-input bg-card transition-colors duration-micro focus-within:border-ring',
-                busy && 'border-border',
-              )}
-            >
+            <div className={cn('rounded-[10px] border border-input bg-card transition-colors duration-micro focus-within:border-ring', busy && 'border-border')}>
               {voiceMode ? (
-                <div className="flex min-h-[64px] items-center gap-3 px-3 py-2.5">
+                <div className="flex min-h-[42px] items-center gap-2.5 py-1 pl-1.5 pr-1.5">
                   <Button
                     type="button"
                     size="icon"
                     variant={listening ? 'outline' : 'default'}
-                    className={cn('h-11 w-11 shrink-0', listening && 'border-foreground')}
+                    className={cn('h-8 w-8 shrink-0 rounded-[7px]', listening && 'border-foreground')}
                     aria-label={t('voice.holdKey')}
                     aria-pressed={listening}
                     disabled={busy || !voice.supported || voice.state === 'transcribing'}
@@ -289,7 +335,7 @@ export function ChatPage() {
                   >
                     <Mic aria-hidden />
                   </Button>
-                  <p className="flex min-w-0 flex-1 items-center gap-2 text-[15px]" aria-live="polite">
+                  <p className="flex min-w-0 flex-1 items-center gap-2 text-[13.5px]" aria-live="polite">
                     {listening ? (
                       <span className="text-foreground">{voice.interim || t('voice.listening')}</span>
                     ) : voice.state === 'transcribing' ? (
@@ -313,13 +359,13 @@ export function ChatPage() {
                     </Button>
                   )}
                   {busy && (
-                    <Button type="button" size="icon" variant="outline" className="h-9 w-9 shrink-0" onClick={cancel} aria-label={t('chat.stop')} title={t('chat.stop')}>
-                      <Square className="!size-3.5" aria-hidden />
+                    <Button type="button" size="icon-sm" variant="outline" className="shrink-0" onClick={cancel} aria-label={t('chat.stop')} title={t('chat.stop')}>
+                      <Square className="!size-3" aria-hidden />
                     </Button>
                   )}
                 </div>
               ) : (
-                <div className="flex items-end gap-2 py-2 pl-5 pr-2">
+                <div className="flex items-end gap-2 py-[5px] pl-3 pr-[5px]">
                   <Label htmlFor={inputId} className="sr-only">
                     {t('chat.inputLabel', { assistant: me.assistant })}
                   </Label>
@@ -335,20 +381,17 @@ export function ChatPage() {
                     placeholder={t('chat.placeholder')}
                     maxLength={4000}
                     data-testid="chat-input"
-                    className={cn(
-                      'block max-h-[200px] w-full flex-1 resize-none bg-transparent py-2.5 text-[16px] leading-6 placeholder:text-muted-foreground focus-visible:outline-none',
-                      empty ? 'min-h-[76px]' : 'min-h-[44px]',
-                    )}
+                    className="block max-h-[200px] min-h-8 w-full flex-1 resize-none bg-transparent py-[6px] text-[14px] leading-5 placeholder:text-muted-foreground focus-visible:outline-none"
                   />
                   {busy ? (
-                    <Button type="button" size="icon" variant="outline" className="mb-0.5 h-10 w-10 shrink-0" onClick={cancel} aria-label={t('chat.stop')} title={t('chat.stop')}>
-                      <Square className="!size-3.5" aria-hidden />
+                    <Button type="button" size="icon-sm" variant="outline" className="h-8 w-8 shrink-0" onClick={cancel} aria-label={t('chat.stop')} title={t('chat.stop')}>
+                      <Square className="!size-3" aria-hidden />
                     </Button>
                   ) : (
                     <Button
                       type="submit"
-                      size="icon"
-                      className="mb-0.5 h-10 w-10 shrink-0"
+                      size="icon-sm"
+                      className="h-8 w-8 shrink-0"
                       disabled={!text.trim()}
                       aria-label={t('chat.send')}
                       title={t('chat.send')}
@@ -363,7 +406,7 @@ export function ChatPage() {
           </Beam>
         </VoiceBeam>
       </form>
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1 text-[12px] text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-0.5 text-[11.5px] text-muted-foreground">
         <div className="flex items-center gap-2">
           <Switch
             id={voiceId}
@@ -374,28 +417,28 @@ export function ChatPage() {
             }}
             aria-describedby={`${voiceId}-hint`}
           />
-          <Label htmlFor={voiceId} className="text-[12px] font-medium text-foreground">
+          <Label htmlFor={voiceId} className="text-[11.5px] font-medium text-foreground">
             {t('voice.mode')}
           </Label>
-          <span id={`${voiceId}-hint`} className="hidden sm:inline">
+          <span id={`${voiceId}-hint`} className={voiceMode ? 'hidden sm:inline' : 'sr-only'}>
             {voiceMode ? t('approval.clickOnly') : t('voice.modeHint')}
           </span>
           {voice.speaking && (
             <span className="inline-flex items-center gap-1">
-              <Volume2 className="h-3.5 w-3.5" aria-hidden />
+              <Volume2 className="h-3 w-3" aria-hidden />
               {t('voice.speaking')}
             </span>
           )}
         </div>
         {!voiceMode && (
-          <p className="hidden items-center gap-3 md:flex" aria-hidden>
-            <span className="inline-flex items-center gap-1.5">
+          <p className="hidden items-center gap-2.5 md:flex" aria-hidden>
+            <span className="inline-flex items-center gap-1">
               <Kbd>⏎</Kbd> {t('chat.kbd.send')}
             </span>
-            <span className="inline-flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1">
               <Kbd>⇧⏎</Kbd> {t('chat.kbd.newline')}
             </span>
-            <span className="inline-flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1">
               <Kbd>{isMac ? '⌘K' : 'Ctrl K'}</Kbd> {t('chat.kbd.focus')}
             </span>
           </p>
@@ -416,28 +459,25 @@ export function ChatPage() {
         {empty ? (
           <div className="relative flex min-h-full flex-col">
             <div aria-hidden className="hero-grid pointer-events-none absolute inset-0" />
-            <div className="relative mx-auto flex w-full max-w-[760px] flex-1 flex-col items-center justify-center px-4 py-12">
+            <div className="relative mx-auto flex w-full max-w-[680px] flex-1 flex-col items-center justify-center px-4 py-8">
               <PresenceView presence={presence} nonce={nonce} variant="hero" assistant={me.assistant} />
-              <h2 className="mt-7 text-balance text-center text-[34px] font-medium leading-[1.08] tracking-[-0.035em] sm:text-[44px]">{me.greeting}</h2>
-              <p className="eyebrow mt-4 text-center">
-                <span className="tabular-nums">{t('chat.tools', { count: me.tools.length })}</span>
-                <span aria-hidden> · </span>
-                {t('chat.governed')}
-              </p>
-              <div className="mt-9 w-full">{composer}</div>
+              <div className="mt-3">
+                <Greeting text={greeting} sub={t('hero.line')} />
+              </div>
+              <div className="mt-6 w-full">{composer}</div>
               {me.suggestions.length > 0 && (
-                <section aria-labelledby="suggestions-title" className="mt-6 w-full">
+                <section aria-labelledby="suggestions-title" className="mt-4 w-full">
                   <h3 id="suggestions-title" className="sr-only">
                     {t('chat.suggestions')}
                   </h3>
-                  <ul className="flex flex-wrap justify-center gap-2">
+                  <ul className="flex flex-wrap justify-center gap-1.5">
                     {me.suggestions.map((s) => (
                       <li key={s}>
                         <button
                           type="button"
                           disabled={busy}
                           onClick={() => void submit(s)}
-                          className="h-8 rounded-full border px-3.5 text-[13px] text-muted-foreground transition-colors duration-micro hover:border-foreground/30 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                          className="h-7 rounded-[6px] border px-2.5 text-[12.5px] text-muted-foreground transition-colors duration-micro hover:border-foreground/30 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                         >
                           {s}
                         </button>
@@ -446,12 +486,17 @@ export function ChatPage() {
                   </ul>
                 </section>
               )}
-              <Legend className="mt-12" />
+              <p className="eyebrow mt-8 text-center">
+                <span className="tabular-nums">{t('chat.tools', { count: me.tools.length })}</span>
+                <span aria-hidden> · </span>
+                {t('chat.governed')}
+              </p>
+              <Legend className="mt-2" />
             </div>
           </div>
         ) : (
-          <section aria-label={t('chat.messages')} className="mx-auto w-full max-w-[760px] px-4 pb-10 pt-8">
-            <ol className="space-y-12">
+          <section aria-label={t('chat.messages')} className="mx-auto w-full max-w-[720px] px-4 pb-6 pt-5">
+            <ol className="space-y-7">
               {turns.map((turn, i) => (
                 <TurnView key={turn.id} turn={turn} isLast={i === turns.length - 1} />
               ))}
@@ -461,10 +506,10 @@ export function ChatPage() {
       </div>
 
       {!empty && (
-        <div className="relative shrink-0 pb-[max(env(safe-area-inset-bottom),12px)]">
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-8 h-8 bg-gradient-to-t from-background to-transparent" />
-          <div className="mx-auto w-full max-w-[760px] space-y-2 px-4">
-            <div className="flex items-center justify-between gap-3">
+        <div className="relative shrink-0 pb-[max(env(safe-area-inset-bottom),10px)]">
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-6 h-6 bg-gradient-to-t from-background to-transparent" />
+          <div className="mx-auto w-full max-w-[720px] space-y-1.5 px-4">
+            <div className="flex h-8 items-center justify-between gap-3">
               <PresenceView presence={presence} nonce={nonce} variant="dock" assistant={me.assistant} className="min-w-0" />
               <Button variant="ghost" size="sm" onClick={() => void clear()} disabled={busy || turns.length === 0} className="shrink-0">
                 <Eraser aria-hidden />

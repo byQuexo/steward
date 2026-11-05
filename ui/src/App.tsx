@@ -29,7 +29,7 @@ function NotFound() {
     <div className="container max-w-xl py-24">
       <p className="eyebrow">404</p>
       <h1 className="mt-3 text-[32px] font-medium tracking-[-0.03em]">{t('notFound.title')}</h1>
-      <Link to="/" className="mt-6 inline-block text-sm text-foreground underline decoration-foreground/40 underline-offset-4 hover:decoration-foreground">
+      <Link to="/" className="mt-6 inline-block text-[12.5px] text-foreground underline decoration-foreground/40 underline-offset-4 hover:decoration-foreground">
         {t('notFound.back')}
       </Link>
     </div>
