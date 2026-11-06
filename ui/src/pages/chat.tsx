@@ -190,12 +190,14 @@ function Greeting({ text, sub }: { text: string; sub: ReactNode }) {
   );
 }
 
-/** The model route of the last answer (read-only info), as a quiet chip. */
+/** The model that wrote the last answer (read-only info), as a quiet chip. The first model of a
+ *  turn is the orchestrator's; sub-agents (research, action) report theirs after it. */
 function ModelChip({ turns }: { turns: Turn[] }) {
   const { t } = useI18n();
-  const model = [...turns].reverse().find((x) => x.cost.models.length)?.cost.models.slice(-1)[0];
+  const model = [...turns].reverse().find((x) => x.cost.models.length)?.cost.models[0];
   const offline = !model || /script|offline|mock|demo|fake/i.test(model);
-  const label = model ? (offline ? t('composer.offline') : model) : t('composer.noModel');
+  // "openrouter/anthropic/claude-haiku-5.5" → "claude-haiku-5.5"; the full route is in the title.
+  const label = model ? (offline ? t('composer.offline') : (model.split('/').pop() ?? model)) : t('composer.noModel');
   return (
     <span
       className="inline-flex h-7 max-w-[12rem] items-center gap-1 rounded-full px-2.5 text-[12.5px] text-muted-foreground"

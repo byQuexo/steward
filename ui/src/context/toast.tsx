@@ -69,6 +69,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 </div>
                 <button
                   type="button"
+                  aria-label={t('common.dismiss')}
+                  data-testid="toast-dismiss"
                   onClick={() => dismiss(x.id)}
                   className="rounded-full p-0.5 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
