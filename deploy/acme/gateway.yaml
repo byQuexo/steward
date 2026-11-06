@@ -25,7 +25,7 @@ upstreams:
   ticket:
     url: http://mcp:8100/ticket/mcp
     auth: { strategy: token-exchange, token_url: http://sts:9400/token, client_id: gateway, secret_env: GATEWAY_STS_SECRET, audience: steward-mcp }
-approval: { approver: webhook, url: http://steward:8000/hooks/warden/approval, secret_env: APPROVAL_WEBHOOK_SECRET, timeout_ms: 125000, progress_interval_ms: 2000 }
+approval: { approver: webhook, url: http://steward:8000/hooks/warden/approval, secret_env: APPROVAL_WEBHOOK_SECRET, timeout_ms: 305000, progress_interval_ms: 2000 }
 audit:
   sinks:
     - { type: jsonl, dir: /var/lib/warden/audit, chain: gw-1, checkpoint_every: 20 }
