@@ -41,10 +41,13 @@ answers instead; `--offline` keeps the scripted one. For the full stack with Key
 All eleven Acme stories are in the [demo script](docs/demo-script.md).
 
 <p align="center">
-  <img alt="The chat: Steward's activity log for a prompt-injection ticket. ticket.get allowed in teal, the salary lookup and the chat post denied in red, the ticket close held for approval in amber with the exact arguments." src="docs/assets/screens/chat-injection.png" width="49%">
+  <img alt="A real model at work: Sara asks Steward to research the Fjord Logistics deal and open a Jira issue. The research agent searches CRM and documents, the action agent creates the issue after Ines approves it, each step with Warden's verdict, the answer cites the price list." src="docs/assets/screens/chat-delegation.png" width="49%">
   <img alt="The approvals inbox: Sara sees Sven's held deal change with the exact arguments that will run, and approves or rejects it." src="docs/assets/screens/approvals.png" width="49%">
   <br>
-  <sub>Monochrome until Warden decides: teal allowed, amber waiting for a human, red denied. Design system: <a href="DESIGN.md">DESIGN.md</a>.</sub>
+  <img alt="Ivo's VPN question answered from a scanned PDF with a verified citation to page 2." src="docs/assets/screens/chat-citation.png" width="49%">
+  <img alt="Offline, the scripted model plays a hijacked assistant on a prompt-injection ticket: ticket.get allowed in teal, the salary lookup and the chat post denied in red, the ticket close held for approval in amber." src="docs/assets/screens/chat-injection.png" width="49%">
+  <br>
+  <sub>Top and bottom left: <code>claude-haiku-5.5</code> via OpenRouter, a real run (taken with <code>SCREENSHOTS=1 npx playwright test screens</code>). Bottom right: the scripted model, which plays what a hijacked model would try. Monochrome until Warden decides: teal allowed, amber waiting for a human, red denied. Design system: <a href="DESIGN.md">DESIGN.md</a>.</sub>
 </p>
 
 ## What makes it different
@@ -106,11 +109,12 @@ Every number is produced by CI.
 | Warden security suite, Northwind | 60 written + 116 generated attacks | **176 / 176**, rule coverage 9/9, mutants killed 9/9 |
 | Hard gates | scope violation, unapproved write, delegation escalation, failed cases | **0** |
 | Decision latency (Acme policy, release) | `warden bench`, 100k decisions | p50 **27 µs**, p99 **66 µs** |
-| Rust tests | unit and end-to-end (gateway, agent loop, console, scenarios) | **38** passing |
-| UI | unit tests; Playwright end-to-end (approvals across two browsers, citations, injection, console) with axe on every page, light and dark | **44** unit, **12 / 12** e2e, 0 serious a11y violations |
+| Rust tests | unit and end-to-end (gateway, agent loop, console, inbox, scenarios) | **43** passing |
+| UI | unit tests; Playwright end-to-end (approvals across two browsers, citations, injection, console) with axe on every page, light and dark | **45** unit, **12 / 12** e2e, 0 serious a11y violations |
 | Docker stack with Keycloak | `deploy/smoke.sh`: real Keycloak tokens through gateway, token exchange, inbox approval, A2A with a delegated write, network isolation, audit verification | **13 / 13** |
 | Seed | identical regeneration of both profiles on Linux and Windows (content: pixels, PDF streams, JSON) | ✅ |
 | Quality eval (offline, CI) | 88 questions over 7 users; harness and hard gates on the scripted subset | gates **0** (`pii_leak`, `scope_violation`, `unapproved_write`, `unverified_citation`, `delegation_escalation`) |
+| Quality eval (real model, local) | the same 88 questions against the full stack with `claude-haiku-5.5` (orchestrator, research) and `deepseek-v4.1-flash` (action, judge) via OpenRouter; approvals denied by the harness | rubric **97.7 %** [93.8, 100], answers **100 %** (52/52), judge **98.9 %**, citations **100 %** verbatim, gates **0**, **0.07 EUR** for all 88 questions |
 
 <details>
 <summary><b>What the demo scenarios prove</b></summary>
