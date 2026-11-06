@@ -234,6 +234,10 @@ cd profiles/acme && warden eval --policy warden/policy.yaml --catalog warden/cat
 
 - **Add a Voice Agent**: a realtime speech agent (streaming in and out, barge-in) as a third
   agent next to research and action, under the same Warden checks and approvals.
+- **Model router by difficulty**: tiers in `models.yaml` (easy, mid, hard, e.g. Haiku, Sonnet,
+  Opus), a cheap per-turn classifier (systems involved, delegation, conversation length) and
+  escalation to the next tier when a run abstains or a tool fails. The eval would report
+  quality against cost per tier. Today each agent role has one fixed model.
 - **Durable approvals** that survive restarts (serialize the held rig run).
 - **Per-user credentials for real SaaS connectors** (GitHub App installation tokens or a token
   vault in Warden), so live connectors act with each tenant's or user's own access.
