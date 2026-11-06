@@ -10,16 +10,25 @@ on:
 jobs:
   eval:
     runs-on: ubuntu-latest
-    if: ${{ secrets.OPENROUTER_API_KEY != '' }}
     env:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
     steps:
+      # `secrets` is not available in a job-level `if`; every step checks the key instead.
+      - name: Skip without an API key
+        if: env.OPENROUTER_API_KEY == ''
+        run: echo "OPENROUTER_API_KEY is not set; nothing to do." >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/checkout@v4
+        if: env.OPENROUTER_API_KEY != ''
       - uses: dtolnay/rust-toolchain@stable
+        if: env.OPENROUTER_API_KEY != ''
       - uses: Swatinem/rust-cache@v2
+        if: env.OPENROUTER_API_KEY != ''
       - uses: astral-sh/setup-uv@v6
+        if: env.OPENROUTER_API_KEY != ''
       - run: cargo build --release --locked -p steward
+        if: env.OPENROUTER_API_KEY != ''
       - name: Full eval with a real model and judge
+        if: env.OPENROUTER_API_KEY != ''
         run: |
           ./target/release/steward demo --profile profiles/acme --listen 127.0.0.1:8000 > "$RUNNER_TEMP/demo.log" 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8000/health && break; sleep 1; done
@@ -28,5 +37,5 @@ jobs:
           uv run steward-eval --base http://127.0.0.1:8000 --profile ../profiles/acme --gate --judge-model openrouter/deepseek/deepseek-v4.1-flash --report "$RUNNER_TEMP/eval.md" --json "$RUNNER_TEMP/eval.json"
           cat "$RUNNER_TEMP/eval.md" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && env.OPENROUTER_API_KEY != ''
         with: { name: quality-eval, path: "${{ runner.temp }}/eval.*" }
