@@ -109,7 +109,7 @@ Every number is produced by CI.
 | Rust tests | unit and end-to-end (gateway, agent loop, console, scenarios) | **38** passing |
 | UI | unit tests; Playwright end-to-end (approvals across two browsers, citations, injection, console) with axe on every page, light and dark | **44** unit, **12 / 12** e2e, 0 serious a11y violations |
 | Docker stack with Keycloak | `deploy/smoke.sh`: real Keycloak tokens through gateway, token exchange, inbox approval, A2A with a delegated write, network isolation, audit verification | **13 / 13** |
-| Seed | byte-identical regeneration of both profiles | ✅ |
+| Seed | identical regeneration of both profiles on Linux and Windows (content: pixels, PDF streams, JSON) | ✅ |
 | Quality eval (offline, CI) | 88 questions over 7 users; harness and hard gates on the scripted subset | gates **0** (`pii_leak`, `scope_violation`, `unapproved_write`, `unverified_citation`, `delegation_escalation`) |
 
 <details>
