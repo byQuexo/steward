@@ -150,17 +150,6 @@ Every number is produced by CI.
 </details>
 
 <details>
-<summary>Design and limits</summary>
-
-- **Exfiltration within allowed actions** is out of scope: if a user may read deals and post
-  to a channel, an injected instruction can post deals there. Approvals on cross-system writes
-  and channel rules are the mitigation.
-- Approvals are held in memory; a restart drops pending ones (they fail closed).
-- The offline demo answers only scripted questions; everything else needs a model key.
-- The demo secrets in `deploy/dev.env` are for local use only.
-</details>
-
-<details>
 <summary>Project layout</summary>
 
 ```
@@ -184,6 +173,16 @@ steward/
 └── docs/                     # architecture, threat model, profiles, demo script, spikes, plan
 ```
 </details>
+
+## Design and limits
+
+- **Exfiltration within allowed actions** is out of scope: if a user may read deals and post
+  to a channel, an injected instruction can post deals there. Approvals on cross-system writes
+  and channel rules are the mitigation.
+- Approvals are held in memory; a restart drops pending ones (they fail closed).
+- The offline demo answers only scripted questions; everything else needs a model key.
+- The demo secrets in `deploy/dev.env` are for local use only.
+- Model choice is fixed per agent role in `models.yaml`; a difficulty-based router is on the roadmap.
 
 ## Quickstart
 
@@ -236,7 +235,7 @@ cd profiles/acme && warden eval --policy warden/policy.yaml --catalog warden/cat
 
 ## What's next
 
-- **Add a Voice Agent**: a realtime speech agent (streaming in and out, barge-in) as a third
+- **Voice mode with a Voice Agent**: a realtime speech agent (streaming in and out, barge-in) as a third
   agent next to research and action, under the same Warden checks and approvals.
 - **Model router by difficulty**: tiers in `models.yaml` (easy, mid, hard, e.g. Haiku, Sonnet,
   Opus), a cheap per-turn classifier (systems involved, delegation, conversation length) and
