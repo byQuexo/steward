@@ -2,7 +2,9 @@ import { defineConfig, devices } from '@playwright/test';
 
 // The e2e tests run against a running `steward demo` (scripted model, dev login), which serves
 // the built UI: `npm run build`, then
-//   steward demo --profile profiles/acme --listen 127.0.0.1:8000 --ui ui/dist
+//   steward demo --profile profiles/acme --listen 127.0.0.1:8000 --ui ui/dist --offline
+// (`--offline` keeps the scripted model even when an API key is in the environment or the OS
+// credential store; screens.spec.ts is the one spec meant for a real model.)
 const baseURL = process.env.STEWARD_URL ?? 'http://127.0.0.1:8000';
 
 export default defineConfig({
