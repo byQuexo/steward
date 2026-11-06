@@ -97,7 +97,9 @@ _FONTS = Path(reportlab.__file__).parent / "fonts"  # Bitstream Vera, ships with
 
 
 def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    return ImageFont.truetype(str(_FONTS / ("VeraBd.ttf" if bold else "Vera.ttf")), size)
+    # BASIC layout: raqm is only used where the system has libfribidi, which changes glyph
+    # placement between machines.
+    return ImageFont.truetype(str(_FONTS / ("VeraBd.ttf" if bold else "Vera.ttf")), size, layout_engine=ImageFont.Layout.BASIC)
 
 
 PAGE_LABEL = {"de": "Seite", "en": "Page"}
