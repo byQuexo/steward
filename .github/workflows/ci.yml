@@ -135,6 +135,8 @@ jobs:
         run: docker compose -f deploy/compose.yaml --env-file deploy/dev.env up -d --build --wait --wait-timeout 600 steward
       - name: Smoke test (real Keycloak tokens, approvals, A2A, network isolation, audit)
         run: deploy/smoke.sh
+      - name: Network isolation (only the gateway reaches the MCP servers; tools network has no egress)
+        run: deploy/network-test.sh
       - name: Logs
         if: failure()
         run: docker compose -f deploy/compose.yaml --env-file deploy/dev.env logs --tail 200
