@@ -102,12 +102,13 @@ function UserMenu() {
         type="button"
         aria-expanded={open}
         aria-controls="user-menu"
-        aria-label={`${t('user.open')}: ${me.name}`}
         title={t('user.menu', { name: me.name })}
         onClick={() => setOpen((o) => !o)}
         className="flex h-7 w-7 items-center justify-center rounded-full border bg-muted text-[11px] font-medium hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        {initials(me.name)}
+        {/* Named by the hidden text, not aria-label, so the visible initials need not match it. */}
+        <span aria-hidden>{initials(me.name)}</span>
+        <span className="sr-only">{`${t('user.open')}: ${me.name}`}</span>
       </button>
       {open && (
         <div id="user-menu" className="absolute right-0 top-9 z-50 w-56 animate-fade-in rounded-md border bg-popover p-1 shadow-[0_12px_32px_-12px_rgb(0_0_0/0.5)]">

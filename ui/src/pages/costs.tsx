@@ -52,7 +52,7 @@ function Breakdown({ title, rows, currency }: { title: string; rows: Totals[]; c
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle as="h3">{title}</CardTitle>
+        <CardTitle as="h2">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         {rows.length === 0 ? (
@@ -84,7 +84,7 @@ function ByDay({ data }: { data: AllCosts }) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle as="h3">{t('costs.byDay')}</CardTitle>
+        <CardTitle as="h2">{t('costs.byDay')}</CardTitle>
       </CardHeader>
       <CardContent>
         {rows.length === 0 ? (
@@ -140,7 +140,7 @@ function Budgets({ data }: { data: AllCosts }) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle as="h3">{t('costs.budgets')}</CardTitle>
+        <CardTitle as="h2">{t('costs.budgets')}</CardTitle>
         <CardDescription>
           {b.per_run != null && <>{t('costs.perRun')}: {formatEur(b.per_run, intl, data.currency)}</>}
           {b.per_user_daily != null && <> · {t('costs.perUserDaily')}: {formatEur(b.per_user_daily, intl, data.currency)}</>}
@@ -196,7 +196,7 @@ function AllView({ data, days }: { data: AllCosts; days: number }) {
       <Budgets data={data} />
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle as="h3">{t('costs.recent')}</CardTitle>
+          <CardTitle as="h2">{t('costs.recent')}</CardTitle>
         </CardHeader>
         <CardContent className="px-2 pb-2">
           {data.recent.length === 0 ? (
@@ -233,7 +233,7 @@ function AllView({ data, days }: { data: AllCosts; days: number }) {
       </Card>
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle as="h3">{t('costs.prices')}</CardTitle>
+          <CardTitle as="h2">{t('costs.prices')}</CardTitle>
         </CardHeader>
         <CardContent className="px-2 pb-2">
           <Table label={t('costs.prices')}>
