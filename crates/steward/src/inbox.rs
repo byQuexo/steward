@@ -31,6 +31,16 @@ pub struct Vote {
     pub reason: Option<String>,
 }
 
+/// Whose turn it is.
+#[derive(Clone, Copy, Debug, Serialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum Awaiting {
+    /// The user the call is for confirms (or cancels) it.
+    Requester,
+    /// The routed approvers decide.
+    Approvers,
+}
+
 #[derive(Clone, Debug, Serialize)]
 pub struct Approval {
     pub id: String,
@@ -45,6 +55,11 @@ pub struct Approval {
     pub reason: String,
     pub approvers: Vec<String>,
     pub four_eyes: bool,
+    /// Warden held the call for the requester's own confirmation (`approve_by: subject`).
+    pub confirmation: bool,
+    pub awaiting: Awaiting,
+    /// The requester confirmed before the approvers were asked (`confirm_first`).
+    pub confirmed: bool,
     pub votes: Vec<Vote>,
     pub status: Status,
     pub created: u64,
@@ -120,6 +135,8 @@ pub enum DecideError {
     NotAnApprover,
     SelfApproval,
     AlreadyDecided,
+    /// Only the requester can confirm or cancel at this stage.
+    NotTheRequester,
 }
 
 impl Inbox {
@@ -160,11 +177,18 @@ impl Inbox {
         let rule = req["rule"].as_str().unwrap_or_default().to_string();
         let args_hash = req["args_hash"].as_str().unwrap_or_default().to_string();
         let deny = |reason: &str| json!({"decision": "deny", "approver": "steward-inbox", "reason": reason, "args_hash": args_hash});
-        let Some(route) = self.routing.route_for(&rule).cloned() else { return deny("no approval route for this rule") };
-        let approvers = self.resolve(&route.approvers, &requester).await;
-        if approvers.is_empty() || (route.four_eyes && approvers.len() < 2) {
-            return deny("no eligible approver");
-        }
+        let confirmation = req["confirmation"].as_bool().unwrap_or(false);
+        let (approvers, four_eyes) = if confirmation {
+            (vec![requester.clone()], false)
+        } else {
+            let Some(route) = self.routing.route_for(&rule).cloned() else { return deny("no approval route for this rule") };
+            let approvers = self.resolve(&route.approvers, &requester).await;
+            if approvers.is_empty() || (route.four_eyes && approvers.len() < 2) {
+                return deny("no eligible approver");
+            }
+            (approvers, route.four_eyes)
+        };
+        let awaiting = if confirmation || self.routing.confirm_first { Awaiting::Requester } else { Awaiting::Approvers };
         let id = req["id"].as_str().map(str::to_string).unwrap_or_else(|| hex::encode(rand::random::<[u8; 8]>()));
         let approval = Approval {
             id: id.clone(),
@@ -176,7 +200,10 @@ impl Inbox {
             rule,
             reason: req["reason"].as_str().unwrap_or_default().into(),
             approvers: approvers.clone(),
-            four_eyes: route.four_eyes,
+            four_eyes,
+            confirmation,
+            awaiting,
+            confirmed: false,
             votes: Vec::new(),
             status: Status::Pending,
             created: now(),
@@ -189,14 +216,10 @@ impl Inbox {
         // If the gateway gives up first (its own timeout, a dropped connection), this future is
         // dropped mid-wait. The guard expires the request so no approver acts on a dead call.
         let mut guard = ExpireOnDrop { inbox: self, id: id.clone(), armed: true };
-        let event = json!({"type": "approval_requested", "approval": approval});
-        for a in &approvers {
-            self.bus.publish(a, event.clone());
+        if awaiting == Awaiting::Approvers {
+            self.ask_approvers(&approval);
         }
-        self.bus.publish(
-            &requester,
-            json!({"type": "approval_pending", "approval_id": id, "tool": approval.action, "rule": approval.rule, "approvers": approvers, "args": approval.args}),
-        );
+        self.publish_pending(&approval);
 
         let decided = tokio::time::timeout(self.timeout, async {
             while *rx.borrow() == Status::Pending {
@@ -234,10 +257,27 @@ impl Inbox {
         }
     }
 
+    fn ask_approvers(&self, a: &Approval) {
+        let event = json!({"type": "approval_requested", "approval": a});
+        for u in &a.approvers {
+            self.bus.publish(u, event.clone());
+        }
+    }
+
+    /// The requester's view: sent when the call is held and again when it moves on to the approvers.
+    fn publish_pending(&self, a: &Approval) {
+        self.bus.publish(
+            &a.requester,
+            json!({"type": "approval_pending", "approval_id": a.id, "tool": a.action, "rule": a.rule, "approvers": a.approvers, "args": a.args,
+                   "awaiting": a.awaiting, "confirmation": a.confirmation}),
+        );
+    }
+
     fn publish_decided(&self, a: &Approval) {
         let event = json!({"type": "approval_decided", "approval_id": a.id, "status": a.status, "votes": a.votes});
         self.bus.publish(&a.requester, event.clone());
-        for u in &a.approvers {
+        // For a confirmation the requester is also the only approver: tell them once.
+        for u in a.approvers.iter().filter(|u| **u != a.requester) {
             self.bus.publish(u, event.clone());
         }
     }
@@ -248,6 +288,26 @@ impl Inbox {
         let (a, tx) = items.get_mut(id).ok_or(DecideError::NotFound)?;
         if a.status != Status::Pending {
             return Err(DecideError::AlreadyDecided);
+        }
+        if a.awaiting == Awaiting::Requester {
+            if a.requester != user {
+                return Err(DecideError::NotTheRequester);
+            }
+            if !approve || a.confirmation {
+                // Cancelled, or a confirmation (the requester is the one who decides).
+                a.votes.push(Vote { user: user.into(), approve, reason });
+                a.status = if approve { Status::Approved } else { Status::Denied };
+                let _ = tx.send(a.status.clone());
+                return Ok(a.clone());
+            }
+            // Confirmed: now the approvers decide.
+            a.confirmed = true;
+            a.awaiting = Awaiting::Approvers;
+            let a = a.clone();
+            drop(items);
+            self.ask_approvers(&a);
+            self.publish_pending(&a);
+            return Ok(a);
         }
         if a.requester == user {
             return Err(DecideError::SelfApproval);
@@ -277,7 +337,13 @@ impl Inbox {
         let to_decide = items
             .values()
             .map(|(a, _)| a)
-            .filter(|a| a.status == Status::Pending && a.approvers.iter().any(|x| x == user) && !a.votes.iter().any(|v| v.user == user))
+            .filter(|a| {
+                a.status == Status::Pending
+                    && match a.awaiting {
+                        Awaiting::Requester => a.requester == user,
+                        Awaiting::Approvers => a.approvers.iter().any(|x| x == user) && !a.votes.iter().any(|v| v.user == user),
+                    }
+            })
             .cloned()
             .collect();
         let mine = items.values().map(|(a, _)| a).filter(|a| a.requester == user).rev().take(20).cloned().collect();
@@ -319,11 +385,67 @@ mod tests {
     }
 
     fn inbox() -> Inbox {
+        inbox_with(false)
+    }
+
+    fn inbox_with(confirm_first: bool) -> Inbox {
         let routing = ApprovalRouting {
             timeout_s: 300,
+            confirm_first,
             routes: vec![ApprovalRoute { rule: "*".into(), approvers: vec!["role:sales-lead".into()], four_eyes: false }],
         };
         Inbox::new(routing, Arc::new(Users), Arc::new(Bus::default()), None)
+    }
+
+    async fn until_listed(inbox: &Inbox, user: &str) {
+        while inbox.for_user(user).0.is_empty() {
+            tokio::task::yield_now().await;
+        }
+    }
+
+    /// Warden held a write for the user's own confirmation: only Sven decides, Sara cannot.
+    #[tokio::test]
+    async fn a_confirmation_goes_to_the_requester_alone() {
+        let inbox = Arc::new(inbox());
+        let i2 = inbox.clone();
+        let mut req = request();
+        req["confirmation"] = json!(true);
+        let waiting = tokio::spawn(async move { i2.request(req).await });
+        until_listed(&inbox, "sven").await;
+        assert!(inbox.for_user("sara").0.is_empty(), "approvers never see a confirmation");
+        assert!(matches!(inbox.decide("a1", "sara", true, None), Err(DecideError::NotTheRequester)));
+        inbox.decide("a1", "sven", true, None).unwrap();
+        let answer = waiting.await.unwrap();
+        assert_eq!(answer["decision"], "approve");
+        assert_eq!(answer["approver"], "sven");
+    }
+
+    /// confirm_first: Sven confirms, then Sara approves; Sara never sees a call Sven cancels.
+    #[tokio::test]
+    async fn confirm_first_asks_the_requester_before_the_approvers() {
+        let inbox = Arc::new(inbox_with(true));
+        let i2 = inbox.clone();
+        let waiting = tokio::spawn(async move { i2.request(request()).await });
+        until_listed(&inbox, "sven").await;
+        assert!(inbox.for_user("sara").0.is_empty(), "not yet");
+        let a = inbox.decide("a1", "sven", true, None).unwrap();
+        assert!(a.confirmed && a.awaiting == Awaiting::Approvers && a.status == Status::Pending);
+        assert!(matches!(inbox.decide("a1", "sven", true, None), Err(DecideError::SelfApproval)));
+        inbox.decide("a1", "sara", true, None).unwrap();
+        let answer = waiting.await.unwrap();
+        assert_eq!(answer["decision"], "approve");
+        assert_eq!(answer["approver"], "sara");
+
+        let i3 = inbox.clone();
+        let mut req = request();
+        req["id"] = json!("a2");
+        let cancelled = tokio::spawn(async move { i3.request(req).await });
+        until_listed(&inbox, "sven").await;
+        inbox.decide("a2", "sven", false, Some("not what I meant".into())).unwrap();
+        let answer = cancelled.await.unwrap();
+        assert_eq!(answer["decision"], "deny");
+        assert_eq!(answer["approver"], "sven");
+        assert!(inbox.for_user("sara").0.is_empty());
     }
 
     fn request() -> Value {

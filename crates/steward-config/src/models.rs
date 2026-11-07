@@ -126,6 +126,11 @@ pub struct ApprovalRoute {
 pub struct ApprovalRouting {
     #[serde(default = "timeout")]
     pub timeout_s: u64,
+    /// Before an approval by others, the requester confirms the call (an injected or
+    /// misunderstood request never reaches an approver). Confirmations from Warden
+    /// (`approve_by: subject`) always go to the requester alone, with or without this.
+    #[serde(default)]
+    pub confirm_first: bool,
     pub routes: Vec<ApprovalRoute>,
 }
 

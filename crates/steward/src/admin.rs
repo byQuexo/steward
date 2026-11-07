@@ -84,6 +84,7 @@ pub async fn decide(State(st): State<Shared>, a: Authed, Path(id): Path<String>,
         Err(DecideError::NotAnApprover) => err(StatusCode::FORBIDDEN, "you are not an approver for this request"),
         Err(DecideError::SelfApproval) => err(StatusCode::FORBIDDEN, "you cannot approve your own request"),
         Err(DecideError::AlreadyDecided) => err(StatusCode::CONFLICT, "already decided"),
+        Err(DecideError::NotTheRequester) => err(StatusCode::FORBIDDEN, "waiting for the requester to confirm"),
     }
 }
 
