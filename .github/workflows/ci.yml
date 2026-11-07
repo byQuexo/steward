@@ -57,7 +57,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       # Warden's own reusable action: strict lint, the profile's suite, generated attacks,
       # mutation testing and rule coverage as hard gates.
-      - uses: byQuexo/warden@86a8f285bf34753a86fd6240a80cf0bad1e5210c
+      - uses: byQuexo/warden@879661290e574ef6ba527c0c7a950d90a941df7b
         with:
           working-directory: profiles/${{ matrix.profile }}
           policy: warden/policy.yaml

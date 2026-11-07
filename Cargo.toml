@@ -35,13 +35,13 @@ steward-agents = { path = "crates/steward-agents" }
 steward-a2a = { path = "crates/steward-a2a" }
 
 # Warden: authorization for every tool call. Pinned to an exact commit.
-warden-core = { git = "https://github.com/byQuexo/warden", rev = "86a8f285bf34753a86fd6240a80cf0bad1e5210c" }
-warden-identity = { git = "https://github.com/byQuexo/warden", rev = "86a8f285bf34753a86fd6240a80cf0bad1e5210c" }
-warden-audit = { git = "https://github.com/byQuexo/warden", rev = "86a8f285bf34753a86fd6240a80cf0bad1e5210c" }
-warden-gateway = { git = "https://github.com/byQuexo/warden", rev = "86a8f285bf34753a86fd6240a80cf0bad1e5210c" }
-warden-a2a = { git = "https://github.com/byQuexo/warden", rev = "86a8f285bf34753a86fd6240a80cf0bad1e5210c" }
-warden-rig = { git = "https://github.com/byQuexo/warden", rev = "86a8f285bf34753a86fd6240a80cf0bad1e5210c" }
-warden-eval = { git = "https://github.com/byQuexo/warden", rev = "86a8f285bf34753a86fd6240a80cf0bad1e5210c" }
+warden-core = { git = "https://github.com/byQuexo/warden", rev = "879661290e574ef6ba527c0c7a950d90a941df7b" }
+warden-identity = { git = "https://github.com/byQuexo/warden", rev = "879661290e574ef6ba527c0c7a950d90a941df7b" }
+warden-audit = { git = "https://github.com/byQuexo/warden", rev = "879661290e574ef6ba527c0c7a950d90a941df7b" }
+warden-gateway = { git = "https://github.com/byQuexo/warden", rev = "879661290e574ef6ba527c0c7a950d90a941df7b" }
+warden-a2a = { git = "https://github.com/byQuexo/warden", rev = "879661290e574ef6ba527c0c7a950d90a941df7b" }
+warden-rig = { git = "https://github.com/byQuexo/warden", rev = "879661290e574ef6ba527c0c7a950d90a941df7b" }
+warden-eval = { git = "https://github.com/byQuexo/warden", rev = "879661290e574ef6ba527c0c7a950d90a941df7b" }
 
 # rig is pre-1.0: pinned exactly.
 rig-core = { version = "=0.46.0", default-features = false, features = ["reqwest", "rustls"] }
