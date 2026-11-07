@@ -85,6 +85,35 @@ async fn approve_when_pending(base: String, approver: String, approve: bool) -> 
     Err(format!("{approver} never saw an approval request"))
 }
 
+/// Answer every call held for `user`'s own confirmation until `stop` fires (the chat is done).
+async fn confirm_while_chatting(
+    base: String,
+    user: String,
+    confirm: bool,
+    mut stop: tokio::sync::oneshot::Receiver<()>,
+) -> Result<usize, String> {
+    let b = Browser::new(&base)?;
+    b.login(&user).await?;
+    let mut answered = 0;
+    loop {
+        let list = b.get("/api/approvals").await?;
+        let mine = list["to_decide"].as_array().cloned().unwrap_or_default();
+        for a in mine.iter().filter(|a| a["awaiting"] == "requester" && a["requester"] == user.as_str()) {
+            let Some(id) = a["id"].as_str() else { continue };
+            let decision = if confirm { "approve" } else { "deny" };
+            let r = b.post(&format!("/api/approvals/{id}"), json!({"decision": decision, "reason": "replay"})).await?;
+            if !r.status().is_success() {
+                return Err(format!("confirm: HTTP {}", r.status()));
+            }
+            answered += 1;
+        }
+        tokio::select! {
+            _ = &mut stop => return Ok(answered),
+            _ = tokio::time::sleep(Duration::from_millis(50)) => {}
+        }
+    }
+}
+
 fn of_type<'a>(events: &'a [Value], t: &str) -> impl Iterator<Item = &'a Value> + 'a {
     let t = t.to_string();
     events.iter().filter(move |e| e["type"] == t.as_str())
@@ -100,6 +129,7 @@ fn check(expect: &[Expect], events: &[Value], stack: &Stack, profile: &Profile) 
                 d["tool"] == tool.as_str() && d["effect"] == effect.as_str() && rule.as_ref().is_none_or(|r| d["rule"] == r.as_str())
             }),
             Expect::Approval { .. } => of_type(events, "approval_pending").next().is_some(),
+            Expect::Confirm { .. } => of_type(events, "approval_pending").any(|p| p["awaiting"] == "requester"),
             Expect::ToolResult { tool, contains } => of_type(events, "tool_result").any(|r| {
                 r["tool"] == tool.as_str() && r["ok"] == true && r["preview"].as_str().is_some_and(|p| p.contains(contains.as_str()))
             }),
@@ -186,7 +216,20 @@ pub async fn run_scenario(profile: Profile, sc: &DemoScenario) -> Result<Scenari
                 }
             }
         }
+        let mut confirmer = None;
+        if let Some(Expect::Confirm { decide }) = turn.expect.iter().find(|e| matches!(e, Expect::Confirm { .. })) {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            confirmer = Some((tx, tokio::spawn(confirm_while_chatting(base.clone(), sc.user.clone(), decide == "confirm", rx))));
+        }
         let events = user.chat(&turn.user).await?;
+        if let Some((stop, task)) = confirmer {
+            let _ = stop.send(());
+            match task.await {
+                Ok(Ok(0)) => failures.push(format!("turn {}: nothing was held for {}'s confirmation", i + 1, sc.user)),
+                Ok(Err(e)) => failures.push(format!("turn {}: {e}", i + 1)),
+                _ => {}
+            }
+        }
         for a in approvers {
             if let Ok(Err(e)) = a.await {
                 failures.push(format!("turn {}: {e}", i + 1));

@@ -87,6 +87,11 @@ pub enum Expect {
         #[serde(default)]
         second_approver: Option<String>,
     },
+    /// The user answers their own held calls in this turn: `{ confirm: { decide: confirm } }` or
+    /// `cancel`. Covers Warden confirmations and the confirm-first step of approvals by others.
+    Confirm {
+        decide: String,
+    },
     /// The tool ran and its result contains the text.
     ToolResult {
         tool: String,
