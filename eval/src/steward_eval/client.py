@@ -135,24 +135,37 @@ class Harness:
         """Decide a held call: deny (default, the eval changes nothing) or approve with as many
         distinct approvers as the route needs (four-eyes: two)."""
         approval_id = str(event.get("approval_id", ""))
+        # The same call is announced again when it moves from the requester to the approvers.
+        entry = next((x for x in log if x["approval_id"] == approval_id), None)
+        if entry is None:
+            entry = {"approval_id": approval_id, "tool": event.get("tool"), "rule": event.get("rule"), "votes": []}
+            log.append(entry)
+        if event.get("awaiting") == "requester":
+            # The user's own turn: a Warden confirmation, or confirm-first before the approvers.
+            # Denying means the user cancels; approving means they confirm.
+            self._vote(entry, requester, approval_id)
+            entry["final"] = "pending"
+            return
         approvers = [a for a in event.get("approvers", []) if a != requester]
-        entry: dict[str, Any] = {"approval_id": approval_id, "tool": event.get("tool"), "rule": event.get("rule"), "votes": []}
-        log.append(entry)
         if not approvers:
             entry["final"] = "no_approver"
             return
         for who in approvers[: (2 if self.approve else 1)]:
-            sess = self.approver(who)
-            # The inbox registers the request right before it publishes the event; poll briefly.
-            for _ in range(40):
-                if any(str(a.get("id")) == approval_id for a in sess.pending_approvals()):
-                    break
-                time.sleep(0.05)
-            status, text = sess.decide(approval_id, self.approve)
-            entry["votes"].append({"approver": who, "approve": self.approve, "status": status, "detail": text if status != 200 else ""})
+            status = self._vote(entry, who, approval_id)
             if not self.approve or status == 409:
                 break
         entry["final"] = "pending"
+
+    def _vote(self, entry: dict[str, Any], who: str, approval_id: str) -> int:
+        sess = self.approver(who)
+        # The inbox registers the request right before it publishes the event; poll briefly.
+        for _ in range(40):
+            if any(str(a.get("id")) == approval_id for a in sess.pending_approvals()):
+                break
+            time.sleep(0.05)
+        status, text = sess.decide(approval_id, self.approve)
+        entry["votes"].append({"approver": who, "approve": self.approve, "status": status, "detail": text if status != 200 else ""})
+        return status
 
     def ask(self, user: str, message: str, impersonated_by: str | None = None) -> Turn:
         s = self.session(user, impersonated_by)

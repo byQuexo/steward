@@ -63,6 +63,34 @@ def test_harness_denies_held_calls_with_a_non_requester():
     assert turn.approved_ids() == set()
 
 
+class FakeConfirmation(FakeSteward):
+    """A write Warden holds for the user's own confirmation (approve_by: subject)."""
+
+    def __call__(self, request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        user = request.headers.get("cookie", "").removeprefix("sid=")
+        if path == "/api/approvals" and request.method == "GET":
+            return httpx.Response(200, json={"to_decide": [{"id": "ap1"}] if user == "sven" else [], "mine": []})
+        if path == "/api/chat":
+            body = sse(
+                {"type": "approval_pending", "approval_id": "ap1", "tool": "tool:crm.update_deal", "approvers": ["sven"], "rule": "confirm-writes",
+                 "awaiting": "requester", "confirmation": True},
+                {"type": "approval_decided", "approval_id": "ap1", "status": "denied", "votes": []},
+                {"type": "done", "answer": "Nichts geändert.", "run_id": "r", "eur": 0.001},
+            )
+            return httpx.Response(200, text=body, headers={"content-type": "text/event-stream"})
+        return super().__call__(request)
+
+
+def test_the_requester_answers_their_own_confirmation():
+    fake = FakeConfirmation()
+    h = Harness("http://steward.test", transport=httpx.MockTransport(fake))
+    turn = h.ask("sven", "Setz den Deal d-1007 auf 45.000 Euro")
+    h.close()
+    assert fake.decisions == [("sven", "deny")]  # the user cancels: the eval changes nothing
+    assert turn.approvals[0]["final"] == "denied"
+
+
 def test_labels_header_only_and_excel_booleans(tmp_path):
     p = tmp_path / "labels.csv"
     p.write_text("id,human_correct,human_faithful,labeler,notes\n", encoding="utf-8")

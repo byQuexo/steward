@@ -107,6 +107,9 @@ def _rule_matches(match: dict[str, Any], tool: str, profile: Profile) -> bool:
         return False
     if "tag" in match and match["tag"] not in entry.get("tags", []):
         return False
+    # Warden's catalog default is `read`.
+    if "sensitivity" in match and match["sensitivity"] != entry.get("sensitivity", "read"):
+        return False
     return True
 
 
