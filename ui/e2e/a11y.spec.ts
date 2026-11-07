@@ -29,6 +29,11 @@ for (const scheme of ['light', 'dark'] as const) {
       await ask(sven, 'Setz den Deal d-1007 auf 80.000 Euro');
       const card = sven.getByTestId('approval-card').last();
       await expect(card).toHaveAttribute('data-status', 'pending');
+      // Sven's own turn first: the gate asks him to run or cancel.
+      await expect(card.getByTestId('gate-confirm')).toBeVisible();
+      await expectNoSeriousA11yViolations(sven, 'chat (confirm pending)');
+      await card.getByTestId('gate-confirm').click();
+      await expect(card).toContainText(/wartet auf sara|waiting for sara/);
       await expectNoSeriousA11yViolations(sven, 'chat (approval pending)');
       const id = await card.getAttribute('data-approval-id');
 

@@ -109,6 +109,11 @@ describe('presence state machine', () => {
     const writing = run([dealCall[0]!, { type: 'decision', tool: 'crm.update_deal', effect: 'allow', rule: 'r', agent: 'acme-bot' }]);
     expect(derivePresence({ turn: writing }).say).toEqual({ key: 'presence.say.calling', vars: { thing: 'Deal d-1007' } });
     expect(derivePresence({ turn: run(held) }).say).toEqual({ key: 'presence.say.awaiting', vars: { who: 'Sara' } });
+    const yours = run([
+      ...dealCall,
+      { type: 'approval_pending', approval_id: 'y', tool: 'tool:crm.update_deal', rule: 'confirm-writes', approvers: ['sven'], args: {}, awaiting: 'requester', confirmation: true },
+    ]);
+    expect(derivePresence({ turn: yours }).say).toEqual({ key: 'presence.say.confirm' });
     expect(derivePresence({ turn: run([]), flash: 'denied' }).say.key).toBe('presence.say.denied');
     expect(derivePresence({ kill: 'writes' }).say.key).toBe('presence.say.pausedWrites');
     const handoff = run([{ type: 'agent_handoff', from: 'acme-bot', to: 'acme-bot-research', skill: 'research', task_id: 't' }]);

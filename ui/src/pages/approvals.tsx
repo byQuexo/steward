@@ -205,12 +205,12 @@ export function ApprovalsPage() {
                       <span className="mr-1 truncate text-[12px] text-muted-foreground md:hidden">{a.requester}</span>
                       <Button size="sm" variant="allow" onClick={() => void decide(a.id, 'approve')} disabled={!!busy || !!readOnly} title={readOnly}>
                         <Check aria-hidden />
-                        {t('approval.approve')}
+                        {a.awaiting === 'requester' ? t('gate.run') : t('approval.approve')}
                         {isSel && <kbd aria-hidden className="ml-0.5 border-allow-ink/30 bg-transparent text-allow-ink">⏎</kbd>}
                       </Button>
                       <Button size="sm" variant="outline" className="text-deny-foreground hover:text-deny-foreground" onClick={() => void decide(a.id, 'deny')} disabled={!!busy || !!readOnly} title={readOnly}>
                         <X aria-hidden />
-                        {t('approval.deny')}
+                        {a.awaiting === 'requester' ? t('gate.cancel') : t('approval.deny')}
                       </Button>
                     </span>
                   </div>

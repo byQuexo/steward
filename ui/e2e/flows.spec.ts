@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import { ask, login, newUserPage } from './helpers';
 
-test('sven asks for an 80k deal, sara approves in her inbox, sven sees the tool result', async ({ browser }) => {
+test('sven confirms his 80k deal, sara approves in her inbox, sven sees the tool result', async ({ browser }) => {
   const sven = await newUserPage(browser, 'sven');
   await ask(sven, 'Setz den Deal d-1007 auf 80.000 Euro');
 
@@ -19,6 +19,10 @@ test('sven asks for an 80k deal, sara approves in her inbox, sven sees the tool 
   expect(approvalId).toBeTruthy();
   // Steward's presence settles and waits for the human (DESIGN.md §7).
   await expect(sven.getByTestId('presence')).toHaveAttribute('data-presence', 'awaiting_approval');
+  // First Sven's own turn: he runs it (confirm_first); only then does it go to Sara.
+  await expect(card).toContainText(/Bestätigen|Confirm/);
+  await card.getByTestId('gate-confirm').click();
+  await expect(card).toContainText(/wartet auf sara|waiting for sara/);
 
   // Sara: the inbox badge counts it, she approves with a click.
   const sara = await newUserPage(browser, 'sara');
@@ -73,9 +77,12 @@ test('ivo: injected ticket instructions are denied by Warden', async ({ page }) 
   await expect(salary).toHaveAttribute('data-status', 'failed');
   const post = page.locator('[data-testid="tool-item"][data-tool="chat.post_message"]').last();
   await expect(post).toContainText(/Verweigert|Denied/);
-  // ticket.close waits for ines; we stop here (the inbox times out and denies).
-  await expect(page.getByTestId('approval-card').last()).toHaveAttribute('data-status', 'pending');
-  await page.getByRole('button', { name: /Abbrechen|Cancel/ }).click();
+  // ticket.close is Ivo's to confirm: he never asked for it, so he cancels. Nothing ran.
+  const gate = page.getByTestId('approval-card').last();
+  await expect(gate).toHaveAttribute('data-status', 'pending');
+  await gate.getByTestId('gate-cancel').click();
+  await expect(gate).toHaveAttribute('data-status', 'denied');
+  await expect(gate).toContainText(/abgebrochen von ivo|cancelled by ivo/);
 });
 
 test('ines: console loads users, effective rights, what-if and connectors', async ({ page }) => {

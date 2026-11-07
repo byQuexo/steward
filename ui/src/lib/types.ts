@@ -45,7 +45,7 @@ export type ChatEvent =
   | { type: 'tool_call'; id: string; tool: string; args: unknown; agent: string }
   | { type: 'decision'; tool: string; effect: Effect | string; rule: string; agent: string }
   | { type: 'tool_result'; id: string; tool: string; ok: boolean; preview: string }
-  | { type: 'approval_pending'; approval_id: string; tool: string; rule: string; approvers: string[]; args: unknown }
+  | { type: 'approval_pending'; approval_id: string; tool: string; rule: string; approvers: string[]; args: unknown; awaiting?: Awaiting; confirmation?: boolean }
   | {
       type: 'approval_decided';
       approval_id: string;
@@ -77,6 +77,9 @@ export interface Vote {
   reason: string | null;
 }
 
+/** Whose turn a held call is: the user it is for (confirm or cancel) or the approvers. */
+export type Awaiting = 'requester' | 'approvers';
+
 export interface Approval {
   id: string;
   requester: string;
@@ -88,6 +91,11 @@ export interface Approval {
   reason: string;
   approvers: string[];
   four_eyes: boolean;
+  /** Held for the requester's own confirmation (Warden `approve_by: subject`). */
+  confirmation?: boolean;
+  awaiting?: Awaiting;
+  /** The requester confirmed before the approvers were asked. */
+  confirmed?: boolean;
   votes: Vote[];
   status: ApprovalStatus;
   created: number;
@@ -101,7 +109,7 @@ export interface Approvals {
 /** Events on `GET /api/events`. */
 export type LiveEvent =
   | { type: 'approval_requested'; approval: Approval }
-  | { type: 'approval_pending'; approval_id: string; tool: string; rule: string; approvers: string[]; args: unknown }
+  | { type: 'approval_pending'; approval_id: string; tool: string; rule: string; approvers: string[]; args: unknown; awaiting?: Awaiting; confirmation?: boolean }
   | { type: 'approval_decided'; approval_id: string; status: ApprovalStatus; votes: Vote[] };
 
 // --- Memory, costs -----------------------------------------------------------------------------

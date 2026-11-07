@@ -2,7 +2,7 @@
 // timeline (tool calls with Warden decisions, handoffs, approvals, citations, memory, costs).
 // Pure and synchronous so it is easy to test.
 
-import type { ApprovalStatus, ChatEvent, Effect, Vote } from './types';
+import type { ApprovalStatus, Awaiting, ChatEvent, Effect, Vote } from './types';
 
 export interface ToolItem {
   kind: 'tool';
@@ -37,6 +37,10 @@ export interface ApprovalItem {
   args: unknown;
   status: ApprovalStatus;
   votes: Vote[];
+  /** Whose turn it is; `requester` means the viewer confirms or cancels. */
+  awaiting: Awaiting;
+  /** A Warden confirmation: only the user decides, nobody else ever sees it. */
+  confirmation: boolean;
 }
 
 export interface CitationItem {
@@ -189,7 +193,12 @@ export function applyEvent(turn: Turn, e: ChatEvent): Turn {
     }
 
     case 'approval_pending': {
-      if (turn.items.some((x) => x.kind === 'approval' && x.approvalId === e.approval_id)) return turn;
+      // Sent again when the call moves on from the user's confirmation to the approvers.
+      const known = turn.items.findIndex((x) => x.kind === 'approval' && x.approvalId === e.approval_id);
+      if (known >= 0) {
+        const prev = turn.items[known] as ApprovalItem;
+        return { ...turn, items: replaceAt(turn.items, known, { ...prev, awaiting: e.awaiting ?? prev.awaiting, approvers: e.approvers ?? prev.approvers }) };
+      }
       const tool = bareTool(e.tool);
       const approval: ApprovalItem = {
         kind: 'approval',
@@ -201,6 +210,8 @@ export function applyEvent(turn: Turn, e: ChatEvent): Turn {
         args: e.args,
         status: 'pending',
         votes: [],
+        awaiting: e.awaiting ?? 'approvers',
+        confirmation: !!e.confirmation,
       };
       let items = [...turn.items, approval];
       const t = lastIndex(items, (x) => x.kind === 'tool' && x.tool === tool && !x.result && !x.approvalId);

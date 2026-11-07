@@ -176,7 +176,10 @@ function ItemView({ item, turn, activeApproval }: { item: ActivityItem; turn: Tu
             args: item.args,
             status: item.status,
             votes: item.votes,
+            awaiting: item.awaiting,
+            confirmation: item.confirmation,
           }}
+          canConfirm
           active={activeApproval === item.approvalId}
           className="my-1.5"
         />

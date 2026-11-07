@@ -167,6 +167,8 @@ function sayFor(state: PresenceState, turn: Turn | undefined, input: PresenceInp
     }
     case 'awaiting_approval': {
       const ap = turn?.items.find((x) => x.kind === 'approval' && x.status === 'pending');
+      // The user's own turn: the gate asks them to run or cancel.
+      if (ap?.kind === 'approval' && ap.awaiting === 'requester') return { key: 'presence.say.confirm' };
       const who = ap?.kind === 'approval' && ap.approvers.length ? ap.approvers.map(cap).join(' / ') : '?';
       return { key: 'presence.say.awaiting', vars: { who } };
     }

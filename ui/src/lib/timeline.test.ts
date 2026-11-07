@@ -92,6 +92,24 @@ describe('timeline reducer', () => {
     expect(t.items[0]).toMatchObject({ status: 'denied', votes: [{ user: 'ines', approve: false }] });
   });
 
+  it('moves a held call from the confirmation by the user on to the approvers', () => {
+    const held = { type: 'approval_pending', approval_id: 'b', tool: 'tool:crm.update_deal', rule: 'big-deals-need-approval', args: {} } as const;
+    const t = applyEvents(turn(), [
+      { ...held, approvers: ['sara'], awaiting: 'requester', confirmation: false },
+      { ...held, approvers: ['sara'], awaiting: 'approvers', confirmation: false },
+    ]);
+    expect(t.items).toHaveLength(1);
+    expect(t.items[0]).toMatchObject({ kind: 'approval', awaiting: 'approvers', status: 'pending', confirmation: false });
+  });
+
+  it('keeps a Warden confirmation as a decision of the user', () => {
+    const t = applyEvents(turn(), [
+      { type: 'approval_pending', approval_id: 'c', tool: 'tool:ticket.close', rule: 'confirm-writes', approvers: ['ivo'], args: {}, awaiting: 'requester', confirmation: true },
+      { type: 'approval_decided', approval_id: 'c', status: 'denied', votes: [{ user: 'ivo', approve: false, reason: null }] },
+    ]);
+    expect(t.items[0]).toMatchObject({ awaiting: 'requester', confirmation: true, status: 'denied' });
+  });
+
   it('ignores decisions for unknown approvals', () => {
     const t0 = turn();
     expect(applyEvents(t0, [{ type: 'approval_decided', approval_id: 'nope', status: 'approved', votes: [] }])).toBe(t0);
