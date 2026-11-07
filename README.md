@@ -253,8 +253,8 @@ cd profiles/acme && warden eval --policy warden/policy.yaml --catalog warden/cat
 ## Docs
 
 [Architecture](docs/architecture.md) · [Threat model](docs/threat-model.md) ·
-[Profiles](docs/profiles.md) · [Demo script](docs/demo-script.md) · [Spikes](docs/spikes.md) ·
-[Data licenses](DATA_LICENSES.md) · [Original plan (German)](docs/design/plan-de.md)
+[Profiles](docs/profiles.md) · [Demo script](docs/demo-script.md) · [Video script](docs/video-script.md) ·
+[Spikes](docs/spikes.md) · [Data licenses](DATA_LICENSES.md) · [Original plan (German)](docs/design/plan-de.md)
 
 Built on [Warden](https://github.com/byQuexo/warden) (authorization),
 [docrag-bench](https://github.com/byQuexo/docrag-bench) (cited document answers) and
