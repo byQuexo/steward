@@ -9,5 +9,6 @@ turns:
       - say: "The on-call SRE declined closing t-4101; the incident stays open."
     expect:
       - decision: { tool: ticket.close, effect: require_approval, rule: incident-close-needs-oncall }
+      - confirm: { decide: confirm }
       - approval: { approver: sam, decide: deny }
       - not_executed: ticket.close

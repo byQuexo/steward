@@ -59,15 +59,6 @@ rules:
     match: { tag: bulk }
     approve_if: always
 
-  - id: ticket-close-approval
-    description: Closing a ticket is confirmed by IT administration.
-    match: { kind: tool, name: ticket.close }
-    approve_if: always
-
-  - id: jira-create-approval
-    match: { kind: tool, name: jira.create_issue }
-    approve_if: always
-
   - id: docs-in-scope
     description: Document questions only over documents of the user's teams.
     match: { kind: tool, name: docs.search }
@@ -86,3 +77,10 @@ rules:
   - id: memory-team
     match: { kind: x-memory, name: memory.read_team }
     require: { arg: team, in: "{subject.attrs.teams}" }
+
+  # Last on purpose: approvals by others above win when both hold.
+  - id: confirm-writes
+    description: Every other write the user may make is confirmed by the user before it runs.
+    match: { kind: tool, sensitivity: write }
+    approve_if: always
+    approve_by: subject

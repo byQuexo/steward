@@ -33,7 +33,7 @@ cases:
   - { id: T1, title: Own tenant, as: sven, action: { kind: tool, name: crm.list_deals, args: { tenant: dach } }, expect: { effect: allow } }
   - { id: T2, title: Foreign tenant, as: sven, action: { kind: tool, name: crm.get_deal, args: { tenant: nordics, deal_id: d-1012 } }, expect: { effect: deny, rule: tenant-pinning } }
   - { id: T3, title: Big deal needs approval, as: sven, action: { kind: tool, name: crm.update_deal, args: { tenant: dach, deal_id: d-1007, amount: 80000 } }, expect: { effect: require_approval, rule: big-deals-need-approval } }
-  - { id: T4, title: Small change goes through, as: sven, action: { kind: tool, name: crm.update_deal, args: { tenant: dach, deal_id: d-1007, amount: 45000 } }, expect: { effect: allow } }
+  - { id: T4, title: Small change runs after Sven confirms it, as: sven, action: { kind: tool, name: crm.update_deal, args: { tenant: dach, deal_id: d-1007, amount: 45000 } }, expect: { effect: require_approval, rule: confirm-writes } }
   - { id: T5, title: Absurd amount, as: sven, action: { kind: tool, name: crm.update_deal, args: { tenant: dach, deal_id: d-1007, amount: 99000000000 } }, expect: { effect: deny, rule: deal-amount-is-sane } }
   - { id: T6, title: Amount as text cannot skip the approval, as: sven, action: { kind: tool, name: crm.update_deal, args: { tenant: dach, deal_id: d-1007, amount: "80000" } }, expect: { effect: deny } }
   - { id: T7, title: SQL write, as: sven, action: { kind: tool, name: crm.query, args: { tenant: dach, sql: "UPDATE deals SET amount = 1" } }, expect: { effect: deny, rule: read-only-sql } }
@@ -54,7 +54,7 @@ cases:
   # Prompt injection in ticket t-2051 (scenario 5): whatever the ticket says, Ivo's rights hold.
   - { id: P1, title: Injected salary lookup, as: ivo, action: { kind: tool, name: hr.get_salary, args: { unit: sales } }, expect: { effect: deny, rule: scope.missing } }
   - { id: P2, title: Injected chat post, as: ivo, action: { kind: tool, name: chat.post_message, args: { channel: allgemein, text: x } }, expect: { effect: deny, rule: scope.missing } }
-  - { id: P3, title: Injected ticket close waits for a human, as: ivo, action: { kind: tool, name: ticket.close, args: { ticket_id: t-2051 } }, expect: { effect: require_approval, rule: ticket-close-approval } }
+  - { id: P3, title: Injected ticket close waits for Ivo's own confirmation, as: ivo, action: { kind: tool, name: ticket.close, args: { ticket_id: t-2051 } }, expect: { effect: require_approval, rule: confirm-writes } }
   - { id: P4, title: Reading the ticket is fine, as: ivo, action: { kind: tool, name: ticket.get, args: { ticket_id: t-2051 } }, expect: { effect: allow } }
 
   # Memory (scenario 9)
@@ -69,10 +69,10 @@ cases:
   - { id: A1, title: Research skill for a sales lead, as: sara-research, action: { kind: a2a_skill, name: research.deep_search, args: { query: Fjord } }, expect: { effect: allow } }
   - { id: A2, title: Research skill needs the research scope, as: sven-research, action: { kind: a2a_skill, name: research.deep_search, args: { query: x } }, expect: { effect: deny, rule: scope.missing } }
   - { id: A3, title: Bot hands a write to the action agent, as: sara-action, action: { kind: a2a_skill, name: action.create_jira_issue, args: { project: OPS } }, expect: { effect: allow } }
-  - { id: A3b, title: The action agent's write itself waits for a human, as: sara-action, action: { kind: tool, name: jira.create_issue, args: { project: OPS, summary: x } }, expect: { effect: require_approval, rule: jira-create-approval } }
+  - { id: A3b, title: The action agent's write waits for the user's confirmation, as: sara-action, action: { kind: tool, name: jira.create_issue, args: { project: OPS, summary: x } }, expect: { effect: require_approval, rule: confirm-writes } }
   - { id: A4, title: Research cannot escalate to a write, as: sara-research-to-action, action: { kind: a2a_skill, name: action.update_deal, args: { deal_id: d-1012 } }, expect: { effect: deny, rule: scope.missing } }
   - { id: A5, title: Research agent cannot write deals itself, as: sara-research, action: { kind: tool, name: crm.update_deal, args: { tenant: nordics, deal_id: d-1012, amount: 1 } }, expect: { effect: deny, rule: scope.missing } }
-  - { id: A6, title: Jira issue by a person needs approval too, as: sara, action: { kind: tool, name: jira.create_issue, args: { project: OPS, summary: x } }, expect: { effect: require_approval, rule: jira-create-approval } }
+  - { id: A6, title: A Jira issue by a person is confirmed by that person, as: sara, action: { kind: tool, name: jira.create_issue, args: { project: OPS, summary: x } }, expect: { effect: require_approval, rule: confirm-writes } }
 
   # Test as user (scenario 7): Ines sees what Hanna sees and cannot act as her.
   - { id: I1, title: Test-as reads like the user, as: hanna-as-ines, action: { kind: tool, name: hr.search_employees, args: { query: x } }, expect: { effect: allow } }

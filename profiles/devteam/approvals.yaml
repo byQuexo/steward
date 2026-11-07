@@ -1,5 +1,8 @@
-# Who decides when Warden holds a call (rule → approvers). Self-approval is always refused.
+# Who decides when Warden holds a call. Writes the user may make are confirmed by the user
+# (policy rule `confirm-writes`, approve_by: subject); merges and incident closes are decided by
+# others (self-approval refused), after the user has confirmed them (confirm_first).
 timeout_s: 300
+confirm_first: true
 routes:
   # Production infrastructure: two different people out of maintainers, SREs and security.
   - { rule: infra-merge-four-eyes, approvers: ["role:maintainer", "role:sre", "role:security-engineer"], four_eyes: true }

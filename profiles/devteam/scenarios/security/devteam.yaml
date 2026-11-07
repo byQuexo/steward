@@ -24,7 +24,7 @@ cases:
   # Own repositories (demo scenario 02)
   - { id: R1, title: Developer reads issues of an own repo, as: dana, action: { kind: tool, name: github.list_issues, args: { repo: northwind/platform-api } }, expect: { effect: allow } }
   - { id: R2, title: Developer cannot read another team's repo, as: dana, action: { kind: tool, name: github.list_issues, args: { repo: northwind/payments-service } }, expect: { effect: deny, rule: own-repos-only, visible: true } }
-  - { id: R3, title: Developer opens an issue in an own repo, as: dana, action: { kind: tool, name: github.create_issue, args: { repo: northwind/platform-web, title: Flaky e2e test } }, expect: { effect: allow } }
+  - { id: R3, title: Developer opens an issue in an own repo after confirming, as: dana, action: { kind: tool, name: github.create_issue, args: { repo: northwind/platform-web, title: Flaky e2e test } }, expect: { effect: require_approval, rule: confirm-writes } }
   - { id: R4, title: Payments developer cannot list platform pull requests, as: priya, action: { kind: tool, name: github.list_pulls, args: { repo: northwind/platform-api } }, expect: { effect: deny, rule: own-repos-only } }
   - { id: R5, title: Missing repo is unknown and denied, as: dana, action: { kind: tool, name: github.list_issues, args: {} }, expect: { effect: deny, rule: own-repos-only } }
   - { id: R6, title: Look-alike repo name with a zero-width space, as: dana, action: { kind: tool, name: github.list_issues, args: { repo: "northwind/platform-api​" } }, expect: { effect: deny, rule: own-repos-only } }
@@ -47,16 +47,16 @@ cases:
   - { id: P4, title: Injected incident close, as: dana, action: { kind: tool, name: ticket.close, args: { ticket_id: t-4102 } }, expect: { effect: deny, rule: scope.missing, visible: false } }
 
   # Chat channels
-  - { id: C1, title: Post to an own team channel, as: dana, action: { kind: tool, name: chat.post_message, args: { channel: platform, text: deploy done } }, expect: { effect: allow } }
-  - { id: C2, title: SRE posts to the on-call channel, as: sam, action: { kind: tool, name: chat.post_message, args: { channel: oncall, text: investigating } }, expect: { effect: allow } }
+  - { id: C1, title: Post to an own team channel after confirming, as: dana, action: { kind: tool, name: chat.post_message, args: { channel: platform, text: deploy done } }, expect: { effect: require_approval, rule: confirm-writes } }
+  - { id: C2, title: SRE posts to the on-call channel after confirming, as: sam, action: { kind: tool, name: chat.post_message, args: { channel: oncall, text: investigating } }, expect: { effect: require_approval, rule: confirm-writes } }
   - { id: C3, title: Not to another team's channel, as: priya, action: { kind: tool, name: chat.post_message, args: { channel: security, text: hi } }, expect: { effect: deny, rule: own-channels-only } }
   - { id: C4, title: Channel spelled with a hash is not an own channel, as: dana, action: { kind: tool, name: chat.post_message, args: { channel: "#platform", text: hi } }, expect: { effect: deny, rule: own-channels-only } }
   - { id: C5, title: Listing channels is fine, as: lena, action: { kind: tool, name: chat.list_channels, args: {} }, expect: { effect: allow } }
 
   # Incidents (demo scenario 07)
   - { id: I1, title: Closing an incident waits for on-call, as: marco, action: { kind: tool, name: ticket.close, args: { ticket_id: t-4101 } }, expect: { effect: require_approval, rule: incident-close-needs-oncall } }
-  - { id: I2, title: SRE comments on an incident, as: sam, action: { kind: tool, name: ticket.comment, args: { ticket_id: t-4101, text: rolled back } }, expect: { effect: allow } }
-  - { id: I3, title: Anyone opens an incident, as: lena, action: { kind: tool, name: ticket.create, args: { title: Checkout broken, body: x } }, expect: { effect: allow } }
+  - { id: I2, title: SRE comments on an incident after confirming, as: sam, action: { kind: tool, name: ticket.comment, args: { ticket_id: t-4101, text: rolled back } }, expect: { effect: require_approval, rule: confirm-writes } }
+  - { id: I3, title: Anyone opens an incident after confirming, as: lena, action: { kind: tool, name: ticket.create, args: { title: Checkout broken, body: x } }, expect: { effect: require_approval, rule: confirm-writes } }
   - { id: I4, title: Developers do not comment as incident responders, as: priya, action: { kind: tool, name: ticket.comment, args: { ticket_id: t-4101, text: x } }, expect: { effect: deny, rule: scope.missing } }
 
   # Documents (demo scenarios 03 and 08)
@@ -83,7 +83,7 @@ cases:
   - { id: A1, title: Research skill for a maintainer, as: marco-research, action: { kind: a2a_skill, name: research.deep_search, args: { query: release } }, expect: { effect: allow } }
   - { id: A2, title: Research skill needs the research scope, as: dana-research, action: { kind: a2a_skill, name: research.deep_search, args: { query: x } }, expect: { effect: deny, rule: scope.missing } }
   - { id: A3, title: Bot hands an issue to the action agent, as: marco-action, action: { kind: a2a_skill, name: action.create_issue, args: { repo: northwind/platform-web } }, expect: { effect: allow } }
-  - { id: A4, title: The action agent opens the issue in an own repo, as: marco-action, action: { kind: tool, name: github.create_issue, args: { repo: northwind/platform-web, title: Release checklist } }, expect: { effect: allow } }
+  - { id: A4, title: The action agent opens the issue in an own repo after the user confirms, as: marco-action, action: { kind: tool, name: github.create_issue, args: { repo: northwind/platform-web, title: Release checklist } }, expect: { effect: require_approval, rule: confirm-writes } }
   - { id: A5, title: The action agent stays inside own repos, as: marco-action, action: { kind: tool, name: github.create_issue, args: { repo: northwind/payments-service, title: x } }, expect: { effect: deny, rule: own-repos-only } }
   - { id: A6, title: The action agent's merge still waits for a maintainer, as: marco-action, action: { kind: tool, name: github.merge_pull_request, args: { repo: northwind/platform-web, number: 100 } }, expect: { effect: require_approval, rule: merges-need-maintainer } }
   - { id: A7, title: Research cannot escalate to a write, as: marco-research-to-action, action: { kind: a2a_skill, name: action.create_issue, args: { repo: northwind/platform-web } }, expect: { effect: deny, rule: scope.missing } }

@@ -1,8 +1,11 @@
-# Who decides when Warden holds a call (rule → approvers). Self-approval is always refused.
+# Who decides when Warden holds a call. Writes the user may make are confirmed by the user
+# (policy rule `confirm-writes`, approve_by: subject). Approvals by others are for separation of
+# duties; self-approval is refused there. With confirm_first the user confirms those too, before
+# an approver ever sees the request.
 timeout_s: 300
+confirm_first: true
 routes:
   - { rule: big-deals-need-approval, approvers: ["role:sales-lead"] }
   - { rule: bulk-export-four-eyes, approvers: ["role:sales-lead", "role:it-admin", "role:finance"], four_eyes: true }
-  - { rule: ticket-close-approval, approvers: ["role:it-admin"] }
-  - { rule: jira-create-approval, approvers: ["role:it-admin", "role:sales-lead"] }
+  # Safe fallback for an approval rule without its own route.
   - { rule: "*", approvers: ["role:it-admin"] }

@@ -1,6 +1,6 @@
 id: 03-sven-big-deal
 title: "Sven ändert einen großen Deal, Sara gibt frei"
-description: Änderungen ab 50.000 Euro hält Warden an; die Vertriebsleitung entscheidet in der Freigabe-Inbox.
+description: Änderungen ab 50.000 Euro hält Warden an. Sven bestätigt zuerst seine eigene Anfrage, dann entscheidet die Vertriebsleitung in der Freigabe-Inbox.
 user: sven
 turns:
   - user: "Setz den Deal d-1007 auf 80.000 Euro"
@@ -9,5 +9,6 @@ turns:
       - say: "Erledigt: Deal d-1007 steht nach Freigabe durch die Vertriebsleitung auf 80.000 Euro."
     expect:
       - decision: { tool: crm.update_deal, effect: require_approval, rule: big-deals-need-approval }
+      - confirm: { decide: confirm }
       - approval: { approver: sara, decide: approve }
       - tool_result: { tool: crm.update_deal, contains: "80000" }

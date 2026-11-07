@@ -78,3 +78,10 @@ rules:
     description: Team memory only for the reader's own teams.
     match: { kind: x-memory, name: memory.read_team }
     require: { arg: team, in: "{subject.attrs.teams}" }
+
+  # Last on purpose: approvals by others above win when both hold.
+  - id: confirm-writes
+    description: Every other write the user may make is confirmed by the user before it runs.
+    match: { kind: tool, sensitivity: write }
+    approve_if: always
+    approve_by: subject

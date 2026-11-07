@@ -9,6 +9,7 @@ turns:
       - say: "Done: PR #101 in northwind/platform-api is merged into main after Marco's approval as maintainer."
     expect:
       - decision: { tool: github.merge_pull_request, effect: require_approval, rule: merges-need-maintainer }
+      - confirm: { decide: confirm }
       - approval: { approver: marco, decide: approve }
       - tool_result: { tool: github.merge_pull_request, contains: merged }
       - answer_contains: "merged"

@@ -2,7 +2,8 @@ id: 09-marco-a2a
 title: "Marco: research agent and action agent"
 description: >-
   The orchestrator delegates over A2A: the research agent reads pull requests and the release
-  process, the action agent opens a tracking issue. Delegation tokens carry the act chain.
+  process, the action agent opens a tracking issue. Delegation tokens carry the act chain; Marco
+  confirms the write before it runs.
 user: marco
 turns:
   - user: "Research the open pull requests in northwind/platform-web and open a release tracking issue there"
@@ -26,3 +27,4 @@ turns:
     expect:
       - handoff: research
       - handoff: action
+      - confirm: { decide: confirm }

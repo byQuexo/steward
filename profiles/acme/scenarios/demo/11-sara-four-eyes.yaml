@@ -9,5 +9,6 @@ turns:
       - say: "Der Export der Nordics-Deals liegt bereit; Ines und Fiona haben ihn freigegeben."
     expect:
       - decision: { tool: crm.export_deals, effect: require_approval, rule: bulk-export-four-eyes }
+      - confirm: { decide: confirm }
       - approval: { approver: ines, decide: approve, second_approver: fiona }
       - tool_result: { tool: crm.export_deals, contains: "id;account;title" }

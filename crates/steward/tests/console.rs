@@ -85,7 +85,8 @@ async fn approvals_route_to_leads_and_refuse_self_approval() {
     let e = env().await;
     let sven = B::login(&e.base, "sven").await;
     let sara = B::login(&e.base, "sara").await;
-    // Sven asks; while the chat is held, Sven cannot decide his own request, Sara can.
+    // Sven asks. He confirms his own request first (confirm_first); only then does it reach
+    // Sara, and from then on Sven cannot decide it: self-approval is refused.
     let chat = tokio::spawn({
         let base = e.base.clone();
         async move {
@@ -93,20 +94,31 @@ async fn approvals_route_to_leads_and_refuse_self_approval() {
             s.chat("Setz den Deal d-1007 auf 80.000 Euro").await
         }
     });
-    let mut id = None;
-    for _ in 0..100 {
-        let v: Value = sara.get("/api/approvals").await.json().await.unwrap();
-        if let Some(a) = v["to_decide"].as_array().and_then(|a| a.first()) {
-            id = Some(a["id"].as_str().unwrap().to_string());
-            assert_eq!(a["rule"], "big-deals-need-approval");
-            assert_eq!(a["args"]["amount"], 80000);
-            break;
+    async fn first(b: &B) -> Option<Value> {
+        for _ in 0..100 {
+            let v: Value = b.get("/api/approvals").await.json().await.unwrap();
+            if let Some(a) = v["to_decide"].as_array().and_then(|a| a.first()) {
+                return Some(a.clone());
+            }
+            tokio::time::sleep(Duration::from_millis(50)).await;
         }
-        tokio::time::sleep(Duration::from_millis(50)).await;
+        None
     }
-    let id = id.expect("Sara sees the request");
+    let held = first(&sven).await.expect("Sven confirms first");
+    let id = held["id"].as_str().unwrap().to_string();
+    assert_eq!(held["rule"], "big-deals-need-approval");
+    assert_eq!(held["awaiting"], "requester");
+    assert_eq!(held["args"]["amount"], 80000);
+    let before: Value = sara.get("/api/approvals").await.json().await.unwrap();
+    assert!(before["to_decide"].as_array().unwrap().is_empty(), "nothing reaches Sara before Sven confirms");
+    assert_eq!(sara.post(&format!("/api/approvals/{id}"), json!({"decision": "approve"})).await.status(), 403);
+    assert_eq!(sven.post(&format!("/api/approvals/{id}"), json!({"decision": "approve"})).await.status(), 200);
+
+    let at_sara = first(&sara).await.expect("Sara sees the request");
+    assert_eq!(at_sara["id"], id);
+    assert_eq!(at_sara["awaiting"], "approvers");
     let mine: Value = sven.get("/api/approvals").await.json().await.unwrap();
-    assert!(mine["to_decide"].as_array().unwrap().is_empty(), "requesters never decide");
+    assert!(mine["to_decide"].as_array().unwrap().is_empty(), "requesters never approve");
     assert_eq!(sven.post(&format!("/api/approvals/{id}"), json!({"decision": "approve"})).await.status(), 403);
     assert_eq!(sara.post(&format!("/api/approvals/{id}"), json!({"decision": "approve"})).await.status(), 200);
     let events = chat.await.unwrap();

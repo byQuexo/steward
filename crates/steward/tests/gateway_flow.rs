@@ -3,8 +3,28 @@
 //! assistant calls it (MCP over HTTP with the user's token).
 
 use serde_json::{json, Value};
-use steward::stack::{Stack, StackOptions};
+use steward::stack::{ApproverMode, Stack, StackOptions};
 use warden_mcp::McpClient;
+
+/// A webhook that plays the user: it confirms every confirmation (the subject answers) and
+/// refuses every approval by others.
+async fn user_confirms() -> String {
+    let app = axum::Router::new().route(
+        "/",
+        axum::routing::post(|axum::Json(req): axum::Json<Value>| async move {
+            let confirm = req["confirmation"] == true;
+            axum::Json(json!({
+                "decision": if confirm { "approve" } else { "deny" },
+                "approver": if confirm { req["subject"].clone() } else { json!("nobody") },
+                "args_hash": req["args_hash"],
+            }))
+        }),
+    );
+    let l = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let url = format!("http://{}/", l.local_addr().unwrap());
+    tokio::spawn(async move { axum::serve(l, app).await.unwrap() });
+    url
+}
 
 fn profile() -> steward_config::Profile {
     steward_config::Profile::load(concat!(env!("CARGO_MANIFEST_DIR"), "/../../profiles/acme")).unwrap()
@@ -27,7 +47,8 @@ fn text(v: &Value) -> String {
 
 #[tokio::test]
 async fn each_user_sees_and_does_only_what_the_policy_allows() {
-    let stack = Stack::start(profile(), StackOptions::default()).await.unwrap();
+    let opts = StackOptions { approver: ApproverMode::Webhook { url: user_confirms().await, secret: None }, ..Default::default() };
+    let stack = Stack::start(profile(), opts).await.unwrap();
     let gw = McpClient::new(stack.gateway_url.clone());
     let hanna = stack.user_token("hanna").unwrap();
     let henrik = stack.user_token("henrik").unwrap();
@@ -59,13 +80,16 @@ async fn each_user_sees_and_does_only_what_the_policy_allows() {
     let hr_doc = call(&gw, &sven, "docs.search", json!({"question": "Gehaltsbänder Senior", "doc_ids": ["hr-salary-bands"]})).await;
     assert_eq!(hr_doc["isError"], true, "Warden denies doc_ids outside doc_scope: {hr_doc}");
 
-    // Big deal changes are held for approval; without an approver they never run.
+    // Big deal changes are held for the sales lead; nobody approves here, so they never run.
     let big = call(&gw, &sven, "crm.update_deal", json!({"tenant": "dach", "deal_id": "d-1007", "amount": 80000})).await;
     assert_eq!(big["isError"], true, "{big}");
     assert!(!stack.effects.executed("crm.update_deal"));
+    // A small change Sven may make himself runs once he confirms it (approve_by: subject).
     let small = call(&gw, &sven, "crm.update_deal", json!({"tenant": "dach", "deal_id": "d-1007", "amount": 45000})).await;
     assert_eq!(small["isError"], false, "{small}");
     assert!(stack.effects.executed("crm.update_deal"));
+    let granted = stack.audit.events_of("approval_granted");
+    assert!(granted.iter().any(|g| g["confirmation"] == true && g["approver"] == "sven"), "{granted:#?}");
 
     // Upstreams saw the user (exchanged token), never the user's own token.
     let effect = stack.effects.all().into_iter().find(|e| e.tool == "update_deal").unwrap();

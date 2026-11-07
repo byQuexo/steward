@@ -9,5 +9,6 @@ turns:
       - say: "PR #100 in northwind/infra is merged; Marco and Omar approved it."
     expect:
       - decision: { tool: github.merge_pull_request, effect: require_approval, rule: infra-merge-four-eyes }
+      - confirm: { decide: confirm }
       - approval: { approver: marco, decide: approve, second_approver: omar }
       - tool_result: { tool: github.merge_pull_request, contains: merged }

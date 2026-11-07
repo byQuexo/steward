@@ -2,7 +2,7 @@ id: 06-sara-a2a
 title: "Sara: Recherche-Agent und Aktions-Agent"
 description: >-
   Der Orchestrator delegiert über A2A: der Recherche-Agent liest CRM und Dokumente, der Aktions-Agent
-  legt ein Jira-Issue an. Delegations-Tokens tragen die act-Kette; die Schreibaktion braucht eine Freigabe.
+  legt ein Jira-Issue an. Delegations-Tokens tragen die act-Kette; Sara bestätigt die Schreibaktion, bevor sie läuft.
 user: sara
 turns:
   - user: "Recherchiere den Deal mit Fjord Logistics und lege im Projekt OPS ein Jira-Issue für das Angebot an"
@@ -26,4 +26,4 @@ turns:
     expect:
       - handoff: research
       - handoff: action
-      - approval: { approver: ines, decide: approve }
+      - confirm: { decide: confirm }

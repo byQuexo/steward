@@ -72,13 +72,15 @@ has_event "$TMP/vpn" citation doc_id=it-vpn-setup && ok "verified citation from 
 
 # Approval: Sven's 80k change waits for Sara in the inbox.
 chat "$SVEN" "Setz den Deal d-1007 auf 80.000 Euro" > "$TMP/approval" &
-approve_first "$SARA" && ok "the request reaches Sara's inbox and she approves" || bad "no approval reached Sara"
+# Sven confirms his own request first (confirm_first); only then does it reach Sara.
+approve_first "$SVEN" && approve_first "$SARA" && ok "Sven confirms, then Sara approves in her inbox" || bad "confirm or approval did not happen"
 wait
 has_event "$TMP/approval" tool_result tool=crm.update_deal ok=true && ok "approved change executed" || bad "approval flow: $(tail -c 400 "$TMP/approval")"
 
 # A2A: research and action agents behind Warden's A2A proxy; Ines approves the Jira issue.
 chat "$SARA" "Recherchiere den Deal mit Fjord Logistics und lege im Projekt OPS ein Jira-Issue für das Angebot an" > "$TMP/a2a" &
-approve_first "$INES" || true
+# The delegated Jira write waits for Sara's own confirmation (approve_by: subject).
+approve_first "$SARA" || true
 wait
 has_event "$TMP/a2a" agent_handoff to=acme-research && has_event "$TMP/a2a" agent_handoff to=acme-action && ok "A2A delegation through the Warden A2A proxy" || bad "a2a: $(tail -c 400 "$TMP/a2a")"
 has_event "$TMP/a2a" tool_result tool=jira.create_issue ok=true && ok "delegated write ran after approval" || bad "a2a write: $(grep -o '"type":"[a-z_]*"' "$TMP/a2a" | sort | uniq -c | tr '\n' ' ')"
