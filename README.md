@@ -33,21 +33,21 @@ answers instead; `--offline` keeps the scripted one. For the full stack with Key
 | Log in as | Ask | What happens |
 |---|---|---|
 | **hanna** (HR) | „Was verdient Henrik Wagner?“ | The salary tool is not even offered to her. |
-| **sven** (sales) | „Setz den Deal d-1007 auf 80.000 Euro“ | Warden holds the call; **sara** approves it in her inbox; then it runs. |
+| **sven** (sales) | „Setz den Deal d-1007 auf 80.000 Euro“ | Warden holds the call. Sven confirms it on the card, then **sara** approves it in her inbox; then it runs. |
 | **ivo** (IT) | „WireGuard meldet handshake did not complete. Was soll ich tun?“ | Answer from a *scanned* PDF with a verified citation and the page image. |
-| **ivo** | „Fasse Ticket t-2051 zusammen“ | The ticket contains a prompt injection. Salary lookup and chat post denied, ticket close waits for approval. Nothing ran. |
+| **ivo** | „Fasse Ticket t-2051 zusammen“ | The ticket contains a prompt injection. Salary lookup and chat post denied; the ticket close Ivo may do waits for his own confirmation, and he cancels. Nothing ran. |
 | **ines** (admin) | Console → „Als Hanna testen“ | The assistant exactly as Hanna sees it, read-only. Remove a role: the old token is refused on the next call. |
 
 All eleven Acme stories are in the [demo script](docs/demo-script.md).
 
 <p align="center">
-  <img alt="A real model at work: Sara asks Steward to research the Fjord Logistics deal and open a Jira issue. The research agent searches CRM and documents, the action agent creates the issue after Ines approves it, each step with Warden's verdict, the answer cites the price list." src="docs/assets/screens/chat-delegation.png" width="49%">
-  <img alt="The approvals inbox: Sara sees Sven's held deal change with the exact arguments that will run, and approves or rejects it." src="docs/assets/screens/approvals.png" width="49%">
+  <img alt="Sven asks to set a deal to 80,000 euros. Warden holds the call; the gate card asks Sven himself first, with the exact arguments and Run / Cancel buttons, and says the sales lead decides afterwards." src="docs/assets/screens/chat-confirm.png" width="49%">
+  <img alt="The approvals inbox: after Sven confirmed, Sara sees his held deal change with the exact arguments that will run, and approves or rejects it." src="docs/assets/screens/approvals.png" width="49%">
   <br>
-  <img alt="Ivo's VPN question answered from a scanned PDF with a verified citation to page 2." src="docs/assets/screens/chat-citation.png" width="49%">
-  <img alt="Offline, the scripted model plays a hijacked assistant on a prompt-injection ticket: ticket.get allowed in teal, the salary lookup and the chat post denied in red, the ticket close held for approval in amber." src="docs/assets/screens/chat-injection.png" width="49%">
+  <img alt="A real model at work: Sara asks Steward to research the Fjord Logistics deal and open a Jira issue. The research agent searches CRM and documents, the action agent creates the issue after Sara confirms it, each step with Warden's verdict; the answer cites the price list." src="docs/assets/screens/chat-delegation.png" width="49%">
+  <img alt="Offline, the scripted model plays a hijacked assistant on a prompt-injection ticket: ticket.get allowed in teal, the salary lookup and the chat post denied in red, and the ticket close Ivo could do waits for his own confirmation in amber." src="docs/assets/screens/chat-injection.png" width="49%">
   <br>
-  <sub>Top and bottom left: <code>claude-haiku-5.5</code> via OpenRouter, a real run (taken with <code>SCREENSHOTS=1 npx playwright test screens</code>). Bottom right: the scripted model, which plays what a hijacked model would try. Monochrome until Warden decides: teal allowed, amber waiting for a human, red denied. Design system: <a href="DESIGN.md">DESIGN.md</a>.</sub>
+  <sub>Top and bottom left: <code>claude-haiku-5.5</code> via OpenRouter, real runs (<code>SCREENSHOTS=live npx playwright test screens</code>). Bottom right: the scripted model playing what a hijacked model would try (<code>SCREENSHOTS=offline</code>). Monochrome until Warden decides: teal allowed, amber waiting for a human, red denied. Design system: <a href="DESIGN.md">DESIGN.md</a>.</sub>
 </p>
 
 ## What makes it different
@@ -63,8 +63,11 @@ every call       = scope gate → rules that can only restrict → allow | appro
 ```
 
 - **A hijacked model stays inside the user's rights.** Tools the user may not use are never
-  listed; calls to them are answered as denied. Writes that need a human wait for one, and the
-  approver sees exactly the arguments that will run.
+  listed; calls to them are answered as denied.
+- **Nothing is written in your name without you.** Every write the user may make waits for
+  the user's own confirmation on a card with the exact arguments (Warden `approve_by:
+  subject`). Writes that need someone else (limits, four-eyes) go to that person afterwards,
+  and self-approval is refused. An injected write shows up as a card nobody asked for.
 - **No token is ever passed along.** The assistant holds only the user's token; the gateway,
   the A2A proxy and every sub-agent get a token exchanged for them (RFC 8693) with the
   delegation chain inside, so a research agent can never write, even when asked by a lead.
@@ -109,8 +112,8 @@ Every number is produced by CI.
 | Warden security suite, Northwind | 60 written + 116 generated attacks | **176 / 176**, rule coverage 9/9, mutants killed 9/9 |
 | Hard gates | scope violation, unapproved write, delegation escalation, failed cases | **0** |
 | Decision latency (Acme policy, release) | `warden bench`, 100k decisions | p50 **27 µs**, p99 **66 µs** |
-| Rust tests | unit and end-to-end (gateway, agent loop, console, inbox, scenarios) | **43** passing |
-| UI | unit tests; Playwright end-to-end (approvals across two browsers, citations, injection, console) with axe on every page, light and dark | **45** unit, **12 / 12** e2e, 0 serious a11y violations |
+| Rust tests | unit and end-to-end (gateway, agent loop, console, inbox, scenarios) | **45** passing |
+| UI | unit tests; Playwright end-to-end (approvals across two browsers, citations, injection, console) with axe on every page, light and dark | **47** unit, **12 / 12** e2e, 0 serious a11y violations |
 | Accessibility (Lighthouse 13.5) | accessibility category on all 11 pages: login, chat, approvals, memory, costs and the six console pages | **100** on every page |
 | Docker stack with Keycloak | `deploy/smoke.sh`: real Keycloak tokens through gateway, token exchange, inbox approval, A2A with a delegated write, network isolation, audit verification | **13 / 13** |
 | Network isolation | `deploy/network-test.sh`, from inside the containers: only the gateway can connect to the MCP servers (the assistant, both sub-agents and both A2A proxies cannot, whatever token they hold), and the internal `tools` network has no way out | **12 / 12** |
@@ -125,15 +128,15 @@ Every number is produced by CI.
 |---|---|---|
 | 01 | Hanna asks for a salary | hidden tools are never offered |
 | 02 | Henrik: own unit yes, sales no | argument rules (`salary-only-own-unit`) |
-| 03 | Sven's 80k deal, Sara approves | approvals with exact arguments, no self-approval |
+| 03 | Sven's 80k deal: he confirms, Sara approves | the user confirms first, then an approval with exact arguments, no self-approval |
 | 04 | Ivo asks a scanned PDF | verified citation, page image |
-| 05 | Prompt injection in a ticket | hijacked model stays inside the user's rights |
-| 06 | Sara: research and action agents | A2A delegation with exchanged tokens, chain ceilings |
+| 05 | Prompt injection in a ticket | hijacked model stays inside the user's rights; the one permitted write waits for Ivo, who cancels |
+| 06 | Sara: research and action agents | A2A delegation with exchanged tokens, chain ceilings; Sara confirms the agent's write |
 | 07 | Ines tests as Hanna | impersonation is read-only, audited |
 | 08 | Fiona hits the budget | the run stops before the next model call |
 | 09 | Sven's memory | remember, refuse an IBAN, use, forget |
 | 10 | Kill switch | writes stop, reads continue |
-| 11 | Tenant export | four eyes: two different approvers |
+| 11 | Tenant export | Sara confirms, then four eyes: two different approvers |
 </details>
 
 <details>
@@ -178,9 +181,9 @@ steward/
 
 ## Design and limits
 
-- **Exfiltration within allowed actions** is out of scope: if a user may read deals and post
-  to a channel, an injected instruction can post deals there. Approvals on cross-system writes
-  and channel rules are the mitigation.
+- **Exfiltration within allowed actions** is reduced, not solved: an injected post to a
+  channel the user may post to waits for the user's confirmation with the exact text, but a
+  user who confirms without reading lets it through. Channel rules are the second line.
 - Approvals are held in memory; a restart drops pending ones (they fail closed).
 - The offline demo answers only scripted questions; everything else needs a model key.
 - The demo secrets in `deploy/dev.env` are for local use only.

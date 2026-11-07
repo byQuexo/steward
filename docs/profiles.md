@@ -18,7 +18,7 @@ profiles/<name>/
 │                       memory settings, admin and cost roles, suggested questions
 ├── models.yaml         model per agent role (provider/model), fallback
 ├── pricing.yaml        price per model route, budgets (per run, per user per day, per team)
-├── approvals.yaml      Warden rule → approvers (role:… / user:…), four_eyes
+├── approvals.yaml      Warden rule → approvers (role:… / user:…), four_eyes, confirm_first
 ├── docs_acl.yaml       team → document id patterns (becomes the doc_scope claim)
 ├── connectors/*.yaml   systems and their tools with scopes, sensitivity, tags
 ├── prompts/*.md        agent preambles (no permission logic in prompts)
@@ -113,6 +113,7 @@ turns:
 ```
 
 Script steps: `tool`, `delegate` (with the sub-agent's own `script`), `remember`, `say`.
-Expectations: `decision`, `approval` (`second_approver` for four-eyes), `tool_result`,
+Expectations: `decision`, `confirm` (the user answers their own held calls: `confirm` or
+`cancel`), `approval` (`second_approver` for four-eyes), `tool_result`,
 `answer_contains`, `answer_omits`, `citation`, `abstained`, `handoff`, `memory_used`,
 `memory_stored`, `memory_refused`, `budget_exceeded`, `not_executed`.

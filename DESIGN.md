@@ -240,9 +240,18 @@ skill"; notices (abstained, budget, faults) are one muted line with a glyph.
 A call Warden held for a human is a **gate**, an instrument block inline in the log:
 
 ```
-▌⏸ GATE  ticket.close  ticket-close-approval            wartet auf ines   0:42
-▌ ticket_id  t-2051
+▌⏸ GATE  crm.update_deal  big-deals-need-approval       wartet auf sara   0:42
+▌ amount  80000   deal_id  d-1007   tenant  dach
 ▌ Die Freigabe gilt nur für genau diese Argumente – per Klick, nie per Sprache.
+```
+
+When it is the viewer's own turn (a write in their name, or the confirm-first step) the same
+block asks them, with the same arguments and two buttons, never more:
+
+```
+▌⏸ BESTÄTIGEN  ticket.close  confirm-writes                 wartet auf dich   0:03
+▌ ticket_id  t-2051
+▌ Steward will das in deinem Namen ausführen.          [▶ Ausführen] [✕ Abbrechen]
 ```
 
 - Radius 5px, hairline border, a 2px **ember left rule**; one mono header line (11.5px) with the
@@ -252,7 +261,8 @@ A call Warden held for a human is a **gate**, an instrument block inline in the 
 - While pending, the first gate on screen gets a thin `border-beam` **line** (gold) along its top
   edge. No big glow, no card shadow.
 - Resolved gates **collapse to one line**: `✓ freigegeben von sara · GATE crm.update_deal · 0:12`
-  (teal) or `✗ abgelehnt von ines` (red), `abgelaufen` (grey).
+  (teal) or `✗ abgelehnt von ines` (red), `abgelaufen` (grey); the user's own answers read
+  `✓ bestätigt von sven` / `✕ abgebrochen von ivo`.
 
 ### Inbox (approvals page)
 A dense list, one 40px row per gate: ◆ · tool (mono) · four-eyes `1/2` · requester · rule

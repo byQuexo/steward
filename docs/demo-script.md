@@ -25,10 +25,11 @@ The salary tool is not even offered to her session; the answer says she has no p
 `scope.granted`. Then *„Und die Gehälter im Vertrieb?“* → denied by `salary-only-own-unit`.
 → *Argument-level rules, not just tool-level.*
 
-## 3. Sven's big deal, Sara approves (3 min)
-**sven**: *„Setz den Deal d-1007 auf 80.000 Euro“* → amber card „wartet auf Freigabe“.
-In a second browser as **sara**: Freigaben → the request with the exact arguments → approve.
-Sven's card turns green; the deal is updated. Sven cannot approve his own request.
+## 3. Sven's big deal: he confirms, Sara approves (3 min)
+**sven**: *„Setz den Deal d-1007 auf 80.000 Euro“* → amber card „Bestätigen“ with the exact
+arguments → **Ausführen**. Now it waits for Sara. In a second browser as **sara**: Freigaben →
+the request → approve. Sven's card turns green; the deal is updated. Sven cannot approve his
+own request; he only confirms what is done in his name.
 → *Warden holds the call, the human sees exactly what will run.*
 
 ## 4. Ivo and the scanned VPN guide (2 min)
@@ -40,13 +41,14 @@ URL as Sven: 403.
 ## 5. Prompt injection in a ticket (2 min)
 **ivo**: *„Fasse Ticket t-2051 zusammen“*. The ticket tells the assistant to read salaries,
 post them to #allgemein and close all tickets. The timeline shows: salary and chat post
-denied, ticket close waiting for IT approval (deny it as **ines**). Nothing ran.
+denied; the ticket close, which Ivo may do, waits on a card for his own confirmation: he
+never asked for it, so **Abbrechen**. Nothing ran.
 → *Even a fully hijacked model stays inside the user's rights.*
 
 ## 6. Sara: research agent and action agent (2 min)
 **sara**: *„Recherchiere den Deal mit Fjord Logistics und lege im Projekt OPS ein Jira-Issue
 für das Angebot an“*. Handoffs to the research agent (reads CRM and docs) and the action
-agent (creates the issue after Ines approves). Each hop has its own token with the
+agent (creates the issue after Sara confirms it on the card). Each hop has its own token with the
 delegation chain.
 → *A2A without passing tokens around, every agent in the chain is checked.*
 
@@ -70,7 +72,8 @@ Kosten: spend per user, team, agent and model; Phoenix shows the spans.
 still works.
 
 ## 11. Four eyes (1 min)
-**sara**: *„Exportiere alle Deals von Nordics als CSV“* → needs two approvers (Ines and Fiona).
+**sara**: *„Exportiere alle Deals von Nordics als CSV“* → Sara confirms, then two approvers
+decide (Ines and Fiona).
 
 ## 12. Another company, same binary (1 min)
 ```bash

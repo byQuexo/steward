@@ -68,7 +68,10 @@ flowchart LR
 3. Model, preamble (profile prompt, user context, remembered facts), tools and two hooks:
    * **Guard hook** (second line): checks each call in process with the same policy. A denial
      never leaves the process; `require_approval` is passed on, because the gateway owns
-     approvals. Calls to tools the user is not offered (typically provoked by prompt injection)
+     approvals. Writes the user may make are held for the user's own confirmation (policy
+     rule `confirm-writes` with `approve_by: subject`); the inbox puts them on the gate card
+     in the user's chat, and with `confirm_first` the user also confirms calls that need
+     someone else before an approver is asked. Calls to tools the user is not offered (typically provoked by prompt injection)
      are answered as denied and the run continues.
    * **Budget hook**: books every model response in the ledger and stops the run before the
      next model call when the run, the user's day or the team's month is over budget.
