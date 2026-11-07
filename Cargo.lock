@@ -3535,7 +3535,7 @@ dependencies = [
 [[package]]
 name = "warden-a2a"
 version = "0.1.0"
-source = "git+https://github.com/byQuexo/warden?rev=523dc981ff78aa531c5be86b368065459357132f#523dc981ff78aa531c5be86b368065459357132f"
+source = "git+https://github.com/byQuexo/warden?rev=86a8f285bf34753a86fd6240a80cf0bad1e5210c#86a8f285bf34753a86fd6240a80cf0bad1e5210c"
 dependencies = [
  "axum",
  "base64 0.22.1",
@@ -3552,7 +3552,7 @@ dependencies = [
 [[package]]
 name = "warden-audit"
 version = "0.1.0"
-source = "git+https://github.com/byQuexo/warden?rev=523dc981ff78aa531c5be86b368065459357132f#523dc981ff78aa531c5be86b368065459357132f"
+source = "git+https://github.com/byQuexo/warden?rev=86a8f285bf34753a86fd6240a80cf0bad1e5210c#86a8f285bf34753a86fd6240a80cf0bad1e5210c"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -3572,7 +3572,7 @@ dependencies = [
 [[package]]
 name = "warden-core"
 version = "0.1.0"
-source = "git+https://github.com/byQuexo/warden?rev=523dc981ff78aa531c5be86b368065459357132f#523dc981ff78aa531c5be86b368065459357132f"
+source = "git+https://github.com/byQuexo/warden?rev=86a8f285bf34753a86fd6240a80cf0bad1e5210c#86a8f285bf34753a86fd6240a80cf0bad1e5210c"
 dependencies = [
  "hex",
  "regex",
@@ -3588,7 +3588,7 @@ dependencies = [
 [[package]]
 name = "warden-gateway"
 version = "0.1.0"
-source = "git+https://github.com/byQuexo/warden?rev=523dc981ff78aa531c5be86b368065459357132f#523dc981ff78aa531c5be86b368065459357132f"
+source = "git+https://github.com/byQuexo/warden?rev=86a8f285bf34753a86fd6240a80cf0bad1e5210c#86a8f285bf34753a86fd6240a80cf0bad1e5210c"
 dependencies = [
  "async-trait",
  "axum",
@@ -3618,7 +3618,7 @@ dependencies = [
 [[package]]
 name = "warden-identity"
 version = "0.1.0"
-source = "git+https://github.com/byQuexo/warden?rev=523dc981ff78aa531c5be86b368065459357132f#523dc981ff78aa531c5be86b368065459357132f"
+source = "git+https://github.com/byQuexo/warden?rev=86a8f285bf34753a86fd6240a80cf0bad1e5210c#86a8f285bf34753a86fd6240a80cf0bad1e5210c"
 dependencies = [
  "async-trait",
  "axum",
@@ -3641,7 +3641,7 @@ dependencies = [
 [[package]]
 name = "warden-mcp"
 version = "0.1.0"
-source = "git+https://github.com/byQuexo/warden?rev=523dc981ff78aa531c5be86b368065459357132f#523dc981ff78aa531c5be86b368065459357132f"
+source = "git+https://github.com/byQuexo/warden?rev=86a8f285bf34753a86fd6240a80cf0bad1e5210c#86a8f285bf34753a86fd6240a80cf0bad1e5210c"
 dependencies = [
  "reqwest 0.12.28",
  "serde",
