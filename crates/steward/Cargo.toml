@@ -48,7 +48,7 @@ rusqlite.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
-warden-mcp = { git = "https://github.com/byQuexo/warden", rev = "879661290e574ef6ba527c0c7a950d90a941df7b" }
+warden-mcp = { git = "https://github.com/byQuexo/warden", rev = "ceb31d9e3627f90125b383a788c8ea05f6cde766" }
 
 [lints]
 workspace = true
