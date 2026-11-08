@@ -16,6 +16,16 @@
   <sub>From CI on every push: every demo scenario of both profiles replayed against the full stack (<code>steward replay</code>), Warden's security suites with generated attacks and mutation testing (<code>warden eval --generate --mutate --coverage --gate</code>), decision latency from <code>warden bench</code> on the Acme policy. → <a href="#results">Results</a></sub>
 </p>
 
+<p align="center">
+  <img alt="A real model at work: Sara asks Steward to research the Fjord Logistics deal and open a Jira issue. The research agent searches CRM and documents, the action agent creates the issue after Sara confirms it, each step with Warden's verdict; the answer cites the price list." src="docs/assets/screens/chat-delegation.png" width="760">
+</p>
+
+**In short:** a company assistant where the model never decides what a user may do. Every
+tool call goes through Warden, nothing is written in your name without your confirmation, and
+answers cite their sources. All data and systems in this repo are synthetic mocks; CI uses a
+scripted model, the screenshots a real one. [The story](docs/story.md) ·
+[one request through the system](docs/walkthrough.md).
+
 ## Try it
 
 ```bash
@@ -44,10 +54,10 @@ All eleven Acme stories are in the [demo script](docs/demo-script.md).
   <img alt="Sven asks to set a deal to 80,000 euros. Warden holds the call; the gate card asks Sven himself first, with the exact arguments and Run / Cancel buttons, and says the sales lead decides afterwards." src="docs/assets/screens/chat-confirm.png" width="49%">
   <img alt="The approvals inbox: after Sven confirmed, Sara sees his held deal change with the exact arguments that will run, and approves or rejects it." src="docs/assets/screens/approvals.png" width="49%">
   <br>
-  <img alt="A real model at work: Sara asks Steward to research the Fjord Logistics deal and open a Jira issue. The research agent searches CRM and documents, the action agent creates the issue after Sara confirms it, each step with Warden's verdict; the answer cites the price list." src="docs/assets/screens/chat-delegation.png" width="49%">
+  <img alt="Ivo's VPN question answered by a real model from a scanned PDF, with a verified citation to page 2." src="docs/assets/screens/chat-citation.png" width="49%">
   <img alt="Offline, the scripted model plays a hijacked assistant on a prompt-injection ticket: ticket.get allowed in teal, the salary lookup and the chat post denied in red, and the ticket close Ivo could do waits for his own confirmation in amber." src="docs/assets/screens/chat-injection.png" width="49%">
   <br>
-  <sub>Top and bottom left: <code>claude-haiku-5.5</code> via OpenRouter, real runs (<code>SCREENSHOTS=live npx playwright test screens</code>). Bottom right: the scripted model playing what a hijacked model would try (<code>SCREENSHOTS=offline</code>). Monochrome until Warden decides: teal allowed, amber waiting for a human, red denied. Design system: <a href="DESIGN.md">DESIGN.md</a>.</sub>
+  <sub>Top row and bottom left: <code>claude-haiku-5.5</code> via OpenRouter, real runs (<code>SCREENSHOTS=live npx playwright test screens</code>). Bottom right: the scripted model playing what a hijacked model would try (<code>SCREENSHOTS=offline</code>). Monochrome until Warden decides: teal allowed, amber waiting for a human, red denied. Design system: <a href="DESIGN.md">DESIGN.md</a>.</sub>
 </p>
 
 ## What makes it different
@@ -255,6 +265,7 @@ cd profiles/acme && warden eval --policy warden/policy.yaml --catalog warden/cat
 
 ## Docs
 
+[Story](docs/story.md) · [Walkthrough: one request](docs/walkthrough.md) ·
 [Architecture](docs/architecture.md) · [Threat model](docs/threat-model.md) ·
 [Profiles](docs/profiles.md) · [Demo script](docs/demo-script.md) · [Video script](docs/video-script.md) ·
 [Spikes](docs/spikes.md) · [Data licenses](DATA_LICENSES.md) · [Original plan (German)](docs/design/plan-de.md)
