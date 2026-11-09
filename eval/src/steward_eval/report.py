@@ -28,6 +28,7 @@ def render(summary: dict[str, Any]) -> str:
     add(f"# Steward quality eval: profile `{run['profile']}`")
     add("")
     add(f"- Backend: `{run['base']}` · model: **{run['model_mode']}** · started {run['started']}")
+    add(f"- Commit: `{run.get('commit') or 'unknown'}`")
     add(
         f"- Questions: **{run['n_run']}** run of {run['n_total']} in the set"
         f" ({run['n_scripted_run']} scripted) · users: {', '.join(run['users'])}"
