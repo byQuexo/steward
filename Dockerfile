@@ -12,7 +12,7 @@ RUN npm run build
 FROM rust:1-bookworm AS build
 WORKDIR /src
 # Warden at the commit Steward is pinned to (see Cargo.toml).
-ARG WARDEN_REV=ceb31d9e3627f90125b383a788c8ea05f6cde766
+ARG WARDEN_REV=65e1273aae37b20dad571efe8526ecbccc1cc912
 RUN cargo install --locked --git https://github.com/byQuexo/warden --rev ${WARDEN_REV} warden-cli warden-gateway --root /out
 COPY . .
 RUN cargo build --release --locked -p steward -p steward-mcp-servers \
