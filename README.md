@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="20 of 20 demo scenarios pass end to end over HTTP · 367 of 367 security cases, 0 violations, 100% mutation score · 27 µs per authorization decision (p50)" src="docs/assets/readme/metrics.svg" width="100%">
+  <img alt="20 of 20 demo scenarios pass end to end over HTTP · 367 of 367 security cases, 0 violations, every rule load-bearing (rule deletion) · 27 µs per authorization decision (p50, local)" src="docs/assets/readme/metrics.svg" width="100%">
   <br>
   <sub>Scenarios and security cases run in CI on every push (<code>steward replay</code>,
   <code>warden eval --generate --mutate --coverage --gate</code>). The latency is a local
@@ -135,7 +135,9 @@ every call       = scope gate → rules that can only restrict → allow | appro
   people. The second profile, **Northwind Labs** (an English software company on GitHub,
   incidents and runbooks), runs on the same binary with no code change.
 - **Tested end to end.** Every demo story is an end-to-end test against the real stack (with
-  the scripted model); every policy rule is mutation-tested.
+  the scripted model); every policy rule is load-bearing:
+  deleting any single rule makes at least one security case fail (rule-deletion testing, not
+  mutation of conditions or thresholds).
 
 ## Architecture
 
@@ -165,8 +167,8 @@ on `96606d2`, all jobs green).
 |---|---|---|---|
 | Demo scenarios, Acme | 11 conversations over HTTP: login, SSE chat, approvers in the inbox, test-as, kill switch, A2A | **11 / 11** | CI `rust` job · `steward replay --profile profiles/acme` |
 | Demo scenarios, Northwind | 9 conversations, same binary, other company | **9 / 9** | CI `rust` job · `steward replay --profile profiles/devteam` |
-| Warden security suite, Acme | 46 written + 145 generated attacks | **191 / 191**, rule coverage 11/11, mutants killed 11/11 | CI `security-gates` · [`profiles/acme/scenarios/security/acme.yaml`](profiles/acme/scenarios/security/acme.yaml) |
-| Warden security suite, Northwind | 60 written + 116 generated attacks | **176 / 176**, rule coverage 10/10, mutants killed 10/10 | CI `security-gates` · [`profiles/devteam/scenarios/security/devteam.yaml`](profiles/devteam/scenarios/security/devteam.yaml) |
+| Warden security suite, Acme | 46 written + 145 generated attacks | **191 / 191**, rule coverage 11/11, rule-deletion mutants killed 11/11 | CI `security-gates` · [`profiles/acme/scenarios/security/acme.yaml`](profiles/acme/scenarios/security/acme.yaml) |
+| Warden security suite, Northwind | 60 written + 116 generated attacks | **176 / 176**, rule coverage 10/10, rule-deletion mutants killed 10/10 | CI `security-gates` · [`profiles/devteam/scenarios/security/devteam.yaml`](profiles/devteam/scenarios/security/devteam.yaml) |
 | Hard gates | scope violation, unapproved write, delegation escalation, failed cases | **0** | same Warden runs |
 | Decision latency (Acme policy, release) | `warden bench`, 100k decisions over the 46 written cases | p50 **≈ 25–27 µs**, p99 **≈ 60–66 µs** | local runs only, hardware-dependent, not in CI |
 | Rust tests | unit and end-to-end (gateway, agent loop, console, inbox, scenarios, Warden pins) | **46** passing | CI `rust` job · `cargo test --workspace` |
