@@ -136,7 +136,7 @@ every call       = scope gate → rules that can only restrict → allow | appro
   incidents and runbooks), runs on the same binary with no code change.
 - **Tested end to end.** Every demo story is an end-to-end test against the real stack (with
   the scripted model); every policy rule is load-bearing:
-  deleting any single rule makes at least one security case fail (rule-deletion testing, not
+  deleting any single rule makes at least one hand-written security case fail (rule-deletion testing, not
   mutation of conditions or thresholds).
 
 ## Architecture
