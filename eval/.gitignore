@@ -1,3 +1,6 @@
 report.md
 results.json
 .venv/
+# Archived runs that back published numbers are committed.
+!/runs/**/report.md
+!/runs/**/results.json

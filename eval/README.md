@@ -126,6 +126,39 @@ Judge (`deepseek-v4.1-flash`, 0.12 / 0.46 EUR): ~1.5 k in / 100 out per answer, 
 per run. The report shows the actual assistant cost (sum of `done.eur`), the ledger total from
 `/api/costs` and the judge's token cost.
 
+## Status of the real-model numbers
+
+The README and `docs/story.md` mention one local real-model run: 88 questions,
+`openrouter/anthropic/claude-haiku-5.5` (orchestrator, research) and
+`openrouter/deepseek/deepseek-v4.1-flash` (action, judge), approvals denied by the harness;
+reported rubric 97.7 % [93.8, 100], answers 52/52, judge 98.9 %, citations verbatim, gates 0,
+0.07 EUR. **These numbers are not yet reproducibly backed:**
+
+- No artifact exists. `report.md` and `results.json` are git-ignored and were not kept; nothing
+  in the repository or its history contains the run's output.
+- The commit is not recorded. The numbers entered the README in `c0ed1ad` (2026-11-06); the
+  rubric had been adjusted from live runs just before (`c7aca94`, `3489dfc`), and the harness
+  changed afterwards (`247505d`: the requester answers confirmations), so the current code is
+  not the code that produced them.
+- The reported 0.07 EUR does not fit the cost estimate above (~0.5–1.0 EUR per run); one of the
+  two is wrong and an archived run would show which.
+
+What would back them (needs a paid `OPENROUTER_API_KEY`; expected cost per the estimate above
+about 0.5–1.0 EUR for the assistant plus ~0.02 EUR for the judge, at OpenRouter's current prices):
+
+```sh
+# fresh backend with the key set, from the repo root
+cargo run --release -p steward -- demo --profile profiles/acme --listen 127.0.0.1:8000
+# in eval/
+d=runs/$(date +%F)-$(git rev-parse --short HEAD); mkdir -p $d
+uv run steward-eval --base http://127.0.0.1:8000 --profile ../profiles/acme --gate \
+    --judge-model openrouter/deepseek/deepseek-v4.1-flash --report $d/report.md --json $d/results.json
+```
+
+Then commit `eval/runs/<date>-<commit>/` (all data is synthetic) and link the README numbers to
+it. The report and JSON record the commit (`-dirty` if tracked files differed) and the models
+seen; `--replay results.json` re-scores the stored run without the backend or new API calls.
+
 ## Human labels (κ)
 
 See `profiles/acme/eval/README.md`. In short: run with a real model and `--label-sheet`, label
