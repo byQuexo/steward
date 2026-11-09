@@ -1,6 +1,6 @@
 # Company Assistant: Bauplan (Rust + rig, Framework + Acme-Demo) — Rev. 2
 
-> Nur Plan, gebaut wird mit Claude Code. Stand: 05.11.2026 (Rev. 2). Baut auf **Warden** (`github.com/byQuexo/warden`, ehemals Arbeitsname `agent-scope`) auf, das inzwischen gebaut, getestet und öffentlich ist.
+> Nur Plan; entwickelt in einem agentischen Entwicklungs-Workflow. Stand: 05.11.2026 (Rev. 2). Baut auf **Warden** (`github.com/byQuexo/warden`, ehemals Arbeitsname `agent-scope`) auf, das inzwischen gebaut, getestet und öffentlich ist.
 > Markierung: **[Annahme]** = nicht verifiziert, im genannten Spike prüfen. **[Verifiziert]** = nachgeschaut (Datum dabei). **[Warden]** = existiert bereits in Warden und wird nur genutzt.
 
 ---

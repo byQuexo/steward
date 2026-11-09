@@ -134,6 +134,10 @@ def test_cli_gate_passes_on_a_clean_refusal(tmp_path):
     assert "**PASSED**" in report and "Judge skipped" in report
     out = json.loads((tmp_path / "r.json").read_text(encoding="utf-8"))
     assert out["results"][0]["score"]["correct"] is True
+    # The run records the code it ran (the tests run inside the repo's git checkout).
+    commit = out["summary"]["run"]["commit"]
+    assert commit and len(commit.removesuffix("-dirty")) == 40
+    assert f"Commit: `{commit}`" in report
 
 
 def test_cli_gate_fails_on_a_built_in_salary_leak(tmp_path):

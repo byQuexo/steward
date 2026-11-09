@@ -43,13 +43,14 @@ generic "not permitted" when it tries anything else.
 
 | Claim | Evidence | What it does *not* prove |
 |---|---|---|
-| Permissions hold | Warden's security suites: 191 (Acme) and 176 (devteam) cases including generated attacks, 100 % rule coverage, every rule mutation caught | That the policy matches what a real company wants; the suites test the policy as written |
+| Permissions hold | Warden's security suites: 191 (Acme) and 176 (devteam) cases including generated attacks, 100 % rule coverage, deleting any single rule makes a case fail (rule deletion only; conditions and thresholds are not mutated) | That the policy matches what a real company wants; the suites test the policy as written |
 | The flows work end to end | 11 + 9 demo conversations replayed over HTTP against the full stack in CI; Playwright in two browsers; the Docker stack with real Keycloak tokens (13 checks) | Behaviour with a real model: replays use a scripted model |
 | The assistant cannot bypass the gateway | network test from inside the containers (12 checks) | Anything about a compromised Steward process, which holds user tokens |
-| Answers are good with a real model | 88 questions over 7 users, run locally with `claude-haiku-5.5` and `deepseek-v4.1-flash`: rubric 97.7 %, answerable questions 100 %, LLM judge 98.9 %, every citation verbatim, 0.07 EUR for all 88 | Generality: the questions were written for this data, the rubric was tuned on earlier runs, and the judge is another model. The 50 human labels that would validate the judge (κ) are not done yet |
+| Answers are good with a real model | **Not yet reproducibly backed.** One local run (2026-11-06) of the 88 questions with `claude-haiku-5.5` and `deepseek-v4.1-flash` reported rubric 97.7 %, but its report was not kept, its commit was not recorded and the harness changed afterwards. What an archived run needs: [eval/README.md](../eval/README.md#status-of-the-real-model-numbers) | Even once archived: generality (the questions were written for this data, the rubric was tuned on earlier runs, the judge is another model). The 50 human labels that would validate the judge (κ) are not done yet |
 
-The security numbers come from deterministic code and run on every push. The quality numbers
-come from one model on one day; treat them as "works", not as a benchmark.
+The security numbers come from deterministic code and run on every push. There is no
+reproducible quality number yet: CI uses a scripted model, and the nightly real-model eval is
+skipped (not passed) whenever no API key is configured.
 
 ## What is simulated
 
@@ -67,7 +68,10 @@ come from one model on one day; treat them as "works", not as a benchmark.
 
 ## What does not work yet
 
-- Approvals are held in memory; a restart drops pending ones (they fail closed).
+- Approvals are held in memory; a restart drops pending ones (they fail closed). Sessions and
+  chat history are in memory too.
+- `steward demo` logs in any profile user by name without a password and uses fixed dev
+  secrets; the Docker stack's Keycloak passwords equal the user ids. Local use only.
 - A user who confirms without reading lets an injected write through. Confirmation makes it
   visible, not impossible; channel rules are the second line.
 - When a user cancels, the model only learns "not approved", so it may say "nicht freigegeben"

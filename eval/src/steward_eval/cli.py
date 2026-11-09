@@ -13,6 +13,7 @@ import argparse
 import datetime as dt
 import json
 import math
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -137,6 +138,19 @@ def _clean(v: Any) -> Any:
     return v
 
 
+def git_commit() -> str | None:
+    """The checked-out commit, with `-dirty` when tracked files differ; None outside git.
+
+    Recorded in the report so a published number can be traced to the code that produced it.
+    """
+    try:
+        sha = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True, timeout=10).stdout.strip()
+        dirty = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"], capture_output=True, text=True, check=True, timeout=10).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return f"{sha}-dirty" if dirty else sha
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     started = dt.datetime.now(dt.UTC).strftime("%Y-%m-%d %H:%M UTC")
@@ -247,6 +261,7 @@ def main(argv: list[str] | None = None) -> int:
             "base": args.base if not args.replay else f"replay of {args.replay}",
             "model_mode": mode,
             "started": started,
+            "commit": git_commit(),
             "n_total": len(questions),
             "n_run": len(qs),
             "n_scripted_run": sum(q.scripted for q in qs),
