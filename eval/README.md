@@ -106,6 +106,14 @@ Other options: `--judge-model openrouter/<model>`, `--no-judge`, `--limit N`, `-
 verdicts are reused unless `--rejudge`). `STEWARD_EVAL_JUDGE_BASE` / `STEWARD_EVAL_JUDGE_KEY`
 point the judge at another OpenAI-compatible endpoint.
 
+### Nightly in CI
+
+`.github/workflows/nightly.yml` runs the full set with a real model and the judge, but only
+when the repository secret `OPENROUTER_API_KEY` is set. Without it the `eval` job is
+**skipped** (grey, with a notice and a "SKIPPED" run summary), not passed: a skipped nightly
+says nothing about answer quality. The per-push CI job `quality-eval` runs only the offline
+scripted subset (harness and gates, not quality).
+
 The backend keeps memory and ledger in process: restart it between runs for a clean state
 (the per-user daily budget is 1.50 EUR, the run budget 0.02 EUR).
 
